@@ -44,6 +44,21 @@ public enum CLIHelp {
             JSON: {"path", "bytesHashed", "wastedBytes", "sets": [{"size", "copies", "wastedBytes",
             "paths": [...]}]}
             """
+        case "sql": return """
+            usage: deepyellow sql <path|--demo> "<query>" [--json | --csv] [--top N]
+                   deepyellow sql --schema
+
+            Runs one read-only SQLite SELECT over the scanned files, in a table named nodes (views: files, dirs).
+            Joins, CTEs including recursive ones, and window functions work. Anything that would write is refused.
+            --demo uses the sample disk, so no folder is read. The table format shows up to --top rows
+            (default 200) and says how many more there are; --json and --csv stream every row.
+            `mark` is always NULL here. `safety` is computed only when the query mentions it.
+            --schema prints every column, the functions and the examples.
+
+            JSON: {"columns": [...], "rows": [[...], ...], "rowCount": N, "elapsedSeconds": S}
+            CSV: a header row, then one line per row; NULL is an empty field.
+            Exit codes: 0 success, 2 unknown path, 64 bad arguments, 65 invalid or refused query.
+            """
         default: return """
             deepyellow: read a folder and print what DeepYellow would show. It is read-only and has no delete command.
 
@@ -54,11 +69,12 @@ public enum CLIHelp {
               deepyellow reclaim <path> [--json]
               deepyellow spectrum <path> [--json]
               deepyellow dupes <path> [--min 1mb] [--json]
+              deepyellow sql <path|--demo> "<query>" [--json | --csv] [--top N]
               deepyellow --version | --help
 
             Run `deepyellow <command> --help` for the exact JSON fields.
             Colour: truecolor bars on a terminal; plain text when piped or when NO_COLOR is set.
-            Exit codes: 0 success, 2 the path does not exist or is not a folder, 64 bad arguments.
+            Exit codes: 0 success, 2 the path does not exist or is not a folder, 64 bad arguments, 65 an invalid or refused SQL query.
             """
         }
     }

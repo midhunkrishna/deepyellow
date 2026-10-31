@@ -95,6 +95,7 @@ enum MenuBuilder {
         menu.addItem(item("Size or File Count (m)", .toggleMetric, shell))
         menu.addItem(item("Cycle Colour Mode (c)", .cycleColor, shell))
         menu.addItem(item("Open the Ledger", .openLedger, shell, enabled: { shell.workspace.tree != nil }))
+        menu.addItem(item("SQL Drawer (s)", .toggleSQL, shell, enabled: { shell.workspace.tree != nil }))
         menu.addItem(item("Show or Hide Shortcut Hints", .toggleHints, shell))
         return menu
     }

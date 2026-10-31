@@ -1,6 +1,6 @@
 # DYWorkspace
 
-The headless app model. Every view binds to one `Workspace` (`@MainActor @Observable`). No SwiftUI, no Metal. Depends on DYCore, DYScan, DYAnalysis, DYAdvisor, DYDecide and DYPreview (types only).
+The headless app model. Every view binds to one `Workspace` (`@MainActor @Observable`). No SwiftUI, no Metal. Depends on DYCore, DYScan, DYAnalysis, DYAdvisor, DYDecide, DYSQL and DYPreview (types only).
 
 ```swift
 let workspace = Workspace(environment: .live(mover: SystemTrash()))   // the app entry point only
@@ -34,6 +34,7 @@ workspace.open(.demo)                  // or .path("/Users/me")
 | Review | `review`, `reviewPreview`, `reviewUpcoming(count:)` |
 | Messages | `notice` (`message`, `canUndo`), `undoNotice()`, `dismissNotice()` |
 | Ledger | `reconciliation` |
+| SQL | `sqlText`, `sqlPhase` (`idle`, `running`, `finished`, `failed(SQLFailure)`), `sqlResult`, `sqlDrillRow`, `sqlIsFiltering`, `sqlFilterSummary` ("12 things · 184 GB", nil when not filtering), `sqlHistory` |
 
 ## Commands
 
@@ -45,11 +46,23 @@ workspace.open(.demo)                  // or .path("/Users/me")
 - **Analyses**: run automatically after a scan in this order: reclaim report, ownership, kind refinement (the tree is swapped for `tree.replacingKinds`, so node ids stay valid, and `.dataless` files are never read). `findDuplicates()` runs only on request, because it reads file contents. `cancelAnalyses()` stops all of them.
 - **Review**: `startReview()` (async: the selection, or the largest undecided files under the focus), `startReview(nodes:title:)`, `startReview(family:)`, `startReview(worklist:)`, `reviewVerdict(_:)` (advances), `reviewGo(to:)`, `endReview()`. `undoDecision()` also steps the review back. `ReviewSession` exposes `current`, `index`, `isFinished`, `items` and `tally` (`kept`, `removed`, `later`, `left`, `removedBytes`, `decidedBytes`).
 - **Plan**: `applyPlan()` (async, returns the `ExecutionReport`), `cancelApply()`, `undoApply()`. After Apply the moved paths leave the views (`reconciliation.removedThisSessionBytes`) and their marks are cleared. Undo puts them back and restores the marks.
+- **SQL**: `runSQL(_:)` (background; a newer run cancels an older one; a failure leaves the previous filter in place), `cancelSQL()`, `clearSQL()` (views return to normal; text and history stay), `drillSQL(row:)` (`.groups` only; nil returns to every group), `selectSQLResults()`, `reviewSQLResults()`. See "SQL results" below.
 - **Waiting**: `await settle()` returns when all background work is done. Use it in tests and the CLI.
 
 ## Plan wording
 
 `plan.estimateIsLowerBound` is true when at least one figure is a floor. Say "frees at least" only then. `planEstimateText` does this for you ("frees at least 41.2 GB once the Trash is emptied"). The plan first appears with scan-time figures, then `planIsRefined` flips once the injected `ReclaimProbing` has measured each item.
+
+## SQL results
+
+A `.nodes` or `.groups` result is a set of things on disk, and every view shows it through the same path as the `/` query. A node in the set matches with its whole subtree, and the set is ANDed with the `/` query. `baseLens` ignores SQL, so the ledger still reconciles (`filteredBytes` covers the query and the set). `.tableOnly` results leave the views as they were and clear any earlier SQL filter.
+
+- Runs only after the scan has finished. Before that, `sqlPhase` is `failed(.invalid("SQL is available when the scan finishes."))`.
+- The query reads `baseLens`, the resolved decisions, the safety tiers and `now`, so `visible`, `mark` and `safety` match the app. If a lens is being recomputed, the run waits for it.
+- A result stays true: after a tree swap, hide rule, decision, Trash or tier change the statement re-runs on the new lens, cancelling any older run. A set never applies to a tree its ids don't belong to; it is dropped until the re-run lands. Kind refinement keeps ids, so the result is rebound to the refined tree. `sqlDrillRow` survives a re-run only when the row count is unchanged.
+- `sqlHistory`: newest first, at most 20, no duplicates, saved as `sql-history.json` under the data directory.
+- SQL never marks anything, never builds a plan and never calls the Trash mover. Marks still go through selection and `mark(_:)`.
+- `sqlFilterSummary` counts topmost nodes of the set, and the bytes are the lens root, so they include the folders above the set.
 
 ## Ledger (`reconciliation`)
 

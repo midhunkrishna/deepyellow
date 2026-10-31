@@ -8,6 +8,10 @@ size>100mb age>1y kind:video -path:Photos ext:mov,mp4 is:clone mark:remove safe:
 
 A query is a list of terms separated by spaces. A file must match **all** of them. Put a `-` in front of a term to negate it. Wrap text that contains spaces in double quotes: `path:"Application Support"`. At most 24 terms are used.
 
+## Query or SQL
+
+The query is the quick filter that works in every view as you type. For joins, grouping, sums and calculations, use [SQL](sql.md): a SQL result with an `id` column becomes the set every view shows. They combine, and a node must match both.
+
 ## Terms
 
 | Term | Matches |

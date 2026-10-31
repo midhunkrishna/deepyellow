@@ -37,6 +37,7 @@
 <li><a href="views.html" aria-current="page">Views</a></li>
 <li><a href="query-language.html">Query language</a></li>
 <li><a href="safety-and-accounting.html">Safety and accounting</a></li>
+<li><a href="sql.html">SQL</a></li>
 <li><a href="reclaim-rules.html">Reclaim rules</a></li>
 <li><a href="cli.html">Command line</a></li>
 </ul>
@@ -125,6 +126,9 @@
 <p><kbd>Space</kbd> opens a pane on the right from any view, and the arrow keys keep working underneath it. Video plays with a filmstrip and hover scrub; images decode to screen size with pan and zoom; audio shows a waveform; PDFs and text render natively; everything else uses QuickLook. A folder shows a composition of its largest children. iCloud placeholders are never downloaded by a preview: you get metadata and an explicit Download button.</p>
 <p><img src="../images/app-preview-video.webp" alt="Previewing a video with its filmstrip" loading="lazy" width="1600" height="1000"></p>
 <p><img src="../images/app-preview-image.webp" alt="Previewing an image" loading="lazy" width="1600" height="1000"></p>
+<h2 id="sql">SQL <a class="anchor" href="#sql" aria-label="Link to this section">#</a></h2>
+<p><kbd>s</kbd> opens the SQL drawer at the bottom. It is not an eighth view: the view above stays visible and responds to the result. A result with an <code>id</code> column, or a <code>GROUP BY</code> with <code>ids(id)</code>, becomes the set that Map, Things, Spectrum, Field and Rings show. Folders bring their whole subtree, and the result combines with the <code>/</code> query. A table without an <code>id</code> leaves the views alone. Read-only. See <a href="sql.html">SQL</a>.</p>
+<p><img src="../images/app-sql-map.webp" alt="SQL driving the Map" loading="lazy" width="1600" height="1000"></p>
 <h2 id="palette-and-query">Palette and query <a class="anchor" href="#palette-and-query" aria-label="Link to this section">#</a></h2>
 <p><kbd>&#8984;K</kbd> opens the palette: every command, and a jump to an exact path you type or paste. There is no fuzzy path search and no saved queries. <kbd>/</kbd> focuses the <a href="query-language.html">query</a>.</p>
 <p><img src="../images/app-palette.webp" alt="The palette" loading="lazy" width="1600" height="1000"></p>
@@ -139,6 +143,7 @@
 <tr><td><kbd>/</kbd></td><td>Focus the query</td><td><kbd>h</kbd></td><td>Hide the selection</td></tr>
 <tr><td><kbd>&#8984;K</kbd></td><td>Palette</td><td><kbd>m</kbd> / <kbd>c</kbd></td><td>Metric / colour mode</td></tr>
 <tr><td><kbd>&#8997;</kbd> (hold)</td><td>Show all shortcuts</td><td><kbd>Esc</kbd></td><td>Back out one level</td></tr>
+<tr><td><kbd>s</kbd></td><td>Toggle the <a href="sql.html">SQL</a> drawer</td><td></td><td></td></tr>
 </tbody></table>
 <h2 id="hiding">Hiding <a class="anchor" href="#hiding" aria-label="Link to this section">#</a></h2>
 <p>Hide rules take things out of the views, never out of the accounting. macOS plumbing such as Spotlight indexes and system volume internals is hidden by default, while <code>~/Library/Caches</code> is kept visible on purpose. Right-click for "Hide this", "Hide all named X" or "Hide all .ext". Rules apply instantly, with no rescan, and a toast offers Undo. The Ledger always shows how much is hidden and by which rule.</p>

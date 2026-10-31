@@ -113,6 +113,12 @@ Press <kbd>r</kbd> to take the current set (a selection, a query result or a Rec
 
 ![Previewing an image](screens/app-preview-image.png)
 
+## SQL
+
+<kbd>s</kbd> opens the SQL drawer at the bottom. It is not an eighth view: the view above stays visible and responds to the result. A result with an `id` column, or a `GROUP BY` with `ids(id)`, becomes the set that Map, Things, Spectrum, Field and Rings show. Folders bring their whole subtree, and the result combines with the `/` query. A table without an `id` leaves the views alone. Read-only. See [SQL](sql.md).
+
+![SQL driving the Map](screens/app-sql-map.png)
+
 ## Palette and query
 
 <kbd>&#8984;K</kbd> opens the palette: every command, and a jump to an exact path you type or paste. There is no fuzzy path search and no saved queries. <kbd>/</kbd> focuses the [query](query-language.md).
@@ -130,6 +136,7 @@ Press <kbd>r</kbd> to take the current set (a selection, a query result or a Rec
 | <kbd>/</kbd> | Focus the query | <kbd>h</kbd> | Hide the selection |
 | <kbd>&#8984;K</kbd> | Palette | <kbd>m</kbd> / <kbd>c</kbd> | Metric / colour mode |
 | <kbd>&#8997;</kbd> (hold) | Show all shortcuts | <kbd>Esc</kbd> | Back out one level |
+| <kbd>s</kbd> | Toggle the [SQL](sql.md) drawer | | |
 
 ## Hiding
 

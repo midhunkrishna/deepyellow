@@ -52,6 +52,10 @@ macOS 15 or later, on Apple silicon and Intel.
 
 For a complete scan of your whole disk, yes. Without it macOS hides some folders from the app, and DeepYellow counts and reports them as unreadable instead of leaving them out silently. You can scan one folder you own without the permission. See [Full Disk Access](install.md#full-disk-access).
 
+## Can SQL delete or change anything?
+
+No. It is SQLite's `SELECT` dialect and it is read-only: writes are refused, and a result never marks or removes anything. See [SQL](sql.md#refusals).
+
 ## Can the command-line tool delete anything?
 
 No. It is read-only, and there is no delete command, by design. See [Command line](cli.md).

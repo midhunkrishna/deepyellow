@@ -37,6 +37,7 @@
 <li><a href="views.html">Views</a></li>
 <li><a href="query-language.html">Query language</a></li>
 <li><a href="safety-and-accounting.html">Safety and accounting</a></li>
+<li><a href="sql.html">SQL</a></li>
 <li><a href="reclaim-rules.html">Reclaim rules</a></li>
 <li><a href="cli.html">Command line</a></li>
 </ul>
@@ -74,6 +75,8 @@
 <p>macOS 15 or later, on Apple silicon and Intel.</p>
 <h2 id="do-i-need-full-disk-access">Do I need Full Disk Access? <a class="anchor" href="#do-i-need-full-disk-access" aria-label="Link to this section">#</a></h2>
 <p>For a complete scan of your whole disk, yes. Without it macOS hides some folders from the app, and DeepYellow counts and reports them as unreadable instead of leaving them out silently. You can scan one folder you own without the permission. See <a href="install.html#full-disk-access">Full Disk Access</a>.</p>
+<h2 id="can-sql-delete-or-change-anything">Can SQL delete or change anything? <a class="anchor" href="#can-sql-delete-or-change-anything" aria-label="Link to this section">#</a></h2>
+<p>No. It is SQLite's <code>SELECT</code> dialect and it is read-only: writes are refused, and a result never marks or removes anything. See <a href="sql.html#refusals">SQL</a>.</p>
 <h2 id="can-the-command-line-tool-delete-anything">Can the command-line tool delete anything? <a class="anchor" href="#can-the-command-line-tool-delete-anything" aria-label="Link to this section">#</a></h2>
 <p>No. It is read-only, and there is no delete command, by design. See <a href="cli.html">Command line</a>.</p>
 <h2 id="is-there-a-light-mode">Is there a light mode? <a class="anchor" href="#is-there-a-light-mode" aria-label="Link to this section">#</a></h2>

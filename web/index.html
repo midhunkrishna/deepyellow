@@ -109,12 +109,32 @@
   </div>
 </section>
 
-<section id="terminal" class="alt">
+<section id="sql" class="alt">
+  <div class="wrap split">
+    <div>
+      <div class="eyebrow">SQL</div>
+      <h2>Ask your disk a question. Every view answers.</h2>
+      <p class="sub">A SQL result is not just a table. Include <code>id</code> and it becomes the set that the Map, Things, Spectrum, Field and Rings all show: the query on the right turns each of them into just those 100 files. Use <code>ids(id)</code> in a <code>GROUP BY</code> and you can click a group to narrow to it.</p>
+      <p class="sub">It is SQLite's <code>SELECT</code> dialect, and it is read-only. Writes are refused, sixteen attempts in the tests. SQL never marks or removes anything, and your marks still go through selection and <kbd>k</kbd> <kbd>x</kbd> <kbd>l</kbd> <kbd>u</kbd>. Grouping 4,856,132 items by kind took 729 ms in a release build on one machine, on a synthetic disk.</p>
+      <p><a href="docs/sql.html">SQL in the docs</a> &middot; <a href="features.html#sql">See it</a></p>
+    </div>
+    <div class="term" role="img" aria-label="A SQL query selecting the 100 biggest files">
+      <div class="term-bar"><i></i><i></i><i></i></div>
+<pre><span class="d">-- press s, then Cmd-Return</span>
+<span class="p">SELECT</span> id, name, human(size) <span class="p">AS</span> readable
+<span class="p">FROM</span> files
+<span class="p">ORDER BY</span> size <span class="p">DESC</span>
+<span class="p">LIMIT</span> 100</pre>
+    </div>
+  </div>
+</section>
+
+<section id="terminal">
   <div class="wrap split flip">
     <div>
       <div class="eyebrow">Also in your terminal</div>
       <h2>The same engines, read-only.</h2>
-      <p class="sub"><code>deepyellow things</code>, <code>reclaim</code>, <code>spectrum</code> and <code>dupes</code> print their results with truecolor bars on a terminal and plain text when piped. Add <code>--json</code> for scripts. There is no delete command, on purpose.</p>
+      <p class="sub"><code>deepyellow things</code>, <code>reclaim</code>, <code>spectrum</code>, <code>dupes</code> and <code>sql</code> print their results with truecolor bars on a terminal and plain text when piped. Add <code>--json</code> for scripts. There is no delete command, on purpose.</p>
       <p><a href="docs/cli.html">CLI reference</a></p>
     </div>
     <div class="term" role="img" aria-label="Output of deepyellow things on a small demo folder: five ranked items with bars">

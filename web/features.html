@@ -110,6 +110,28 @@
     <figure><img src="images/app-ledger.webp" alt="The Ledger reconciliation" width="1600" height="1000" loading="lazy"><figcaption>The Ledger.</figcaption></figure>
   </div>
 </section>
+<section id="sql">
+  <div class="wrap split flip">
+    <div>
+      <div class="eyebrow">SQL</div>
+      <h2>Ask a question. Every view answers.</h2>
+      <p class="sub">Press <kbd>s</kbd> for the SQL drawer. A result with an <code>id</code> column becomes the set that Map, Things, Spectrum, Field and Rings all show: <code>SELECT id ... LIMIT 20</code> turns each of them into just those 20 files. Add <code>ids(id)</code> to a <code>GROUP BY</code> and you can click a group to narrow to it. Without an <code>id</code> the result is a table and the views stay as they are.</p>
+      <p class="sub">It is SQLite's <code>SELECT</code> dialect and it is read-only: writes are refused, and SQL never marks or removes anything. Marks still go through selection and <kbd>k</kbd> <kbd>x</kbd> <kbd>l</kbd> <kbd>u</kbd>. Folders bring their whole subtree, and results combine with the <kbd>/</kbd> query. <a href="docs/sql.html">SQL in the docs</a></p>
+    </div>
+    <figure><img src="images/app-sql-map.webp" alt="The Map narrowed to the biggest files by a SQL result" width="1600" height="1000" loading="lazy"><figcaption>The Map, narrowed by a SQL result.</figcaption></figure>
+  </div>
+</section>
+<section id="sql-groups" class="alt">
+  <div class="wrap split">
+    <figure><img src="images/app-sql-groups.webp" alt="A GROUP BY result with one group drilled into Things" width="1600" height="1000" loading="lazy"><figcaption>Groups by kind: click one and Things shows just that group.</figcaption></figure>
+    <div>
+      <div class="eyebrow">Groups and tables</div>
+      <h2>A group is a click away from a view.</h2>
+      <p class="sub">Measured in a release build on a synthetic disk of 4,856,132 items, on one machine: a group by kind with a sum and a count took 729 ms, a filter and sort for the top 100 took 173 ms, and a group by extension with <code>ids</code> took 1,282 ms. Sixteen write attempts are refused in the tests. <a href="docs/sql.html#speed">All five figures</a></p>
+      <figure style="margin-top:16px"><img src="images/app-sql-table.webp" alt="A table-only SQL result" width="1600" height="1000" loading="lazy"></figure>
+    </div>
+  </div>
+</section>
 <section id="query">
   <div class="wrap split">
     <div>

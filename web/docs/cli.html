@@ -37,6 +37,7 @@
 <li><a href="views.html">Views</a></li>
 <li><a href="query-language.html">Query language</a></li>
 <li><a href="safety-and-accounting.html">Safety and accounting</a></li>
+<li><a href="sql.html">SQL</a></li>
 <li><a href="reclaim-rules.html">Reclaim rules</a></li>
 <li><a href="cli.html" aria-current="page">Command line</a></li>
 </ul>
@@ -61,6 +62,7 @@ deepyellow things &lt;path&gt; [--min 100mb] [--top N] [--json]
 deepyellow reclaim &lt;path&gt; [--json]
 deepyellow spectrum &lt;path&gt; [--json]
 deepyellow dupes &lt;path&gt; [--min 1mb] [--json]
+deepyellow sql &lt;path|--demo&gt; "&lt;query&gt;" [--json | --csv] [--top N]
 deepyellow --version | --help</code></pre>
 <h3 id="open-the-app">Open the app <a class="anchor" href="#open-the-app" aria-label="Link to this section">#</a></h3>
 <p><code>deepyellow &lt;path&gt;</code> opens DeepYellow on the folder, and uses the running app if there is one. The same thing works from Finder, because folders are registered as documents: <code>open -a DeepYellow &lt;path&gt;</code>, dropping a folder on the Dock icon, and Open With all work.</p>
@@ -124,6 +126,22 @@ Duplicates under ~/Downloads  ·  6.29 MB wasted in 1 sets  ·  13.0 MB read
   ██████████████    6.29 MB wasted  2 copies of 6.29 MB
       Ubuntu-24.04.iso
       design-handoff/Ubuntu-copy.iso</code></pre>
+<h3 id="sql"><code>sql</code> <a class="anchor" href="#sql" aria-label="Link to this section">#</a></h3>
+<p>Runs one <a href="sql.html">SQL</a> statement against a scan of the path, or against the sample disk with <code>--demo</code>, so examples never need a real path. Read-only, like everything here: statements that write are refused.</p>
+<pre><code>deepyellow sql --demo "SELECT kind, human(SUM(size)) AS total, COUNT(*) AS files FROM files GROUP BY kind"</code></pre>
+<table>
+<thead><tr><th>Option</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code>--top &lt;N&gt;</code></td><td>Rows shown in the table, default 200. The rest are summarised as "N more rows".</td></tr>
+<tr><td><code>--json</code></td><td>Every row, as JSON, written as it is produced</td></tr>
+<tr><td><code>--csv</code></td><td>Every row, as CSV, written as it is produced</td></tr>
+<tr><td><code>--schema</code></td><td>Print the <code>nodes</code> columns, the functions and the examples, then stop</td></tr>
+</tbody></table>
+<ul>
+<li>The same <code>nodes</code> table, <code>files</code> and <code>dirs</code> views and functions as in the app. There are no views to drive on the command line, so <code>id</code> and <code>ids(id)</code> columns are just columns.</li>
+<li><strong><code>mark</code> is always NULL</strong>, because the command line has no decisions. <strong><code>safety</code> is computed only when the query text mentions it</strong>, so queries that do not use it do not pay for the safety scan.</li>
+<li>A refused or invalid statement prints a message on standard error and exits 65.</li>
+</ul>
 <h2 id="colour-piping-and-no_color">Colour, piping and <code>NO_COLOR</code> <a class="anchor" href="#colour-piping-and-no_color" aria-label="Link to this section">#</a></h2>
 <ul>
 <li>On a terminal you get truecolor bars.</li>
@@ -171,6 +189,7 @@ dupes     {"path", "bytesHashed", "wastedBytes", "sets": [{"size", "copies", "wa
 <tr><td><code>0</code></td><td>Success</td></tr>
 <tr><td><code>2</code></td><td>The path does not exist or is not a folder. A message goes to standard error.</td></tr>
 <tr><td><code>64</code></td><td>Bad arguments: an unknown option, a missing or extra path, an invalid size. A message goes to standard error.</td></tr>
+<tr><td><code>65</code></td><td><code>sql</code> only: the query is invalid or was refused (for example a <code>DELETE</code>). A message goes to standard error.</td></tr>
 </tbody></table>
 <h2 id="examples">Examples <a class="anchor" href="#examples" aria-label="Link to this section">#</a></h2>
 <p>Anything over 1 GB, as JSON, into <code>jq</code>:</p>

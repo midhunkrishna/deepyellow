@@ -37,6 +37,7 @@
 <li><a href="views.html">Views</a></li>
 <li><a href="query-language.html" aria-current="page">Query language</a></li>
 <li><a href="safety-and-accounting.html">Safety and accounting</a></li>
+<li><a href="sql.html">SQL</a></li>
 <li><a href="reclaim-rules.html">Reclaim rules</a></li>
 <li><a href="cli.html">Command line</a></li>
 </ul>
@@ -51,6 +52,8 @@
 <p>One small language, used everywhere. Press <kbd>/</kbd> to type a query. It filters every view live, and brushing in <a href="views.html#spectrum">Spectrum</a> or <a href="views.html#field">Field</a> writes into it, so the filter is always visible and editable.</p>
 <pre><code>size&gt;100mb age&gt;1y kind:video -path:Photos ext:mov,mp4 is:clone mark:remove safe:safe</code></pre>
 <p>A query is a list of terms separated by spaces. A file must match <strong>all</strong> of them. Put a <code>-</code> in front of a term to negate it. Wrap text that contains spaces in double quotes: <code>path:"Application Support"</code>. At most 24 terms are used.</p>
+<h2 id="query-or-sql">Query or SQL <a class="anchor" href="#query-or-sql" aria-label="Link to this section">#</a></h2>
+<p>The query is the quick filter that works in every view as you type. For joins, grouping, sums and calculations, use <a href="sql.html">SQL</a>: a SQL result with an <code>id</code> column becomes the set every view shows. They combine, and a node must match both.</p>
 <h2 id="terms">Terms <a class="anchor" href="#terms" aria-label="Link to this section">#</a></h2>
 <table>
 <thead><tr><th>Term</th><th>Matches</th></tr></thead>

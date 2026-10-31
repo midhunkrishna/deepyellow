@@ -37,6 +37,7 @@
 <li><a href="views.html">Views</a></li>
 <li><a href="query-language.html">Query language</a></li>
 <li><a href="safety-and-accounting.html">Safety and accounting</a></li>
+<li><a href="sql.html">SQL</a></li>
 <li><a href="reclaim-rules.html">Reclaim rules</a></li>
 <li><a href="cli.html">Command line</a></li>
 </ul>
@@ -56,6 +57,7 @@
 <tr><td><code>DYCore</code></td><td>The shared vocabulary: the compact file tree, file kinds, safety tiers, decisions, the colour palette, number formatting, and the synthetic tree used for demos and tests</td></tr>
 <tr><td><code>DYScan</code></td><td>The scanner, the scan cache, volume information, and the Full Disk Access probe</td></tr>
 <tr><td><code>DYAnalysis</code></td><td>Ignore rules, the <a href="query-language.html">query language</a>, Things, Spectrum and Field</td></tr>
+<tr><td><code>DYSQL</code></td><td>The read-only SQL engine: a virtual <code>nodes</code> table over the file tree, the schema and function docs, and the guards that refuse writes. Links the system SQLite and nothing else</td></tr>
 <tr><td><code>DYAdvisor</code></td><td>The <a href="reclaim-rules.html">reclaim rules</a>, duplicate finding, app ownership and worklists</td></tr>
 <tr><td><code>DYDecide</code></td><td>Decisions, the removal Plan and its guards, and the Trash executor with its journal</td></tr>
 <tr><td><code>DYRender</code></td><td>The Metal map, Rings and Field canvases</td></tr>

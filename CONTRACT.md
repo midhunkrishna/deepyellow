@@ -258,3 +258,110 @@ Screenshot harness: `DeepYellow --demo --shot <name> --out <file>` renders offsc
 - `web/` is plain static HTML and CSS with no build step or external requests. Structure is inspired by the owner's Marginalia site (https://marginalia.midhun-krishna-usa.workers.dev/) (index and features pages, read it; don't copy its branding) but it should feel like a **system tool**. Download buttons point at `https://github.com/midhunkrishna/deepyellow/releases/latest/download/DeepYellow.dmg`, and a Releases link at `/releases`.
 - **"If macOS blocks it"** is a prominent section, on the site and in `docs/install.md`. Because the build is not notarized: why it happens, the System Settings > Privacy & Security > Open Anyway steps on macOS 15+ (Control-click no longer bypasses Gatekeeper since macOS 15), the `xattr` alternative with an honest note on what it does, how to verify the checksum, and building from source as the zero-trust route. Full Disk Access steps too, including that ad-hoc signed updates may require re-granting it.
 - Only claim what's measured or tested. Real figures: Things cut under 3 ms and queries 23–42 ms on 4.86M nodes; map zoom about 200 fps estimated at p95 on M4 offscreen, 4.86M nodes; scan about 150k files/sec on a home folder of 2.18M files while the machine was under load. Use careful wording, and no competitor bashing.
+
+# Wave 3: SQL (v0.2.0)
+
+A SQL result is a set of things on disk, not only a table. **Every view shows that set**, through the same path as the `/` query.
+
+## Ownership
+| Owner | Files |
+|---|---|
+| Engine | `Packages/DYSQL/**` (`SQLTypes.swift` is written and fixed) |
+| Workspace | `Packages/DYWorkspace/**` |
+| Shell | `Sources/DeepYellow/Kit/**`, `Tests/DeepYellowKitTests/**`, root `Package.swift`, `scripts/make-screens.sh`, `scripts/test-all.sh` only if it needs the new package |
+| Site | `docs/**`, `web/**`, `README.md` |
+
+Test commands: `swift test --package-path Packages/DYSQL`, `swift test --package-path Packages/DYWorkspace`, `swift test` at the root, `make test` for all.
+
+## DYSQL (depends on DYCore; links the system `sqlite3`; no other dependency)
+```swift
+public enum SQLEngine {
+    /// Runs one read-only statement on a fresh in-memory connection. Blocks; call off the main thread.
+    /// `rowLimit` caps `SQLResult.rows`; `rowCount` and `nodes` still cover every row. `onRow`, when given, receives every row
+    /// (without the `ids` column) as it is produced, for streaming. `isCancelled` is polled through the progress handler.
+    public static func run(_ sql: String, context: SQLContext, rowLimit: Int = 5_000,
+                           onRow: (([SQLValue]) -> Void)? = nil, isCancelled: @escaping () -> Bool = { false }) throws -> SQLResult  // throws SQLFailure
+    /// Column names of a statement without running it, or a failure. For showing errors early.
+    public static func validate(_ sql: String, context: SQLContext) throws -> [String]
+    public static let examples: [SQLExample]     // each must run on SyntheticTree; each drives the views except where titled otherwise
+    public static let schema: [SQLColumnDoc]     // every `nodes` column
+    public static let functions: [SQLColumnDoc]  // name, signature in `type`, meaning
+}
+```
+**Schema.** Virtual table `nodes`, one row per node, no copying of the tree; views `files` (`is_dir = 0 AND visible = 1`) and `dirs` (`is_dir = 1 AND visible = 1`), created before the authorizer is installed.
+
+| Column | Type | Meaning |
+|---|---|---|
+| `id` | INTEGER | Node id |
+| `parent` | INTEGER | Parent's id; NULL for the root |
+| `name` | TEXT | File or folder name |
+| `ext` | TEXT | Lower-case extension without the dot; NULL for none or for folders |
+| `path` | TEXT | Full path, built only when read |
+| `depth` | INTEGER | 0 for the root |
+| `size` | INTEGER | Bytes on disk as the views count them: `lens.size` when included, else `tree.allocated` |
+| `logical` | INTEGER | Logical bytes |
+| `file_count` | INTEGER | Files at or under: `lens.files` when included, else `tree.fileCount` |
+| `modified`, `accessed` | INTEGER | Seconds since 1970 |
+| `kind` | TEXT | `video image audio document code application archive other` |
+| `is_dir`, `is_package`, `is_symlink`, `is_clone`, `is_hardlink`, `is_dataless` | INTEGER | 0 or 1, from `NodeFlags` |
+| `visible` | INTEGER | 1 when `lens.included` |
+| `mark` | TEXT | `keep`, `remove`, `later`; NULL for none or when decisions are unavailable |
+| `safety` | TEXT | `safe`, `rebuild`, `review`, `never`, using the `SafetyTier` names; NULL for no advice |
+
+**Functions.** `kb(n) mb(n) gb(n) tb(n)` (decimal, matching `Format.bytes`), `human(bytes)` (`Format.bytes`), `age_days(seconds)` (from `SQLContext.now`), `ids(id)` (aggregate returning a compact blob of its node ids; a column must be aliased `ids` to count as a group).
+
+**Result shape.** A column named exactly `id` makes `.nodes`; otherwise a column named exactly `ids` whose values are `ids(...)` blobs makes `.groups`; otherwise `.tableOnly`. Ids outside the tree are ignored, not errors. `id` stays visible in `columns`; `ids` is removed from it.
+
+**Decided.**
+- New connection per run, `:memory:`, `temp_store=MEMORY` so sorts never spill to disk. Tree handed to the module through client data, never a global.
+- Read-only by construction and in depth: the vtab has no `xUpdate`; authorizer allows only SELECT, READ, FUNCTION and RECURSIVE; `sqlite3_stmt_readonly` must be true; `SQLITE_LIMIT_ATTACHED` is 0; memory capped at 2 GB by the progress handler reading the process footprint and interrupting, mapped to `.tooLarge` (the system SQLite has no memory accounting, so `sqlite3_hard_heap_limit64` does nothing). A probe test proves DELETE, UPDATE, INSERT, DROP, CREATE, ATTACH, DETACH, VACUUM INTO, PRAGMA and `load_extension` are refused and create no file.
+- Refusals say plainly what happened: "DeepYellow's SQL is read-only, so DELETE isn't allowed. To remove something, select it and press x."
+- `xBestIndex` pushes down `id = ?` to one row and `parent = ?` to the child range. `kind` and flag columns must not allocate per row: use static strings with `SQLITE_STATIC`, fixing the spike's slow `String(describing:)`.
+- Budgets in release on `SyntheticTree.make(scale: 100)` (4.86M nodes), printed by an executable target `dy-sql-bench`: connection setup under 20 ms, `SELECT kind, SUM(size), COUNT(*) FROM files GROUP BY kind` under 1 s (the spike took 2.9 s).
+- Measured facts only in docs. If a budget is missed, report the number.
+
+**Ruled out.** A copy into a real SQLite table (doubles memory, slow start). A SQL parser of our own. A C shim for `sqlite3_db_config`: it is variadic and unavailable from Swift, and the authorizer already covers it.
+
+## Workspace
+```swift
+public enum SQLPhase: Equatable { case idle, running, finished, failed(SQLFailure) }
+
+extension Workspace {
+    public internal(set) var sqlText: String             // last text run
+    public internal(set) var sqlPhase: SQLPhase
+    public internal(set) var sqlResult: SQLResult?
+    public internal(set) var sqlDrillRow: Int?           // the group row narrowing the views, if any
+    public var sqlIsFiltering: Bool { get }              // a result is narrowing the views now
+    public var sqlFilterSummary: String? { get }         // "12 things · 184 GB" from the lens, nil when not filtering
+    public var sqlHistory: [String] { get }              // newest first, at most 20, persisted as sql-history.json under the data directory
+    public func runSQL(_ text: String)                   // background; a newer run cancels an older one; a failure leaves the previous filter in place
+    public func cancelSQL()
+    public func clearSQL()                               // the views return to normal; text and history stay
+    public func drillSQL(row: Int?)                      // .groups only: narrows to that row's nodes; nil returns to every group
+    public func selectSQLResults()                       // selects every node of the current set through select(_:)
+    public func reviewSQLResults()                       // startReview(nodes:title:) over the current set
+}
+```
+**Decided.**
+- `LensInput` gains the current node set. A node in the set matches with its whole subtree; the mask is built in one linear pass over the BFS order, then **ANDed with the `/` query**. `baseLens` ignores SQL, as it ignores the query. The ledger's filtered figure covers both.
+- `.tableOnly` results leave the views as they were and clear any earlier SQL filter.
+- `SQLContext` uses `baseLens`, `resolved.effective`, `reclaimReport?.nodeTier` and `now`, so `visible`, `mark` and `safety` match the app.
+- **A result stays true.** After a tree swap (rescan, kind refinement), rule, decision, Trash or tier change, the last SQL re-runs automatically once the new `baseLens` is published, cancelling any older run. An old set never applies to a new tree: if `result.tree !== tree` and ids may differ, drop the mask until the re-run lands. Kind refinement keeps ids. `sqlDrillRow` survives only when the row count is unchanged.
+- During a live scan, `runSQL` runs on the current snapshot only after `scanPhase == .finished`; before that it sets `failed(.invalid(message: "SQL is available when the scan finishes."))`.
+- SQL never marks anything and never reaches `applyPlan`. Marks still go through selection and `k x l u`.
+- `settle()` waits for SQL too. No `SystemTrash`, no real paths: tests use `.demo`.
+
+## Shell and CLI
+**SQL drawer**, not an eighth lens, because the views must stay visible and respond above it. `s` or View ▸ SQL or the palette toggles it. It docks at the bottom over the ledger line's top edge, resizable, default about 38% of the height; the lens above shrinks.
+- Editor: monospaced, plain, `⌘⏎` runs while the editor has focus (it must win over Open Plan; outside the editor `⌘⏎` still opens the Plan). Single-key shortcuts don't fire while typing. `Esc` leaves the editor.
+- Toolbar: Run, Cancel while running, Examples menu (`SQLEngine.examples`), History menu, Schema popover (`schema` and `functions`), elapsed time, and for `.nodes` and `.groups` the buttons **Select all** and **Review**.
+- Results: virtualised table, tabular numerals, right-aligned numbers, up to 5,000 rows, with "showing 5,000 of 1,204,311 rows" when capped. A `.nodes` row click calls `click(_:additive:)`, so the shared selection, preview and marks work as everywhere; hover feeds `hover`. A `.groups` row click calls `drillSQL(row:)` and shows "All groups" to go back.
+- Top bar chip beside the query field while filtering: `SQL 12 things · 184 GB ✕`. `✕` calls `clearSQL`. Empty sets show the views' existing empty state and the chip still says 0.
+- `.tableOnly` shows the plain line: "This result has no id column, so the views stay as they are. Add id to the SELECT, or ids(id) to a GROUP BY."
+- Colours only from `Palette`/`Theme`. Gold is not used for results: it stays reserved for reclaimable and focus.
+- Shots, added to the harness and `make-screens.sh` on the demo disk: `app-sql-map` (top files driving the Map), `app-sql-groups` (GROUP BY with one group drilled into Things), `app-sql-table`.
+
+**CLI**: `deepyellow sql <path|--demo> "<query>" [--json | --csv] [--top N]`. Read-only. Human table shows up to `--top` rows (default 200), then "N more rows"; `--json` and `--csv` stream every row through `onRow`. `--schema` prints `schema`, `functions` and `examples`. Exit 0 on success, 2 for an unknown path, 64 for bad arguments, 65 for an invalid or refused query, message on stderr. `--demo` uses the sample disk so docs and tests never need real paths. `mark` is NULL in the CLI; `safety` is computed only when the query text mentions it, then documented as such. Add `DYSQL` to `libraries` in the root `Package.swift` and to `DYWorkspace`'s dependencies.
+
+## Site and docs
+`docs/sql.md` (new): what it is and isn't (SQLite's SELECT dialect: joins, CTEs including recursive, window functions, read-only), how results drive views, schema, functions, examples, refusals, CLI. `docs/README.md`, `docs/cli.md`, `docs/views.md`, `docs/query-language.md` (when to use which), `README.md`, `web/features.html`, regenerate `web/docs`. Figures come from `dy-sql-bench` only, supplied by the orchestrator.

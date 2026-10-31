@@ -11,7 +11,7 @@ bin="$root/dist/DeepYellow.app/Contents/MacOS/DeepYellow"
 [ -x "$bin" ] || { echo "missing $bin; run 'make app' first" >&2; exit 1; }
 command -v cwebp >/dev/null 2>&1 || { echo "cwebp not found" >&2; exit 1; }
 
-all="app-map app-map-safety app-map-files app-things app-spectrum app-field app-rings app-browse app-reclaim app-worklists app-review app-plan app-ledger app-palette app-welcome app-preview-video app-preview-image"
+all="app-map app-map-safety app-map-files app-things app-spectrum app-field app-rings app-browse app-reclaim app-worklists app-review app-plan app-ledger app-palette app-welcome app-preview-video app-preview-image app-sql-map app-sql-groups app-sql-table"
 names=${*:-$all}
 
 mkdir -p "$root/docs/screens" "$root/web/images"

@@ -57,6 +57,12 @@ public enum CLI {
                 let summary = CLIAnalysis.spectrum(tree: tree)
                 context.out(json ? CLIRender.spectrumJSON(summary) : CLIRender.spectrum(summary, style: style))
             }
+        case .sqlSchema:
+            context.out(CLISQL.schemaText())
+            return 0
+        case .sql(let request):
+            guard let path = request.path else { return CLISQL.run(request, tree: CLISQL.demoDisk(), context: context, style: style) }
+            return withTreeStatus(path, context) { CLISQL.run(request, tree: $0, context: context, style: style) }
         case .dupes(let path, let minimum, let json):
             return withTree(path, context) { tree in
                 let summary = CLIScan.blocking { await CLIAnalysis.duplicates(tree: tree, minimumBytes: minimum, reader: LocalFileReader(), progress: { _ in }) }
@@ -82,6 +88,11 @@ public enum CLI {
 
     /// Scans `path`, shows a progress line on a terminal, then runs `body`.
     private static func withTree(_ path: String, _ context: CLIContext, _ body: (FileTree) -> Void) -> Int32 {
+        withTreeStatus(path, context) { body($0); return 0 }
+    }
+
+    /// Like `withTree`, for a body that decides the exit code.
+    private static func withTreeStatus(_ path: String, _ context: CLIContext, _ body: (FileTree) -> Int32) -> Int32 {
         guard let resolved = resolveFolder(path) else { return missing(path, context) }
         let showProgress = isatty(2) != 0 && context.isTTY
         var progress: (@Sendable (ScanProgress) -> Void)?
@@ -93,8 +104,7 @@ public enum CLI {
         if tree.meta.unreadableDirectories > 0 {
             context.err("deepyellow: \(tree.meta.unreadableDirectories) folders could not be read; totals are partial. See: Full Disk Access.\n")
         }
-        body(tree)
-        return 0
+        return body(tree)
     }
 }
 

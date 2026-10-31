@@ -20,6 +20,12 @@ DeepYellow is a native macOS disk analyzer. It draws your disk as a treemap you 
 
 ![Things: one slider from a dozen things to thousands](docs/screens/app-things.png)
 
+**Ask your disk a question, and every view answers.** Press `s` and write SQL (SQLite's `SELECT` dialect: joins, CTEs, window functions). A result with an `id` column becomes the set that the Map, Things, Spectrum, Field and Rings all show, so `SELECT id, name, human(size) AS readable FROM files ORDER BY size DESC LIMIT 100` turns every view into just those 100 files. A `GROUP BY` with `ids(id)` lets you click a group to narrow to it. It is read-only: writes are refused, and SQL never marks or removes anything. Marks still go through selection and `k x l u`. Also in the terminal: `deepyellow sql`. [SQL](docs/sql.md)
+
+![SQL driving the Map](docs/screens/app-sql-map.png)
+
+![Groups by kind, one group drilled into Things](docs/screens/app-sql-groups.png)
+
 **Every byte accounted for.** The Ledger is one bar for the whole volume: visible, hidden, unreadable, free. Hiding something removes it from the views and never from the accounting, and the reconciliation explains why the total differs from Finder. [Safety and accounting](docs/safety-and-accounting.md#the-ledger)
 
 ![The Ledger](docs/screens/app-ledger.png)
@@ -48,7 +54,7 @@ DeepYellow is a native macOS disk analyzer. It draws your disk as a treemap you 
 
 **Fast.** On a 4.86 million node tree, the Things cut takes under 3 ms and queries 23 to 42 ms. Map zoom runs at about 200 fps (estimated at p95, M4, offscreen). A scan of a home folder with 2.18 million files ran at about 150,000 files per second while the machine was under load. Your numbers will differ.
 
-**Also in your terminal.** `deepyellow things`, `reclaim`, `spectrum` and `dupes` print ranked results with colour bars, or JSON for scripts. The command line is read-only and has no delete command, by design. [Command line](docs/cli.md)
+**Also in your terminal.** `deepyellow things`, `reclaim`, `spectrum`, `dupes` and `sql` print ranked results with colour bars, or JSON for scripts. The command line is read-only and has no delete command, by design. [Command line](docs/cli.md)
 
 ## What it will never do
 
@@ -83,7 +89,7 @@ A complete scan needs **Full Disk Access**. Without it, DeepYellow still works, 
 
 ## Documentation
 
-Everything else is in [docs/](docs/README.md): [getting started](docs/getting-started.md), [views](docs/views.md), [query language](docs/query-language.md), [safety and accounting](docs/safety-and-accounting.md), [reclaim rules](docs/reclaim-rules.md), [command line](docs/cli.md), [building from source](docs/building-from-source.md), [architecture](docs/architecture.md), [FAQ](docs/faq.md) and [uninstall](docs/uninstall.md).
+Everything else is in [docs/](docs/README.md): [getting started](docs/getting-started.md), [views](docs/views.md), [SQL](docs/sql.md), [query language](docs/query-language.md), [safety and accounting](docs/safety-and-accounting.md), [reclaim rules](docs/reclaim-rules.md), [command line](docs/cli.md), [building from source](docs/building-from-source.md), [architecture](docs/architecture.md), [FAQ](docs/faq.md) and [uninstall](docs/uninstall.md).
 
 ## Licence
 

@@ -4,6 +4,7 @@ import AppKit
 import DYCore
 import DYLenses
 import DYRender
+import DYSQL
 import DYWorkspace
 import SwiftUI
 
@@ -20,7 +21,7 @@ public enum ShotHarness {
     /// Every scenario name the harness knows.
     public static let names = ["app-map", "app-map-safety", "app-map-files", "app-things", "app-spectrum", "app-field", "app-rings", "app-browse",
                                "app-reclaim", "app-worklists", "app-review", "app-plan", "app-ledger", "app-palette", "app-welcome",
-                               "app-preview-video", "app-preview-image"]
+                               "app-preview-video", "app-preview-image", "app-sql-map", "app-sql-groups", "app-sql-table", "app-sql-error"]
 
     /// Renders `name` to `outPath`. `openPath` is the real folder to scan for a read-only session. Returns the process exit code.
     public static func run(name: String, outPath: String?, shell: ShellState, openPath: String? = nil) async -> Int32 {
@@ -49,7 +50,7 @@ public enum ShotHarness {
             if shell.isDemo || name == "app-plan" { await stage(shell.workspace) }
         }
         await scenario(name, shell)
-        await pause(name == "app-review" || name.hasPrefix("app-preview") ? 3000 : 900)
+        await pause(name == "app-review" || name.hasPrefix("app-preview") ? 3000 : (name.hasPrefix("app-sql") ? 1600 : 900))
         if let kind = canvasLens(name), let canvas = shell.canvases.canvas(for: kind), canvas.bounds.width > 10 {
             if kind == .field { shell.syncField(); await pause(300) }
             if let image = canvas.snapshot(size: canvas.bounds.size, scale: 2) {
@@ -74,7 +75,8 @@ public enum ShotHarness {
     /// The canvas lens a scenario shows, if any.
     private static func canvasLens(_ name: String) -> LensKind? {
         switch name {
-        case "app-map", "app-map-safety", "app-map-files", "app-plan", "app-ledger", "app-palette", "app-preview-video", "app-preview-image": .map
+        case "app-map", "app-map-safety", "app-map-files", "app-plan", "app-ledger", "app-palette", "app-preview-video", "app-preview-image",
+             "app-sql-map", "app-sql-table": .map
         case "app-field": .field
         case "app-rings": .rings
         default: nil
@@ -170,6 +172,7 @@ public enum ShotHarness {
             workspace.setLens(.map)
             shell.paletteQuery = "re"
             shell.sheet = .palette
+        case "app-sql-map", "app-sql-groups", "app-sql-table", "app-sql-error": await sqlScenario(name, shell)
         case "app-preview-video", "app-preview-image":
             workspace.setLens(.map)
             let kind: FileKind = name == "app-preview-video" ? .video : .image
@@ -182,6 +185,38 @@ public enum ShotHarness {
         }
         await workspace.settle()
         if name == "app-review" { workspace.dismissNotice() }
+    }
+
+    /// Opens the drawer on a ready-made query so the views, the chip and the table tell one story.
+    private static func sqlScenario(_ name: String, _ shell: ShellState) async {
+        let workspace = shell.workspace
+        func run(_ titlePrefix: String) async {
+            guard let example = SQLEngine.examples.first(where: { $0.title.hasPrefix(titlePrefix) }) else { return }
+            shell.sqlDraft = example.sql
+            workspace.runSQL(example.sql)
+            for _ in 0..<100 { await workspace.settle(); if workspace.sqlResult != nil, workspace.sqlPhase == .finished { break }; await pause(100) }
+        }
+        shell.sqlOpen = true
+        switch name {
+        case "app-sql-map":
+            workspace.setLens(.map)
+            await run("Biggest files")
+            if let node = workspace.sqlResult?.rowNode.dropFirst(2).first ?? nil { workspace.click(node, additive: false) }
+        case "app-sql-groups":
+            workspace.setLens(.things)
+            await run("Space by kind")
+            if let row = workspace.sqlResult?.rows.firstIndex(where: { $0.first == .text("video") }) { workspace.drillSQL(row: row) }
+        case "app-sql-error":
+            workspace.setLens(.map)
+            await run("Video over")
+            shell.sqlDraft = "DELETE FROM nodes WHERE kind = 'video'"
+            workspace.runSQL(shell.sqlDraft)
+            for _ in 0..<50 { await workspace.settle(); if case .failed = workspace.sqlPhase { break }; await pause(100) }
+        default:
+            workspace.setLens(.map)
+            await run("Cumulative share")
+        }
+        await workspace.settle()
     }
 
     /// A decoded frame from the video that is currently previewed or under review, if any.
