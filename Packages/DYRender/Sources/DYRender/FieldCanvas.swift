@@ -43,6 +43,13 @@ public final class FieldCanvas: MetalCanvasView, DiskCanvas {
     private var starsDirty = true
     private static let candidateLimit = 20_000
 
+    /// How strongly to lift small points: 1 for a few hundred points or fewer, fading smoothly to exactly 0 at 20,000.
+    /// Dense fields therefore render exactly as before.
+    static func fewPointBoost(count: Int) -> Float {
+        let t = min(max((log10(Float(max(count, 1))) - 2.5) / (log10(20_000) - 2.5), 0), 1)
+        return count >= 20_000 ? 0 : 1 - t * t * (3 - 2 * t)
+    }
+
     /// Forces the next frame to redraw every star, as after a resize. Used by benchmarks.
     public func invalidateStars() { starsDirty = true }
 
@@ -116,7 +123,7 @@ public final class FieldCanvas: MetalCanvasView, DiskCanvas {
         let selected = selection
         let chunks = 16, per = (count + chunks - 1) / chunks
         DispatchQueue.concurrentPerform(iterations: chunks) { chunk in
-            for index in (chunk * per)..<min(count, (chunk + 1) * per) {
+            for index in min(chunk * per, count)..<min(count, (chunk + 1) * per) {
                 var color = useKinds ? kindColors[Int(min(kinds[index], 7))] : coloring!.color(of: nodes[index])
                 let peak = max(color.x, color.y, color.z, 0.05)
                 color *= pow(1 / peak, 0.6)
@@ -151,7 +158,7 @@ public final class FieldCanvas: MetalCanvasView, DiskCanvas {
         let p = plot(target.viewPx, target.scale)
         return FieldUniforms(viewSize: target.viewPx, plotOrigin: SIMD2(p.x, p.y), plotSize: SIMD2(p.z, p.w),
                              xRange: SIMD2(xRange.lowerBound, xRange.upperBound), yRange: SIMD2(yRange.lowerBound, yRange.upperBound),
-                             scale: target.scale, exposure: exposure, background: SIMD4(Palette.background, 1), accent: SIMD4(Palette.accent, 1))
+                             scale: target.scale, exposure: exposure, pad: SIMD2(Self.fewPointBoost(count: count), 0), background: SIMD4(Palette.background, 1), accent: SIMD4(Palette.accent, 1))
     }
 
     public override func prepare(_ target: RenderTarget, commandBuffer: MTLCommandBuffer) {

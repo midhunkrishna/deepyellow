@@ -15,14 +15,15 @@ public struct ReclaimLens: View {
 
     public var body: some View {
         if let report = workspace.reclaimReport {
-            content(ReclaimModel.groups(report))
+            content(ReclaimModel.scope(report: report, worklists: workspace.worklists, lens: workspace.lens, baseLens: workspace.baseLens))
         } else {
             LensPlaceholder(message: "Reading the advice for this disk…").background(Theme.background)
         }
     }
 
     /// The headline, worklists, safety groups and the part with no advice.
-    private func content(_ groups: [ReclaimModel.TierGroup]) -> some View {
+    private func content(_ scope: ReclaimModel.Scope) -> some View {
+        let groups = scope.groups
         let figures = ReclaimModel.headline(groups)
         return ScrollView {
             VStack(alignment: .leading, spacing: 22) {
@@ -30,11 +31,19 @@ public struct ReclaimLens: View {
                     title: Text(Format.bytes(figures.reclaimable)).foregroundColor(Theme.accent)
                         + Text(" you could get back, in \(figures.decisions) decisions"),
                     subtitle: headlineNote(figures.lookFirst))
-                WorklistSection(workspace: workspace)
-                ForEach(groups) { group in
-                    TierSection(workspace: workspace, group: group)
+                if scope.isNarrowed {
+                    Text(ReclaimModel.narrowedNote).font(.system(size: 12)).foregroundStyle(Theme.textMuted)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-                NoAdviceCard(bytes: ReclaimModel.noAdviceBytes(total: workspace.baseLens?.size.first ?? 0, groups: groups))
+                if scope.isNarrowed, scope.isEmpty {
+                    Text("Nothing in this result has advice.").font(.system(size: 13)).foregroundStyle(Theme.textMuted)
+                } else {
+                    WorklistSection(workspace: workspace, scope: scope)
+                    ForEach(groups) { group in
+                        TierSection(workspace: workspace, group: group, fullBytes: scope.fullBytes)
+                    }
+                }
+                NoAdviceCard(bytes: ReclaimModel.noAdviceBytes(total: scope.totalBytes, groups: groups))
             }
             .padding(.horizontal, 20).padding(.top, 18).padding(.bottom, 28)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -52,14 +61,15 @@ public struct ReclaimLens: View {
 /// The worklists: short lists chosen by a measured fact.
 struct WorklistSection: View {
     let workspace: Workspace
+    let scope: ReclaimModel.Scope
+    /// The width the cards have, which decides between one and two columns.
+    @State private var width: CGFloat = 1000
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("WHERE TO START").font(.system(size: 11, weight: .semibold)).tracking(0.6).foregroundStyle(Theme.textSecondary)
-            ViewThatFits(in: .horizontal) {
-                grid(columns: 2).frame(minWidth: 920)
-                grid(columns: 1)
-            }
+            grid(columns: width >= 920 ? 2 : 1)
+                .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
         }
     }
 
@@ -74,9 +84,9 @@ struct WorklistSection: View {
     private var shown: [(id: String, card: AnyView)] {
         var result: [(id: String, card: AnyView)] = []
         for kind in WorklistKind.allCases {
-            if let list = workspace.worklists.first(where: { $0.kind == kind }) {
-                result.append((list.id, AnyView(WorklistCard(workspace: workspace, worklist: list))))
-            } else if kind == .duplicates {
+            if let list = scope.worklists.first(where: { $0.kind == kind }) {
+                result.append((list.id, AnyView(WorklistCard(workspace: workspace, worklist: list, fullBytes: scope.fullBytes[list.id]))))
+            } else if kind == .duplicates, !scope.hasDuplicateList {
                 result.append(("duplicates", AnyView(DuplicatesCard(workspace: workspace))))
             }
         }
@@ -88,6 +98,8 @@ struct WorklistSection: View {
 struct WorklistCard: View {
     let workspace: Workspace
     let worklist: Worklist
+    /// Bytes the list holds without the current filter, when it is narrowed.
+    var fullBytes: UInt64?
 
     var body: some View {
         let certainty = worklist.kind == .leftovers
@@ -106,7 +118,12 @@ struct WorklistCard: View {
                 Button("Look through") { workspace.startReview(worklist: worklist) }.buttonStyle(GhostButtonStyle()).padding(.top, 4)
             }
         } trailing: {
-            Text(Format.bytes(worklist.bytes)).font(Theme.number(size: 19, weight: .semibold)).foregroundStyle(Theme.textPrimary)
+            VStack(alignment: .trailing, spacing: 4) {
+                Text(Format.bytes(worklist.bytes)).font(Theme.number(size: 19, weight: .semibold)).foregroundStyle(Theme.textPrimary)
+                if let note = ReclaimModel.partialNote(bytes: worklist.bytes, full: fullBytes) {
+                    Text(note).font(.system(size: 11)).foregroundStyle(Theme.textMuted)
+                }
+            }
         }
     }
 }
@@ -157,6 +174,7 @@ struct DuplicatesCard: View {
 struct TierSection: View {
     let workspace: Workspace
     let group: ReclaimModel.TierGroup
+    var fullBytes: [String: UInt64] = [:]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -166,7 +184,7 @@ struct TierSection: View {
                 Text(Format.bytes(group.bytes)).font(Theme.number(size: 12)).foregroundStyle(Theme.textMuted)
             }
             VStack(spacing: 8) {
-                ForEach(group.families) { family in FamilyCard(workspace: workspace, family: family) }
+                ForEach(group.families) { family in FamilyCard(workspace: workspace, family: family, fullBytes: fullBytes[family.id]) }
             }
         }
     }
@@ -176,6 +194,8 @@ struct TierSection: View {
 struct FamilyCard: View {
     let workspace: Workspace
     let family: ReclaimFamily
+    /// Bytes the family holds without the current filter, when it is narrowed.
+    var fullBytes: UInt64?
 
     var body: some View {
         let rule = family.rule
@@ -203,6 +223,9 @@ struct FamilyCard: View {
         } trailing: {
             VStack(alignment: .trailing, spacing: 6) {
                 Text(Format.bytes(family.bytes)).font(Theme.number(size: 19, weight: .semibold)).foregroundStyle(Theme.textPrimary)
+                if let note = ReclaimModel.partialNote(bytes: family.bytes, full: fullBytes) {
+                    Text(note).font(.system(size: 11)).foregroundStyle(Theme.textMuted)
+                }
                 if offered, family.reclaimable < family.bytes {
                     Text("frees \(Format.bytes(family.reclaimable)) right away").font(.system(size: 11)).foregroundStyle(Theme.textMuted)
                 }

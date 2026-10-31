@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SQL | DeepYellow docs</title>
+<meta name="description" content="Ask your disk a question in SQL, and the answer is not just a table. A result becomes the set that every view shows. Run SELECT id FROM files ORDER BY size DESC LIMIT 20 and the Ma">
+<meta name="theme-color" content="#0E0D0B">
+<link rel="icon" href="../favicon.png">
+<link rel="apple-touch-icon" href="../images/icon.png">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="nav"><div class="wrap">
+  <a class="brand" href="../index.html"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>DeepYellow</a>
+  <nav class="nav-links" aria-label="Main">
+    <a href="../features.html">Features</a>
+    <a href="index.html" aria-current="page">Docs</a>
+    <a href="../index.html#blocked">If macOS blocks it</a>
+    <a href="https://github.com/midhunkrishna/deepyellow">GitHub</a>
+    <a class="btn" href="https://github.com/midhunkrishna/deepyellow/releases/latest/download/DeepYellow.dmg">Download</a>
+  </nav>
+</div></header>
+<div class="trust"><ul aria-label="What DeepYellow does not do">
+  <li>No network code</li><li>No telemetry</li><li>Trash only, never permanent</li><li>CLI is read-only</li><li>Read-only mode for real scans</li><li>Open source, MIT</li>
+</ul></div>
+<div class="wrap docs">
+  <nav class="docnav" aria-label="Documentation">
+<h4>Start</h4><ul>
+<li><a href="index.html">Overview</a></li>
+<li><a href="getting-started.html">Getting started</a></li>
+<li><a href="install.html">Install</a></li>
+<li><a href="faq.html">FAQ</a></li>
+</ul>
+<h4>Using it</h4><ul>
+<li><a href="views.html">Views</a></li>
+<li><a href="query-language.html">Query language</a></li>
+<li><a href="safety-and-accounting.html">Safety and accounting</a></li>
+<li><a href="sql.html" aria-current="page">SQL</a></li>
+<li><a href="reclaim-rules.html">Reclaim rules</a></li>
+<li><a href="cli.html">Command line</a></li>
+</ul>
+<h4>Project</h4><ul>
+<li><a href="building-from-source.html">Building from source</a></li>
+<li><a href="architecture.html">Architecture</a></li>
+<li><a href="uninstall.html">Uninstall</a></li>
+</ul>
+  </nav>
+  <main id="main" class="prose">
+<h1 id="sql">SQL</h1>
+<p>Ask your disk a question in SQL, and the answer is not just a table. <strong>A result becomes the set that every view shows.</strong> Run <code>SELECT id FROM files ORDER BY size DESC LIMIT 20</code> and the Map, Things, Spectrum, Field and Rings all narrow to those 20 files. Click a row and the preview, the selection and your marks work as they do everywhere else.</p>
+<p><img src="../images/app-sql-map.webp" alt="The Map narrowed to the biggest files by a SQL result" loading="lazy" width="1600" height="1000"></p>
+<h2 id="what-it-is-and-what-it-is-not">What it is, and what it is not <a class="anchor" href="#what-it-is-and-what-it-is-not" aria-label="Link to this section">#</a></h2>
+<ul>
+<li>It is SQLite's <code>SELECT</code> dialect: joins, subqueries, CTEs including recursive ones, window functions, aggregates, <code>CASE</code>, and the rest of what SQLite's <code>SELECT</code> supports. It is not a different or larger SQL, and it is not called "full SQL" because that would promise more than it is.</li>
+<li>It is <strong>read-only</strong>. Every statement that writes is refused (see <a href="#refusals">Refusals</a>), and the app can not be made to change a file, a mark, or the Trash from SQL.</li>
+<li>It runs on the scan you have already made. The tree is not copied into a database: the <code>nodes</code> table reads the scan directly.</li>
+<li>It is available once the scan has finished. Before that, running a query says "SQL is available when the scan finishes."</li>
+<li>It uses no AI. You write the question.</li>
+</ul>
+<p>SQL never marks or removes anything. <strong>Marks still go through selection and the keys <kbd>k</kbd> <kbd>x</kbd> <kbd>l</kbd> <kbd>u</kbd></strong>, and removal still goes through the <a href="safety-and-accounting.html#the-plan">Plan</a>. SQL can find the files; you decide.</p>
+<h2 id="open-it">Open it <a class="anchor" href="#open-it" aria-label="Link to this section">#</a></h2>
+<p>Press <kbd>s</kbd>, or choose View &gt; SQL, or use the palette. SQL is a drawer that docks at the bottom, not an eighth view, so the view above keeps responding while you type. Drag its top edge to resize it.</p>
+<ul>
+<li><kbd>&#8984;&#9166;</kbd> runs the query while the editor has focus. Outside the editor, <kbd>&#8984;&#9166;</kbd> still opens the Plan.</li>
+<li>Single-key shortcuts do not fire while you type. <kbd>Esc</kbd> leaves the editor.</li>
+<li>The toolbar has Run, Cancel while a query is running, an <strong>Examples</strong> menu, a <strong>History</strong> menu (the last 20 queries, newest first), a <strong>Schema</strong> popover listing every column and function, and the elapsed time.</li>
+<li>For results that drive the views there are two more buttons: <strong>Select all</strong> selects every node of the set, and <strong>Review</strong> opens <a href="views.html#review">Review</a> over it.</li>
+<li>While a result narrows the views, a chip beside the query field shows what is left, for example <code>SQL 12 things · 184 GB</code>. Its <strong>x</strong> clears the filter. The query text and the history stay.</li>
+</ul>
+<h2 id="how-a-result-drives-the-views">How a result drives the views <a class="anchor" href="#how-a-result-drives-the-views" aria-label="Link to this section">#</a></h2>
+<p>What the result contains decides what happens.</p>
+<table>
+<thead><tr><th>Your <code>SELECT</code> has</th><th>The result is</th><th>What the views do</th></tr></thead>
+<tbody>
+<tr><td>A column named exactly <code>id</code></td><td>A set of nodes</td><td>Every view shows just those nodes</td></tr>
+<tr><td>A <code>GROUP BY</code> and a column <code>ids(id) AS ids</code></td><td>Groups</td><td>Every view shows all the groups together. <strong>Click a group row</strong> to narrow to that group, and click "All groups" to go back</td></tr>
+<tr><td>Neither</td><td>A table only</td><td>The views stay as they are, and any earlier SQL filter is cleared. The drawer says: "This result has no id column, so the views stay as they are. Add id to the SELECT, or ids(id) to a GROUP BY."</td></tr>
+</tbody></table>
+<p>Rules that apply to sets and groups:</p>
+<ul>
+<li><strong>Folders bring their whole subtree.</strong> If <code>id</code> is a folder, everything inside it is in the set. The chip counts the items the result names, as the table does, and counts each byte once even when a folder and its contents are both rows.</li>
+<li><strong>Reclaim narrows too.</strong> Its cards show what's in the result, such as "12.6 GB in this result, of 18.0 GB". Staging a card acts on whole folders, and the Plan lists exactly what is staged.</li>
+<li><strong>Results AND with the <code>/</code> query.</strong> If you also have a <a href="query-language.html">query</a> typed in the query field, a node must satisfy both.</li>
+<li><strong>A result stays true.</strong> When the scan, a hide rule, a decision, the Trash or a safety tier changes, the query runs again by itself, and an old result is never applied to a new scan. If you had drilled into a group, that stays only when the number of groups is unchanged.</li>
+<li><strong>The Ledger still reconciles.</strong> Hidden space stays accounted for. What a SQL result filters out is counted as filtered, as with the query.</li>
+<li>Ids that are not in the tree are ignored, not errors.</li>
+</ul>
+<p><img src="../images/app-sql-groups.webp" alt="Groups by kind, with one group drilled into Things" loading="lazy" width="1600" height="1000"></p>
+<p>A result that is only a table is still useful:</p>
+<p><img src="../images/app-sql-table.webp" alt="A table-only result" loading="lazy" width="1600" height="1000"></p>
+<p>The table shows up to 5,000 rows, and says, for example, "showing 5,000 of 1,204,311 rows" when there are more. The views are not limited to 5,000: they show the whole set.</p>
+<h2 id="schema">Schema <a class="anchor" href="#schema" aria-label="Link to this section">#</a></h2>
+<p>One virtual table, <code>nodes</code>, with one row per file or folder, and two views over it: <strong><code>files</code></strong> (<code>is_dir = 0 AND visible = 1</code>) and <strong><code>dirs</code></strong> (<code>is_dir = 1 AND visible = 1</code>). Use <code>files</code> and <code>dirs</code> for what the views show, and <code>nodes</code> when you want everything, including what a hide rule hides.</p>
+<table>
+<thead><tr><th>Column</th><th>Type</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code>id</code></td><td>INTEGER</td><td>Node id</td></tr>
+<tr><td><code>parent</code></td><td>INTEGER</td><td>Parent's id; NULL for the root</td></tr>
+<tr><td><code>name</code></td><td>TEXT</td><td>File or folder name</td></tr>
+<tr><td><code>ext</code></td><td>TEXT</td><td>Lower-case extension without the dot; NULL for none or for folders</td></tr>
+<tr><td><code>path</code></td><td>TEXT</td><td>Full path, built only when read</td></tr>
+<tr><td><code>depth</code></td><td>INTEGER</td><td>0 for the root</td></tr>
+<tr><td><code>size</code></td><td>INTEGER</td><td>Bytes on disk as the views count them</td></tr>
+<tr><td><code>logical</code></td><td>INTEGER</td><td>Logical bytes</td></tr>
+<tr><td><code>file_count</code></td><td>INTEGER</td><td>Files at or under the node</td></tr>
+<tr><td><code>modified</code></td><td>INTEGER</td><td>Modification time, seconds since 1970</td></tr>
+<tr><td><code>accessed</code></td><td>INTEGER</td><td>Access time, seconds since 1970 (approximate)</td></tr>
+<tr><td><code>kind</code></td><td>TEXT</td><td>video, image, audio, document, code, application, archive or other</td></tr>
+<tr><td><code>is_dir</code></td><td>INTEGER</td><td>1 for a folder or package, else 0</td></tr>
+<tr><td><code>is_package</code></td><td>INTEGER</td><td>1 for a macOS package such as an .app</td></tr>
+<tr><td><code>is_symlink</code></td><td>INTEGER</td><td>1 for a symbolic link</td></tr>
+<tr><td><code>is_clone</code></td><td>INTEGER</td><td>1 for a later full clone whose bytes are counted elsewhere</td></tr>
+<tr><td><code>is_hardlink</code></td><td>INTEGER</td><td>1 for a later hard link whose bytes are counted elsewhere</td></tr>
+<tr><td><code>is_dataless</code></td><td>INTEGER</td><td>1 for an iCloud placeholder that isn't stored locally</td></tr>
+<tr><td><code>visible</code></td><td>INTEGER</td><td>1 when no ignore rule or Trash removal hides the node</td></tr>
+<tr><td><code>mark</code></td><td>TEXT</td><td>keep, remove or later; NULL for none</td></tr>
+<tr><td><code>safety</code></td><td>TEXT</td><td>safe, rebuild, review or never; NULL for no advice</td></tr>
+</tbody></table>
+<p><code>visible</code>, <code>mark</code> and <code>safety</code> are the same values the app shows. A <code>NULL</code> safety means no advice, which is the honest answer for most personal files. <code>size</code> and <code>file_count</code> follow the current view settings, so what you sum here matches what you see on screen.</p>
+<h2 id="functions">Functions <a class="anchor" href="#functions" aria-label="Link to this section">#</a></h2>
+<table>
+<thead><tr><th>Function</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code>kb(n)</code></td><td>n kilobytes in bytes (n x 1,000)</td></tr>
+<tr><td><code>mb(n)</code></td><td>n megabytes in bytes (n x 1,000,000)</td></tr>
+<tr><td><code>gb(n)</code></td><td>n gigabytes in bytes (n x 1,000,000,000)</td></tr>
+<tr><td><code>tb(n)</code></td><td>n terabytes in bytes (n x 1,000,000,000,000)</td></tr>
+<tr><td><code>human(bytes)</code></td><td>A size as the app prints it, such as 1.2 GB</td></tr>
+<tr><td><code>age_days(seconds)</code></td><td>Whole days between a timestamp and now</td></tr>
+<tr><td><code>ids(id)</code></td><td>Aggregate: the ids of a group. Alias it as <code>ids</code> to let a row drive the views</td></tr>
+</tbody></table>
+<p>Units are decimal, the same as the <a href="query-language.html#units">query language</a>.</p>
+<h2 id="examples">Examples <a class="anchor" href="#examples" aria-label="Link to this section">#</a></h2>
+<p>The <strong>Examples</strong> menu in the drawer has these. Each one runs on the sample disk. All of them drive the views except the last, which is a table.</p>
+<p><strong>Biggest files</strong></p>
+<pre><code>SELECT id, name, human(size) AS readable FROM files ORDER BY size DESC LIMIT 100</code></pre>
+<p><strong>Big files untouched for a year</strong></p>
+<pre><code>SELECT id, name, human(size) AS readable, age_days(modified) AS days FROM files
+WHERE size &gt; mb(100) AND age_days(modified) &gt; 365
+ORDER BY size DESC</code></pre>
+<p><strong>Video over 1 GB</strong></p>
+<pre><code>SELECT id, name, human(size) AS readable FROM files WHERE kind = 'video' AND size &gt; gb(1) ORDER BY size DESC</code></pre>
+<p><strong>Biggest folders</strong></p>
+<pre><code>SELECT id, name, human(size) AS readable, file_count FROM dirs WHERE depth &gt; 0 ORDER BY size DESC LIMIT 100</code></pre>
+<p><strong>Files in the five biggest folders</strong></p>
+<pre><code>SELECT f.id, f.name, human(f.size) AS readable FROM files f
+JOIN (SELECT id FROM dirs ORDER BY size DESC LIMIT 5) d ON f.parent = d.id
+ORDER BY f.size DESC</code></pre>
+<p><strong>Everything inside the biggest top-level folder</strong></p>
+<pre><code>WITH RECURSIVE inside(id) AS (
+  SELECT id FROM (SELECT id FROM dirs WHERE depth = 1 ORDER BY size DESC LIMIT 1)
+  UNION ALL
+  SELECT n.id FROM nodes n JOIN inside ON n.parent = inside.id
+)
+SELECT n.id, n.name, human(n.size) AS readable FROM nodes n JOIN inside USING (id) WHERE n.is_dir = 0</code></pre>
+<p><strong>Marked for removal</strong></p>
+<pre><code>SELECT id, name, human(size) AS readable FROM nodes WHERE mark = 'remove' ORDER BY size DESC</code></pre>
+<p><strong>Safe or rebuildable</strong></p>
+<pre><code>SELECT id, name, safety, human(size) AS readable FROM nodes WHERE safety IN ('safe', 'rebuild') ORDER BY size DESC LIMIT 200</code></pre>
+<p><strong>Space by kind</strong> (groups: click a row to narrow the views to that kind)</p>
+<pre><code>SELECT kind, ids(id) AS ids, COUNT(*) AS files, human(SUM(size)) AS total FROM files GROUP BY kind ORDER BY SUM(size) DESC</code></pre>
+<p><strong>Space by extension</strong></p>
+<pre><code>SELECT ext, ids(id) AS ids, COUNT(*) AS files, human(SUM(size)) AS total FROM files WHERE ext IS NOT NULL
+GROUP BY ext ORDER BY SUM(size) DESC LIMIT 50</code></pre>
+<p><strong>Same name and size</strong> (groups). This only compares names and sizes, so it finds candidates. For exact duplicates use <a href="views.html#worklists">Duplicates</a>, which compares contents.</p>
+<pre><code>SELECT name, ids(id) AS ids, COUNT(*) AS copies, human(size) AS each_size FROM files WHERE size &gt; mb(1)
+GROUP BY name, size HAVING COUNT(*) &gt; 1 ORDER BY SUM(size) DESC</code></pre>
+<p><strong>Cumulative share of the 20 biggest files</strong> (table only, because it has no <code>id</code>)</p>
+<pre><code>SELECT name, human(size) AS readable,
+  ROUND(100.0 * SUM(size) OVER (ORDER BY size DESC, id) / (SELECT SUM(size) FROM files), 1) AS cumulative_percent
+FROM (SELECT id, name, size FROM files ORDER BY size DESC, id LIMIT 20)</code></pre>
+<h2 id="refusals">Refusals <a class="anchor" href="#refusals" aria-label="Link to this section">#</a></h2>
+<p>SQL here cannot change anything. A statement that writes is refused, and the message says why: "DeepYellow's SQL is read-only, so DELETE isn't allowed. To remove something, select it and press x."</p>
+<p>Refused: <code>DELETE</code>, <code>UPDATE</code>, <code>INSERT</code>, <code>DROP</code>, <code>CREATE</code>, <code>ATTACH</code>, <code>DETACH</code>, <code>VACUUM INTO</code>, <code>PRAGMA</code> and <code>load_extension</code>. The tests make sixteen such attempts and check that each one is refused and that none of them creates a file.</p>
+<p>This is enforced in several layers rather than by a text check: the table has no write path, the connection only allows reading, and a statement SQLite does not consider read-only is rejected. Each query runs on a fresh in-memory connection, with sorts kept in memory, and a query that would use more than 2 GB of memory is stopped and reported as too large. A running query can be cancelled.</p>
+<h2 id="speed">Speed <a class="anchor" href="#speed" aria-label="Link to this section">#</a></h2>
+<p>Measured in a release build on a synthetic disk of 4,856,132 items, on one machine. Your disk and Mac will differ.</p>
+<table>
+<thead><tr><th>Query</th><th>Time</th></tr></thead>
+<tbody>
+<tr><td><code>SELECT kind, SUM(size), COUNT(*) FROM files GROUP BY kind</code></td><td>729 ms</td></tr>
+<tr><td>Filter and sort, top 100</td><td>173 ms</td></tr>
+<tr><td>Group by extension, with <code>ids</code></td><td>1,282 ms</td></tr>
+<tr><td>Join to parent, grouped</td><td>805 ms</td></tr>
+<tr><td>Path of the 100 biggest</td><td>158 ms</td></tr>
+</tbody></table>
+<h2 id="on-the-command-line">On the command line <a class="anchor" href="#on-the-command-line" aria-label="Link to this section">#</a></h2>
+<p><code>deepyellow sql</code> runs the same engine in the terminal. See <a href="cli.html#sql">Command line</a>.</p>
+<pre><code>deepyellow sql --demo "SELECT kind, human(SUM(size)) AS total FROM files GROUP BY kind"</code></pre>
+<h2 id="which-to-use-query-or-sql">Which to use: query or SQL <a class="anchor" href="#which-to-use-query-or-sql" aria-label="Link to this section">#</a></h2>
+<p>The <code>/</code> <a href="query-language.html">query</a> is the quick filter: one line, in every view, live as you type. SQL is for questions the query language can not say: joins, grouping, sums, "the five biggest folders and what is in them", or anything that needs a calculation. The two combine: a SQL result and the query both apply.</p>
+<nav class="pager" aria-label="Pages"><a href="safety-and-accounting.html">&larr; Safety and accounting</a><a href="reclaim-rules.html">Reclaim rules &rarr;</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="wrap">
+  <p>DeepYellow is a native macOS disk analyzer, MIT licence. <a href="../index.html">Home</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow">Source</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/releases">Releases</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/edit/master/docs/sql.md">Edit this page</a></p>
+</div></footer>
+<div class="ledger" role="complementary" aria-label="Page ledger"><div class="wrap">
+  <span class="lab">LEDGER</span>
+  <span class="track" aria-hidden="true"><i class="read"></i><i class="gold"></i></span>
+  <span class="txt"><b data-pct>0%</b> read<span class="long"> &middot; every byte accounted for</span> &middot; free, MIT</span>
+  <a class="btn primary" href="https://github.com/midhunkrishna/deepyellow/releases/latest/download/DeepYellow.dmg">Download</a>
+</div></div>
+<script src="../site.js" defer></script>
+</body>
+</html>

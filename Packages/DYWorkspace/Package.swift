@@ -8,15 +8,16 @@ let package = Package(
     dependencies: [
         .package(path: "../DYCore"), .package(path: "../DYScan"), .package(path: "../DYAnalysis"),
         .package(path: "../DYAdvisor"), .package(path: "../DYDecide"), .package(path: "../DYPreview"),
+        .package(path: "../DYSQL"),
     ],
     targets: [
         .target(
             name: "DYWorkspace",
-            dependencies: ["DYCore", "DYScan", "DYAnalysis", "DYAdvisor", "DYDecide", "DYPreview"],
+            dependencies: ["DYCore", "DYScan", "DYAnalysis", "DYAdvisor", "DYDecide", "DYPreview", "DYSQL"],
             swiftSettings: [.swiftLanguageMode(.v5)]),
         .testTarget(
             name: "DYWorkspaceTests",
-            dependencies: ["DYWorkspace", "DYCore", "DYScan", "DYAnalysis", "DYAdvisor", "DYDecide", "DYPreview"],
+            dependencies: ["DYWorkspace", "DYCore", "DYScan", "DYAnalysis", "DYAdvisor", "DYDecide", "DYPreview", "DYSQL"],
             swiftSettings: [.swiftLanguageMode(.v5)]),
     ]
 )

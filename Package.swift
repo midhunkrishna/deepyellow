@@ -4,7 +4,7 @@ import PackageDescription
 // Root package: one DeepYellow executable (GUI and CLI in one binary). The code lives in the DeepYellowKit library
 // so it can be tested; the executable target holds only the entry point.
 let libraries = [
-    "DYCore", "DYScan", "DYAnalysis", "DYAdvisor", "DYDecide", "DYRender", "DYPreview", "DYWorkspace", "DYLenses",
+    "DYCore", "DYScan", "DYAnalysis", "DYAdvisor", "DYDecide", "DYRender", "DYPreview", "DYWorkspace", "DYLenses", "DYSQL",
 ]
 let products: [Target.Dependency] = libraries.map { .product(name: $0, package: $0) }
 

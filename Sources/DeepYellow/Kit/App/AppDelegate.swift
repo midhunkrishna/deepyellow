@@ -105,17 +105,13 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         guard let command = KeyMap.command(characters: event.charactersIgnoringModifiers, keyCode: event.keyCode, flags: event.modifierFlags) else { return event }
         // Browse moves its own selection with the arrow keys, so one press must not move it twice.
         if case .move = command, shell.workspace.lensKind == .browse, shell.workspace.review == nil { return event }
-        if typing {
-            switch command {
-            case .escape:
-                event.window?.makeFirstResponder(nil)
-                if shell.sheet == .palette { shell.sheet = nil }
-                return nil
-            case .openPalette, .openPlan: break
-            default: return event
-            }
+        switch KeyRouter.route(command, typing: typing, sqlEditorFocused: event.window?.firstResponder is SQLTextView) {
+        case .passThrough: return event
+        case .leaveTextField:
+            event.window?.makeFirstResponder(nil)
+            if shell.sheet == .palette { shell.sheet = nil }
+        case .perform(let routed): shell.perform(routed)
         }
-        shell.perform(command)
         return nil
     }
 }

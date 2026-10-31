@@ -1,4 +1,5 @@
 import DYCore
+import DYSQL
 import DYAdvisor
 import DYWorkspace
 import XCTest
@@ -130,6 +131,114 @@ final class CLITests: XCTestCase {
         let readOnly = AppOpener.description(of: OpenRequest(path: "/a", demo: false, dryRun: true, readOnly: true), appURL: nil)
         XCTAssertTrue(readOnly.contains("arguments: --read-only /a"))
         XCTAssertTrue(readOnly.contains("new instance: yes"))
+    }
+
+    // MARK: sql
+
+    func testSQLParsing() throws {
+        XCTAssertEqual(try CLIParser.parse(["sql", "/x", "SELECT 1"]), .sql(SQLRequest(path: "/x", query: "SELECT 1", format: .table, top: 200)))
+        XCTAssertEqual(try CLIParser.parse(["sql", "--demo", "SELECT 1", "--json", "--top", "5"]),
+                       .sql(SQLRequest(path: nil, query: "SELECT 1", format: .json, top: 5)))
+        XCTAssertEqual(try CLIParser.parse(["sql", "--demo", "SELECT 1", "--csv"]), .sql(SQLRequest(path: nil, query: "SELECT 1", format: .csv, top: 200)))
+        XCTAssertEqual(try CLIParser.parse(["sql", "--schema"]), .sqlSchema)
+        XCTAssertEqual(try CLIParser.parse(["sql", "--help"]), .help(topic: "sql"))
+        XCTAssertEqual(try CLIParser.parse(["--demo"]), .open(OpenRequest(path: nil, demo: true, dryRun: false)), "--demo alone still opens the app")
+        XCTAssertThrowsError(try CLIParser.parse(["sql", "--demo"]))
+        XCTAssertThrowsError(try CLIParser.parse(["sql", "/x"]))
+        XCTAssertThrowsError(try CLIParser.parse(["sql", "--demo", "  "]))
+        XCTAssertThrowsError(try CLIParser.parse(["sql", "--demo", "SELECT 1", "--json", "--csv"]))
+        XCTAssertThrowsError(try CLIParser.parse(["sql", "--demo", "SELECT 1", "--top", "0"]))
+    }
+
+    func testSQLTableOnTheSampleDisk() {
+        let result = run(["sql", "--demo", "SELECT id, name, human(size) AS readable FROM files ORDER BY size DESC LIMIT 5", "--top", "3"])
+        XCTAssertEqual(result.code, 0)
+        XCTAssertTrue(result.cap.out.contains("Docker.raw"))
+        XCTAssertTrue(result.cap.out.contains("2 more rows"), result.cap.out)
+        XCTAssertFalse(result.cap.out.contains("\u{1B}"))
+        XCTAssertTrue(result.cap.err.isEmpty)
+    }
+
+    func testSQLJSONAndCSVStreamEveryRowPastTheDisplayCap() throws {
+        let query = "SELECT id, name FROM files"
+        let disk = CLISQL.demoDisk()
+        let expected = try SQLEngine.run(query, context: SQLContext(tree: disk.tree, lens: TreeLens(tree: disk.tree), now: disk.now), rowLimit: 0).rowCount
+        XCTAssertGreaterThan(expected, 5_000, "the sample disk must be big enough to prove the stream isn't capped")
+
+        let json = run(["sql", "--demo", query, "--json"])
+        XCTAssertEqual(json.code, 0)
+        let object = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(json.cap.out.utf8)) as? [String: Any])
+        XCTAssertEqual((object["rows"] as? [[Any]])?.count, expected)
+        XCTAssertEqual(object["rowCount"] as? Int, expected)
+        XCTAssertEqual(object["columns"] as? [String], ["id", "name"])
+
+        let csv = run(["sql", "--demo", query, "--csv"])
+        let lines = csv.cap.out.split(separator: "\n", omittingEmptySubsequences: true)
+        XCTAssertEqual(lines.first, "id,name")
+        XCTAssertEqual(lines.count, expected + 1)
+    }
+
+    func testSQLCSVQuotingAndNulls() {
+        let result = run(["sql", "--demo", "SELECT 'a,b' AS x, 'say \"hi\"' AS y, NULL AS z, 2.5 AS w", "--csv"])
+        XCTAssertEqual(result.cap.out, "x,y,z,w\n\"a,b\",\"say \"\"hi\"\"\",,2.5\n")
+    }
+
+    /// `--demo` must count what the app counts, including the kinds found by refinement.
+    @MainActor func testSQLDemoDiskMatchesTheAppsSampleDisk() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("dy-demo-match-\(UUID().uuidString)")
+        let workspace = Workspace(environment: .demo(dataDirectory: directory))
+        workspace.open(.demo)
+        for _ in 0..<100 {
+            await workspace.settle()
+            if workspace.kindRefinement != nil { break }
+            try await Task.sleep(for: .milliseconds(100))
+        }
+        let tree = try XCTUnwrap(workspace.tree)
+        let appCount = (0..<tree.count).filter { !tree.isDirectory(NodeID($0)) && tree.kind(NodeID($0)) == .archive }.count
+        let out = run(["sql", "--demo", "SELECT COUNT(*) AS n FROM files WHERE kind = 'archive'", "--csv"]).cap.out
+        XCTAssertEqual(out, "n\n\(appCount)\n")
+    }
+
+    func testSQLSchemaListsColumnsFunctionsAndExamples() {
+        let out = run(["sql", "--schema"]).cap.out
+        XCTAssertTrue(out.contains("file_count"))
+        XCTAssertTrue(out.contains("age_days(seconds)"))
+        XCTAssertTrue(out.contains(SQLEngine.examples[0].title))
+    }
+
+    func testSQLRefusesWritesWithExit65() {
+        for statement in ["DELETE FROM nodes", "UPDATE nodes SET size = 0", "DROP TABLE nodes", "PRAGMA writable_schema = 1"] {
+            let result = run(["sql", "--demo", statement])
+            XCTAssertEqual(result.code, 65, statement)
+            XCTAssertTrue(result.cap.out.isEmpty, statement)
+            XCTAssertFalse(result.cap.err.isEmpty, statement)
+        }
+        XCTAssertTrue(run(["sql", "--demo", "DELETE FROM nodes"]).cap.err.contains("read-only"))
+    }
+
+    func testSQLInvalidQueryIs65AndBadArgumentsAre64AndUnknownPathIs2() {
+        XCTAssertEqual(run(["sql", "--demo", "SELEC 1"]).code, 65)
+        XCTAssertEqual(run(["sql", "--demo", "SELECT 1; SELECT 2"]).code, 65)
+        XCTAssertEqual(run(["sql", "--demo"]).code, 64)
+        XCTAssertEqual(run(["sql", "--demo", "SELECT 1", "--json", "--csv"]).code, 64)
+        let missing = run(["sql", "/definitely/not/here", "SELECT 1"])
+        XCTAssertEqual(missing.code, 2)
+        XCTAssertTrue(missing.cap.err.contains("no such folder"))
+    }
+
+    func testSQLOnAFolderFixture() throws {
+        let root = try fixture()
+        let result = run(["sql", root.path, "SELECT name, size FROM files ORDER BY name"], home: root.path)
+        XCTAssertEqual(result.code, 0)
+        XCTAssertTrue(result.cap.out.contains("a.bin"))
+        XCTAssertTrue(result.cap.out.contains("c.txt"))
+    }
+
+    func testSQLHelpMentionsExitCode65AndStreaming() {
+        let help = CLIHelp.text(topic: "sql")
+        XCTAssertTrue(help.contains("65"))
+        XCTAssertTrue(help.contains("--csv"))
+        XCTAssertTrue(CLIHelp.text(topic: nil).contains("deepyellow sql"))
     }
 
     func testVersionAndHelp() {

@@ -17,6 +17,24 @@ public struct OpenRequest: Equatable {
     }
 }
 
+/// How `sql` prints its rows.
+public enum SQLOutputFormat: Equatable { case table, json, csv }
+
+/// One `deepyellow sql` call.
+public struct SQLRequest: Equatable {
+    /// The folder to scan, or nil for the sample disk.
+    public var path: String?
+    public var query: String
+    public var format: SQLOutputFormat
+    /// Rows shown in the table format before "N more rows".
+    public var top: Int
+
+    /// Creates a request.
+    public init(path: String?, query: String, format: SQLOutputFormat, top: Int) {
+        self.path = path; self.query = query; self.format = format; self.top = top
+    }
+}
+
 /// A parsed command line.
 public enum CLICommand: Equatable {
     case help(topic: String?)
@@ -26,6 +44,8 @@ public enum CLICommand: Equatable {
     case reclaim(path: String, json: Bool)
     case spectrum(path: String, json: Bool)
     case dupes(path: String, minimumBytes: UInt64, json: Bool)
+    case sql(SQLRequest)
+    case sqlSchema
 }
 
 /// A mistake in the arguments. Reported on standard error with exit code 64.
@@ -37,7 +57,9 @@ public struct CLIUsageError: Error, Equatable {
 
 /// Turns the words after `deepyellow` into a `CLICommand`.
 public enum CLIParser {
-    static let subcommands: Set<String> = ["things", "reclaim", "spectrum", "dupes"]
+    static let subcommands: Set<String> = ["things", "reclaim", "spectrum", "dupes", "sql"]
+    /// The rows `sql` prints in the table format unless `--top` says otherwise.
+    public static let defaultSQLTop = 200
     /// The smallest file the duplicate finder looks at unless `--min` says otherwise.
     public static let defaultDuplicateMinimum: UInt64 = 1_000_000
 
@@ -67,7 +89,7 @@ public enum CLIParser {
 
     /// Everything the options can set, gathered before the subcommand decides what matters.
     private struct Flags {
-        var help = false, version = false, demo = false, dryRun = false, json = false, readOnly = false
+        var help = false, version = false, demo = false, dryRun = false, json = false, readOnly = false, csv = false, schema = false
         var minimum: UInt64?
         var top: Int?
 
@@ -80,6 +102,8 @@ public enum CLIParser {
             case "--json": json = true
             case "--print-open-args": dryRun = true
             case "--read-only": readOnly = true
+            case "--csv": csv = true
+            case "--schema": schema = true
             case "--min":
                 let text = try value(name, inline, rest, &index)
                 guard let bytes = SizeParser.parse(text) else { throw CLIUsageError("--min needs a size such as 100mb, not '\(text)'") }
@@ -100,11 +124,25 @@ public enum CLIParser {
             return rest[index]
         }
 
+        /// Reads `sql <folder|--demo> "<query>"` or `sql --schema`.
+        func sqlCommand(_ positional: [String]) throws -> CLICommand {
+            if schema { return .sqlSchema }
+            if json && csv { throw CLIUsageError("--json and --csv can't be used together") }
+            let words = Array(positional.dropFirst())
+            guard words.count == (demo ? 1 : 2), let query = words.last, !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                throw CLIUsageError(demo ? "sql --demo needs one query in quotes. Try: deepyellow sql --help"
+                                         : "sql needs a folder (or --demo) and one query in quotes. Try: deepyellow sql --help")
+            }
+            return .sql(SQLRequest(path: demo ? nil : words[0], query: query, format: json ? .json : (csv ? .csv : .table),
+                                   top: top ?? CLIParser.defaultSQLTop))
+        }
+
         /// Picks the command from the first positional word.
         func command(positional: [String]) throws -> CLICommand {
             if version { return .version }
             let first = positional.first
             if help { return .help(topic: first.flatMap { CLIParser.subcommands.contains($0) ? $0 : nil }) }
+            if positional.first == "sql" { return try sqlCommand(positional) }
             if demo { return .open(OpenRequest(path: nil, demo: true, dryRun: dryRun)) }
             if readOnly, positional.isEmpty { throw CLIUsageError("--read-only needs a folder to scan") }
             guard let first else { throw CLIUsageError("missing a command or a folder. Try: deepyellow --help") }

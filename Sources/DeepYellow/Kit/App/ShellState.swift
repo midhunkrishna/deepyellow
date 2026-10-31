@@ -49,6 +49,14 @@ public final class ShellState {
     public var fullDiskAccess: FullDiskAccess
     public var recents: [String]
     public var volumes: [VolumeInfo]
+    /// The SQL drawer is showing.
+    public var sqlOpen = false
+    /// The drawer's height as a share of the window.
+    public var sqlHeightFraction: CGFloat = 0.38
+    /// What the editor holds. Running it hands it to the workspace.
+    public var sqlDraft = ""
+    /// Bumped to move keyboard focus into the SQL editor.
+    public var sqlFocusToken = 0
     /// Set by the screenshot harness: draw this image instead of the live canvas.
     public var shotSnapshot: NSImage?
     /// True while rendering a screenshot, which adds stand-in window buttons.
@@ -85,6 +93,12 @@ public final class ShellState {
         case .redo: _ = workspace.redoDecision()
         case .openPalette: paletteQuery = ""; sheet = .palette
         case .openLedger: sheet = .ledger
+        case .toggleSQL:
+            sqlOpen.toggle()
+            if sqlOpen { sqlFocusToken += 1 }
+        case .runSQL:
+            if !sqlOpen { sqlOpen = true }
+            workspace.runSQL(sqlDraft)
         case .escape: backOut()
         case .chooseFolder: chooseFolder()
         case .openDemo: openDemo()

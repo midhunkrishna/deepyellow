@@ -16,7 +16,7 @@ from pathlib import Path
 from urllib.parse import unquote
 
 ROOT = Path(__file__).resolve().parent.parent
-SCREENS = "app-map app-map-safety app-map-files app-things app-spectrum app-field app-rings app-browse app-reclaim app-worklists app-review app-plan app-ledger app-palette app-welcome app-preview-video app-preview-image".split()
+SCREENS = "app-map app-map-safety app-map-files app-things app-spectrum app-field app-rings app-browse app-reclaim app-worklists app-review app-plan app-ledger app-palette app-welcome app-preview-video app-preview-image app-sql-map app-sql-groups app-sql-table".split()
 PENDING = {ROOT / "web" / "images" / "icon.png", ROOT / "web" / "favicon.png"}
 PENDING |= {ROOT / "docs" / "screens" / (n + ".png") for n in SCREENS}
 PENDING |= {ROOT / "web" / "images" / (n + ".webp") for n in SCREENS}

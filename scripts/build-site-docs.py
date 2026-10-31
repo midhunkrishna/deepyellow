@@ -28,6 +28,7 @@ PAGES = [
     ("views", "Views", "Using it"),
     ("query-language", "Query language", "Using it"),
     ("safety-and-accounting", "Safety and accounting", "Using it"),
+    ("sql", "SQL", "Using it"),
     ("reclaim-rules", "Reclaim rules", "Using it"),
     ("cli", "Command line", "Using it"),
     ("building-from-source", "Building from source", "Project"),

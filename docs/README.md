@@ -16,9 +16,10 @@ DeepYellow is a native macOS disk analyzer. It shows where your space went, tell
 |---|---|
 | [Views](views.md) | Map, Things, Spectrum, Field, Rings, Browse, Reclaim, Review, colour modes, keyboard |
 | [Query language](query-language.md) | `size>100mb age>1y kind:video` and every other term |
+| [SQL](sql.md) | Ask your disk a question in SQL; the answer becomes what every view shows |
 | [Safety and accounting](safety-and-accounting.md) | Tiers, staged decisions, the Plan, Trash and undo, the Ledger, Full Disk Access |
 | [Reclaim rules](reclaim-rules.md) | Every built-in rule: pattern, tier, consequence, side condition, command |
-| [Command line](cli.md) | `deepyellow things`, `reclaim`, `spectrum`, `dupes`; read-only by design |
+| [Command line](cli.md) | `deepyellow things`, `reclaim`, `spectrum`, `dupes`, `sql`; read-only by design |
 
 ## Building and maintaining
 

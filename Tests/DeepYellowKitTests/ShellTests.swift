@@ -1,6 +1,7 @@
 import AVFoundation
 import AppKit
 import DYDecide
+import DYSQL
 import DYAnalysis
 import DYWorkspace
 import XCTest
@@ -132,5 +133,71 @@ final class ShellTests: XCTestCase {
         try Data("mine".utf8).write(to: other.appendingPathComponent("deepyellow"))
         if case .refused = installer.install(into: other) {} else { XCTFail("must not overwrite a regular file") }
         XCTAssertEqual(try String(contentsOf: other.appendingPathComponent("deepyellow"), encoding: .utf8), "mine")
+    }
+
+    // MARK: SQL drawer
+
+    func testSKeyTogglesTheSQLDrawer() {
+        XCTAssertEqual(KeyMap.command(characters: "s", keyCode: 1, flags: []), .toggleSQL)
+        XCTAssertNil(KeyMap.command(characters: "s", keyCode: 1, flags: .command))
+        XCTAssertTrue(ShellCommand.catalog.contains { $0.command == .toggleSQL })
+        XCTAssertTrue(ShellCommand.catalog.contains { $0.command == .runSQL })
+    }
+
+    /// Single keys never fire in a text field; ⌘⏎ runs the query in the SQL editor and opens the Plan everywhere else.
+    func testKeyRoutingAroundTheSQLEditor() {
+        XCTAssertEqual(KeyRouter.route(.openPlan, typing: true, sqlEditorFocused: true), .perform(.runSQL))
+        XCTAssertEqual(KeyRouter.route(.openPlan, typing: true, sqlEditorFocused: false), .perform(.openPlan))
+        XCTAssertEqual(KeyRouter.route(.openPlan, typing: false, sqlEditorFocused: false), .perform(.openPlan))
+        for single in [ShellCommand.toggleSQL, .mark(.remove), .mark(.keep), .hide, .review, .lens(.things), .toggleMetric, .move(.left), .zoomOut] {
+            XCTAssertEqual(KeyRouter.route(single, typing: true, sqlEditorFocused: true), .passThrough, "\(single) must not fire while typing")
+            XCTAssertEqual(KeyRouter.route(single, typing: true, sqlEditorFocused: false), .passThrough)
+            XCTAssertEqual(KeyRouter.route(single, typing: false, sqlEditorFocused: false), .perform(single))
+        }
+        XCTAssertEqual(KeyRouter.route(.escape, typing: true, sqlEditorFocused: true), .leaveTextField)
+        XCTAssertEqual(KeyRouter.route(.openPalette, typing: true, sqlEditorFocused: true), .perform(.openPalette))
+    }
+
+    @MainActor func testTogglingTheDrawerFocusesTheEditor() {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("dy-sqlshell-\(UUID().uuidString)")
+        let shell = ShellState(workspace: Workspace(environment: .demo(dataDirectory: directory)), isDemo: true, fullDiskAccess: .denied)
+        XCTAssertFalse(shell.sqlOpen)
+        shell.perform(.toggleSQL)
+        XCTAssertTrue(shell.sqlOpen)
+        XCTAssertEqual(shell.sqlFocusToken, 1)
+        shell.perform(.toggleSQL)
+        XCTAssertFalse(shell.sqlOpen)
+        shell.perform(.runSQL)
+        XCTAssertTrue(shell.sqlOpen, "running opens the drawer so the answer is visible")
+    }
+
+    func testSQLHighlighterFindsKeywordsFunctionsStringsNumbersAndComments() {
+        let text = "SELECT human(size), 'a''b' -- note\nFROM files WHERE size > 100"
+        let spans = SQLHighlighter.spans(in: text)
+        let ns = text as NSString
+        func words(_ token: SQLHighlighter.Token) -> [String] { spans.filter { $0.token == token }.map { ns.substring(with: $0.range) } }
+        XCTAssertEqual(words(.keyword), ["SELECT", "FROM", "WHERE"])
+        XCTAssertEqual(words(.function), ["human"])
+        XCTAssertEqual(words(.string), ["'a''b'"])
+        XCTAssertEqual(words(.number), ["100"])
+        XCTAssertEqual(words(.comment), ["-- note"])
+        XCTAssertTrue(SQLHighlighter.spans(in: "").isEmpty)
+    }
+
+    func testNarrowTablesFillTheDrawerWithTheLastTextColumn() {
+        XCTAssertEqual(SQLColumnLayout.fill([60, 100, 80], numeric: [true, false, true], available: 500), [60, 360, 80])
+        XCTAssertEqual(SQLColumnLayout.fill([60, 100], numeric: [true, true], available: 300), [60, 240])
+        XCTAssertEqual(SQLColumnLayout.fill([300, 300], numeric: [false, false], available: 400), [300, 300], "wide tables keep their widths and scroll")
+        XCTAssertEqual(SQLColumnLayout.fill([], numeric: [], available: 400), [])
+    }
+
+    func testResultCellsReadPlainly() {
+        XCTAssertEqual(SQLValueText.text(.null), "NULL")
+        XCTAssertEqual(SQLValueText.text(.integer(-4)), "-4")
+        XCTAssertEqual(SQLValueText.text(.real(2.5)), "2.5")
+        XCTAssertEqual(SQLValueText.text(.blob(byteCount: 12)), "<12 bytes>")
+        XCTAssertTrue(SQLValueText.isNumber(.real(1)))
+        XCTAssertFalse(SQLValueText.isNumber(.text("1")))
+        XCTAssertEqual(SQLValueText.message(of: .refused(message: "No.")), "No.")
     }
 }

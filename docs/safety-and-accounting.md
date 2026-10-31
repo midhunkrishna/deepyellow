@@ -28,6 +28,10 @@ Every item carries a tier with its consequence in plain words.
 
 Most of your disk will have **no advice**, and that is the honest answer. DeepYellow does not use AI to guess. It has a rule table and facts it can measure (size, age, kind, which app owns a folder, exact duplicates), and the decision is yours. The [worklists](views.md#worklists) exist to turn "no advice" into factual lists such as "large, and untouched for over a year". On one measured home folder (188 GB, 2.18 million files), about 65% of the bytes had no safety advice, and the worklists covered 68 GB of that.
 
+## SQL is read-only
+
+You can query your scan with [SQL](sql.md). It can not write: `DELETE`, `UPDATE`, `INSERT`, `DROP`, `CREATE`, `ATTACH`, `DETACH`, `VACUUM INTO`, `PRAGMA` and `load_extension` are refused, and a SQL result never marks anything and never reaches the Plan. Marks still come only from selection and <kbd>k</kbd> <kbd>x</kbd> <kbd>l</kbd> <kbd>u</kbd>.
+
 ## Staged decisions
 
 Marking works like `git add`. <kbd>x</kbd> stages an item for removal and changes nothing on disk. The staged total is always on screen at the right of the Ledger.

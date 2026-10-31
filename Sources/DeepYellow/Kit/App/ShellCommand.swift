@@ -11,6 +11,7 @@ public enum ShellCommand: Equatable {
     case mark(Decision)
     case review, openPlan, togglePreview, focusQuery, toggleMetric, cycleColor, hide
     case zoomIn, zoomOut, undo, redo, openPalette, openLedger, escape
+    case toggleSQL, runSQL
     case chooseFolder, openDemo, rescan, installCLI, toggleHints
     case move(MoveDirection)
 
@@ -41,6 +42,8 @@ public enum ShellCommand: Equatable {
             Info(title: "Undo", key: "⌘Z", command: .undo),
             Info(title: "Redo", key: "⇧⌘Z", command: .redo),
             Info(title: "Open the Ledger", key: "", command: .openLedger),
+            Info(title: "Show or hide the SQL drawer", key: "s", command: .toggleSQL),
+            Info(title: "Run the SQL query", key: "⌘⏎", command: .runSQL),
             Info(title: "Choose a folder to scan…", key: "⌘O", command: .chooseFolder),
             Info(title: "Open the sample disk", key: "", command: .openDemo),
             Info(title: "Rescan", key: "⌘R", command: .rescan),
@@ -96,6 +99,7 @@ public enum KeyMap {
         case "m": return .toggleMetric
         case "c": return .cycleColor
         case "h": return .hide
+        case "s": return .toggleSQL
         default: return nil
         }
     }
@@ -126,5 +130,29 @@ public enum BrushQuery {
             if value >= 100 { return "\(Int(up ? value.rounded(.up) : value.rounded(.down)))\(name)" }
         }
         return "\(Int(bytes))b"
+    }
+}
+
+/// Where a key press goes, given what has keyboard focus.
+public enum KeyRoute: Equatable {
+    /// Run the command.
+    case perform(ShellCommand)
+    /// Take focus out of the text field being edited.
+    case leaveTextField
+    /// Leave the event to the text field.
+    case passThrough
+}
+
+/// Decides what a command does when a text field may be taking the keys. Single-key shortcuts never fire while typing.
+public enum KeyRouter {
+    /// `⌘⏎` runs the query while the SQL editor has focus and opens the Plan everywhere else.
+    public static func route(_ command: ShellCommand, typing: Bool, sqlEditorFocused: Bool) -> KeyRoute {
+        guard typing else { return .perform(command) }
+        switch command {
+        case .escape: return .leaveTextField
+        case .openPlan: return .perform(sqlEditorFocused ? .runSQL : .openPlan)
+        case .openPalette: return .perform(.openPalette)
+        default: return .passThrough
+        }
     }
 }

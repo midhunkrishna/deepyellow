@@ -9,6 +9,7 @@ DeepYellow is native Swift with Metal for the map. Each module is its own Swift 
 | `DYCore` | The shared vocabulary: the compact file tree, file kinds, safety tiers, decisions, the colour palette, number formatting, and the synthetic tree used for demos and tests |
 | `DYScan` | The scanner, the scan cache, volume information, and the Full Disk Access probe |
 | `DYAnalysis` | Ignore rules, the [query language](query-language.md), Things, Spectrum and Field |
+| `DYSQL` | The read-only SQL engine: a virtual `nodes` table over the file tree, the schema and function docs, and the guards that refuse writes. Links the system SQLite and nothing else |
 | `DYAdvisor` | The [reclaim rules](reclaim-rules.md), duplicate finding, app ownership and worklists |
 | `DYDecide` | Decisions, the removal Plan and its guards, and the Trash executor with its journal |
 | `DYRender` | The Metal map, Rings and Field canvases |

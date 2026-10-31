@@ -45,6 +45,7 @@ extension Workspace {
         scanTask?.cancel()
         lensToken?.cancel()
         viewToken?.cancel()
+        sqlToken?.cancel()
         cancelAnalyses()
         worklistToken?.cancel()
         refineToken?.cancel()
@@ -69,6 +70,7 @@ extension Workspace {
         focus = 0
         focusPath = "/"
         cachedIgnore = nil
+        resetSQL()
         resetAnalyses()
         refreshSelection()
     }
@@ -197,7 +199,9 @@ extension Workspace {
             let refinement = await KindRefiner.refine(lens: full, reader: reader, minimumSize: minimum, isCancelled: { token.isCancelled })
             guard !token.isCancelled, let refinement, self.tree === tree else { self.markCancelled(token); return }
             self.kindRefinement = refinement
-            self.tree = tree.replacingKinds(refinement.kinds)
+            let refined = tree.replacingKinds(refinement.kinds)
+            if self.sqlResult?.tree === tree { self.sqlResult?.tree = refined }
+            self.tree = refined
             self.analysis[.kinds] = .done
             self.scheduleLens()
         }

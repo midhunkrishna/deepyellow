@@ -37,6 +37,7 @@
 <li><a href="views.html">Views</a></li>
 <li><a href="query-language.html">Query language</a></li>
 <li><a href="safety-and-accounting.html" aria-current="page">Safety and accounting</a></li>
+<li><a href="sql.html">SQL</a></li>
 <li><a href="reclaim-rules.html">Reclaim rules</a></li>
 <li><a href="cli.html">Command line</a></li>
 </ul>
@@ -72,6 +73,8 @@
 </tbody></table>
 <p><strong>Uncertain is review, never rounded up to safe.</strong> A <code>never</code> item always wins over anything above it, and the most specific rule wins otherwise. The rules, with each one's source and consequence, are in <a href="reclaim-rules.html">Reclaim rules</a>.</p>
 <p>Most of your disk will have <strong>no advice</strong>, and that is the honest answer. DeepYellow does not use AI to guess. It has a rule table and facts it can measure (size, age, kind, which app owns a folder, exact duplicates), and the decision is yours. The <a href="views.html#worklists">worklists</a> exist to turn "no advice" into factual lists such as "large, and untouched for over a year". On one measured home folder (188 GB, 2.18 million files), about 65% of the bytes had no safety advice, and the worklists covered 68 GB of that.</p>
+<h2 id="sql-is-read-only">SQL is read-only <a class="anchor" href="#sql-is-read-only" aria-label="Link to this section">#</a></h2>
+<p>You can query your scan with <a href="sql.html">SQL</a>. It can not write: <code>DELETE</code>, <code>UPDATE</code>, <code>INSERT</code>, <code>DROP</code>, <code>CREATE</code>, <code>ATTACH</code>, <code>DETACH</code>, <code>VACUUM INTO</code>, <code>PRAGMA</code> and <code>load_extension</code> are refused, and a SQL result never marks anything and never reaches the Plan. Marks still come only from selection and <kbd>k</kbd> <kbd>x</kbd> <kbd>l</kbd> <kbd>u</kbd>.</p>
 <h2 id="staged-decisions">Staged decisions <a class="anchor" href="#staged-decisions" aria-label="Link to this section">#</a></h2>
 <p>Marking works like <code>git add</code>. <kbd>x</kbd> stages an item for removal and changes nothing on disk. The staged total is always on screen at the right of the Ledger.</p>
 <ul>
@@ -114,7 +117,7 @@
 <li>A scan is a snapshot. Files that change after the scan are caught by the fingerprint check on Apply, but the picture on screen is not live.</li>
 <li>Space only returns after you empty the Trash.</li>
 </ul>
-<nav class="pager" aria-label="Pages"><a href="query-language.html">&larr; Query language</a><a href="reclaim-rules.html">Reclaim rules &rarr;</a></nav>
+<nav class="pager" aria-label="Pages"><a href="query-language.html">&larr; Query language</a><a href="sql.html">SQL &rarr;</a></nav>
   </main>
 </div>
 <footer class="foot"><div class="wrap">

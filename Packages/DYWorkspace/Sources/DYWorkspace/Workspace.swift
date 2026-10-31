@@ -4,6 +4,7 @@ import DYCore
 import DYDecide
 import DYPreview
 import DYScan
+import DYSQL
 import Foundation
 import Observation
 
@@ -36,6 +37,12 @@ public enum StageState: Equatable, Sendable {
     case running(fraction: Double?)
     case done
     case cancelled
+}
+
+/// Where the SQL drawer's last run stands.
+public enum SQLPhase: Equatable {
+    case idle, running, finished
+    case failed(SQLFailure)
 }
 
 /// A short message for the toast line, optionally with an undo.
@@ -136,7 +143,22 @@ public final class Workspace {
     public internal(set) var review: ReviewSession?
     public internal(set) var notice: Notice?
 
+    // MARK: SQL
+
+    /// The text of the last run requested.
+    public internal(set) var sqlText = ""
+    public internal(set) var sqlPhase: SQLPhase = .idle
+    public internal(set) var sqlResult: SQLResult?
+    /// The group row narrowing the views, if any.
+    public internal(set) var sqlDrillRow: Int?
+    var sqlHistoryEntries: [String] = []
+
     // MARK: Background bookkeeping
+
+    @ObservationIgnored var sqlTask: Task<Void, Never>?
+    @ObservationIgnored var sqlToken: CancelToken?
+    @ObservationIgnored var sqlBasis: SQLBasis?
+    @ObservationIgnored var sqlDeferred = false
 
     @ObservationIgnored var taskEpoch = 0
     @ObservationIgnored var scanTask: Task<Void, Never>?
@@ -173,6 +195,7 @@ public final class Workspace {
         ignoreRules = Workspace.loadRules(directory)
         volumes = environment.volumes()
         canUndoApply = executor.canUndo
+        sqlHistoryEntries = Workspace.loadSQLHistory(directory)
     }
 
     /// The reference time for ages, in seconds since 1970.
@@ -280,7 +303,7 @@ public final class Workspace {
         isRecomputing = true
         let input = LensInput(tree: tree, rules: ignoreRules, rulesRevision: rulesRevision, home: environment.homePath, query: query,
                               store: decisionStore, nodeTier: reclaimReport?.nodeTier, trashed: trashedPaths, now: now,
-                              wantsDominantKinds: colorMode == .kind, cachedIgnore: cachedIgnore)
+                              wantsDominantKinds: colorMode == .kind, cachedIgnore: cachedIgnore, sqlNodes: sqlActiveNodes)
         taskEpoch += 1
         lensTask = Task { [weak self] in
             let bundle = await Task.detached(priority: .userInitiated) { LensPipeline.build(input, isCancelled: { token.isCancelled }) }.value
@@ -305,6 +328,7 @@ public final class Workspace {
         scheduleViewResults()
         scheduleWorklists()
         scheduleRefine()
+        continueSQL()
     }
 
     /// Computes the active lens's result (Things, Spectrum or Field) on a background task.
@@ -342,7 +366,7 @@ public final class Workspace {
     public func settle() async {
         while true {
             let epoch = taskEpoch
-            let tasks = [scanTask, lensTask, viewTask, analysisTask, duplicatesTask, worklistTask, refineTask, saveTask].compactMap { $0 }
+            let tasks = [scanTask, lensTask, viewTask, analysisTask, duplicatesTask, worklistTask, refineTask, saveTask, sqlTask].compactMap { $0 }
             for task in tasks { await task.value }
             if epoch == taskEpoch { return }
         }

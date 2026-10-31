@@ -22,6 +22,7 @@ deepyellow things <path> [--min 100mb] [--top N] [--json]
 deepyellow reclaim <path> [--json]
 deepyellow spectrum <path> [--json]
 deepyellow dupes <path> [--min 1mb] [--json]
+deepyellow sql <path|--demo> "<query>" [--json | --csv] [--top N]
 deepyellow --version | --help
 ```
 
@@ -114,6 +115,25 @@ Duplicates under ~/Downloads  ·  6.29 MB wasted in 1 sets  ·  13.0 MB read
       design-handoff/Ubuntu-copy.iso
 ```
 
+### `sql`
+
+Runs one [SQL](sql.md) statement against a scan of the path, or against the sample disk with `--demo`, so examples never need a real path. Read-only, like everything here: statements that write are refused.
+
+```
+deepyellow sql --demo "SELECT kind, human(SUM(size)) AS total, COUNT(*) AS files FROM files GROUP BY kind"
+```
+
+| Option | Meaning |
+|---|---|
+| `--top <N>` | Rows shown in the table, default 200. The rest are summarised as "N more rows". |
+| `--json` | Every row, as JSON, written as it is produced |
+| `--csv` | Every row, as CSV, written as it is produced |
+| `--schema` | Print the `nodes` columns, the functions and the examples, then stop |
+
+- The same `nodes` table, `files` and `dirs` views and functions as in the app. There are no views to drive on the command line, so `id` and `ids(id)` columns are just columns.
+- **`mark` is always NULL**, because the command line has no decisions. **`safety` is computed only when the query text mentions it**, so queries that do not use it do not pay for the safety scan.
+- A refused or invalid statement prints a message on standard error and exits 65.
+
 ## Colour, piping and `NO_COLOR`
 
 - On a terminal you get truecolor bars.
@@ -170,6 +190,7 @@ Real output of `things --json --top 2` on the same folder:
 | `0` | Success |
 | `2` | The path does not exist or is not a folder. A message goes to standard error. |
 | `64` | Bad arguments: an unknown option, a missing or extra path, an invalid size. A message goes to standard error. |
+| `65` | `sql` only: the query is invalid or was refused (for example a `DELETE`). A message goes to standard error. |
 
 ## Examples
 

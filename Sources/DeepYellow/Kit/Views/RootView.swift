@@ -21,14 +21,17 @@ public struct RootView: View {
             if workspace.source == nil {
                 WelcomeView(shell: shell)
             } else {
-                VStack(spacing: 0) {
-                    HeaderBar(shell: shell)
-                    Divider().overlay(Theme.hairline)
-                    ToolsRow(shell: shell)
-                    NoticeBar(shell: shell)
-                    content
-                    Divider().overlay(Theme.hairline)
-                    LedgerFooter(shell: shell)
+                GeometryReader { proxy in
+                    VStack(spacing: 0) {
+                        HeaderBar(shell: shell)
+                        Divider().overlay(Theme.hairline)
+                        ToolsRow(shell: shell)
+                        NoticeBar(shell: shell)
+                        content
+                        if shell.sqlOpen { SQLDrawer(shell: shell, availableHeight: proxy.size.height) }
+                        Divider().overlay(Theme.hairline)
+                        LedgerFooter(shell: shell)
+                    }
                 }
             }
             if shell.hintsHeld { HintsOverlay().transition(.opacity) }
@@ -82,6 +85,7 @@ struct HeaderBar: View {
             if shell.isShot { StandInWindowButtons() } else { Color.clear.frame(width: 64, height: 1) }
             breadcrumb.layoutPriority(0)
             queryField
+            SQLChip(shell: shell)
             Spacer(minLength: 4)
             tabs.layoutPriority(2)
         }
