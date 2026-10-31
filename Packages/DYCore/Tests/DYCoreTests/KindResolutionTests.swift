@@ -19,13 +19,19 @@ final class KindResolutionTests: XCTestCase {
         XCTAssertEqual(FileKindClassifier.classify("disk.img"), .archive)
     }
 
-    /// The type system answers for extensions outside the table and says nothing for made-up ones.
+    /// The type system answers for types macOS itself declares and says nothing for made-up ones.
+    /// Uses only system-declared types: `mkv`, for one, resolves only when an installed app registers it.
     func testTypeResolver() {
-        XCTAssertEqual(TypeResolver.kind(forExtension: "MKV"), .video)
+        XCTAssertEqual(TypeResolver.kind(forExtension: "MOV"), .video)
         XCTAssertEqual(TypeResolver.kind(forExtension: "heic"), .image)
         XCTAssertNil(TypeResolver.kind(forExtension: "xyzzyq1"))
         XCTAssertNil(TypeResolver.kind(forExtension: ""))
-        XCTAssertEqual(TypeResolver.kind(forExtension: "mkv"), TypeResolver.kind(forExtension: "mkv"))
+        XCTAssertEqual(TypeResolver.kind(forExtension: "mov"), TypeResolver.kind(forExtension: "mov"))
+    }
+
+    /// Formats that macOS doesn't declare still classify on a clean machine, because the table lists them.
+    func testTableCoversTypesTheSystemMayNotDeclare() {
+        XCTAssertEqual(FileKindClassifier.classify("film.mkv"), .video)
     }
 
     private func header(_ bytes: [UInt8], padTo length: Int = 64) -> Data {
