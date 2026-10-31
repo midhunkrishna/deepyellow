@@ -116,12 +116,42 @@ final class RenderTests: XCTestCase {
         XCTAssertTrue(workspace.resolved?.effective.allSatisfy { $0 == 0 } ?? true, "nothing is pre-marked")
         try await render(ReclaimLens(workspace: workspace), size: CGSize(width: 1180, height: 2500), name: "reclaim-before")
         try await render(ReclaimLens(workspace: workspace), size: CGSize(width: 1600, height: 1900), name: "reclaim-1600")
+        try await render(ReclaimLens(workspace: workspace), size: CGSize(width: 1180, height: 900), name: "reclaim-1180")
         try await render(ReclaimLens(workspace: workspace), size: CGSize(width: 1100, height: 2500), name: "reclaim-1100")
         workspace.findDuplicates()
         await workspace.settle()
         XCTAssertNotNil(workspace.worklists.first { $0.kind == .duplicates })
         let distinct = try await render(ReclaimLens(workspace: workspace), size: CGSize(width: 1180, height: 2500), name: "reclaim")
         XCTAssertGreaterThan(distinct, 8)
+    }
+
+    func testReclaimNarrowsToTheQuery() async throws {
+        let workspace = await demoWorkspace()
+        workspace.setLens(.reclaim)
+        await workspace.settle()
+        let report = try XCTUnwrap(workspace.reclaimReport)
+        let open = ReclaimModel.scope(report: report, worklists: workspace.worklists, lens: workspace.lens, baseLens: workspace.baseLens)
+        XCTAssertFalse(open.isNarrowed)
+        XCTAssertEqual(open.groups.map(\.bytes), ReclaimModel.groups(report).map(\.bytes), "no filter leaves the report unchanged")
+
+        workspace.setQuery("kind:video")
+        await workspace.settle()
+        let scope = ReclaimModel.scope(report: report, worklists: workspace.worklists, lens: workspace.lens, baseLens: workspace.baseLens)
+        XCTAssertTrue(scope.isNarrowed)
+        let lens = try XCTUnwrap(workspace.lens)
+        for family in scope.groups.flatMap(\.families) {
+            XCTAssertTrue(family.nodes.allSatisfy { lens.included[Int($0)] && lens.size[Int($0)] > 0 })
+            XCTAssertLessThanOrEqual(family.bytes, scope.fullBytes[family.id] ?? 0)
+        }
+        XCTAssertLessThanOrEqual(ReclaimModel.headline(scope.groups).reclaimable, ReclaimModel.headline(open.groups).reclaimable)
+        XCTAssertLessThanOrEqual(scope.totalBytes, open.totalBytes)
+        try await render(ReclaimLens(workspace: workspace), size: CGSize(width: 1180, height: 1400), name: "reclaim-narrowed")
+
+        workspace.setQuery("size>100tb")
+        await workspace.settle()
+        let empty = ReclaimModel.scope(report: report, worklists: workspace.worklists, lens: workspace.lens, baseLens: workspace.baseLens)
+        XCTAssertTrue(empty.isEmpty)
+        try await render(ReclaimLens(workspace: workspace), size: CGSize(width: 1180, height: 500), name: "reclaim-empty")
     }
 
     func testReviewRendersAndAdvances() async throws {

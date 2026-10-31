@@ -183,6 +183,22 @@ final class CLITests: XCTestCase {
         XCTAssertEqual(result.cap.out, "x,y,z,w\n\"a,b\",\"say \"\"hi\"\"\",,2.5\n")
     }
 
+    /// `--demo` must count what the app counts, including the kinds found by refinement.
+    @MainActor func testSQLDemoDiskMatchesTheAppsSampleDisk() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("dy-demo-match-\(UUID().uuidString)")
+        let workspace = Workspace(environment: .demo(dataDirectory: directory))
+        workspace.open(.demo)
+        for _ in 0..<100 {
+            await workspace.settle()
+            if workspace.kindRefinement != nil { break }
+            try await Task.sleep(for: .milliseconds(100))
+        }
+        let tree = try XCTUnwrap(workspace.tree)
+        let appCount = (0..<tree.count).filter { !tree.isDirectory(NodeID($0)) && tree.kind(NodeID($0)) == .archive }.count
+        let out = run(["sql", "--demo", "SELECT COUNT(*) AS n FROM files WHERE kind = 'archive'", "--csv"]).cap.out
+        XCTAssertEqual(out, "n\n\(appCount)\n")
+    }
+
     func testSQLSchemaListsColumnsFunctionsAndExamples() {
         let out = run(["sql", "--schema"]).cap.out
         XCTAssertTrue(out.contains("file_count"))

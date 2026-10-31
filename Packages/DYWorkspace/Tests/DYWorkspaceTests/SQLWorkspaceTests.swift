@@ -69,6 +69,17 @@ final class SQLWorkspaceTests: XCTestCase {
         XCTAssertEqual(workspace.sqlFilterSummary?.hasPrefix("1 thing · "), true)
     }
 
+    /// The chip agrees with the table when a folder and its contents are both rows, and counts each byte once.
+    func testFilterSummaryCountsRowsAndBytesOnce() async {
+        let workspace = await openDemo(self)
+        await run(workspace, "SELECT id FROM dirs WHERE path = '\(home)/Movies'")
+        let folderOnly = workspace.lens!.size[0]
+        await run(workspace, "SELECT id FROM nodes WHERE path = '\(home)/Movies' OR path = '\(home)/Movies/wedding-final-master.mov'")
+        XCTAssertEqual(workspace.sqlResult?.rowCount, 2)
+        XCTAssertEqual(workspace.sqlFilterSummary?.hasPrefix("2 things · "), true)
+        XCTAssertEqual(workspace.lens!.size[0], folderOnly)
+    }
+
     func testSQLIsAndedWithTheSlashQuery() async {
         let workspace = await openDemo(self)
         await run(workspace, "SELECT id FROM dirs WHERE path = '\(home)/Movies'")

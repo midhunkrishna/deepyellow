@@ -80,7 +80,8 @@
 </tbody></table>
 <p>Rules that apply to sets and groups:</p>
 <ul>
-<li><strong>Folders bring their whole subtree.</strong> If <code>id</code> is a folder, everything inside it is in the set. The chip counts the topmost items of the set.</li>
+<li><strong>Folders bring their whole subtree.</strong> If <code>id</code> is a folder, everything inside it is in the set. The chip counts the items the result names, as the table does, and counts each byte once even when a folder and its contents are both rows.</li>
+<li><strong>Reclaim narrows too.</strong> Its cards show what's in the result, such as "12.6 GB in this result, of 18.0 GB". Staging a card acts on whole folders, and the Plan lists exactly what is staged.</li>
 <li><strong>Results AND with the <code>/</code> query.</strong> If you also have a <a href="query-language.html">query</a> typed in the query field, a node must satisfy both.</li>
 <li><strong>A result stays true.</strong> When the scan, a hide rule, a decision, the Trash or a safety tier changes, the query runs again by itself, and an old result is never applied to a new scan. If you had drilled into a group, that stays only when the number of groups is unchanged.</li>
 <li><strong>The Ledger still reconciles.</strong> Hidden space stays accounted for. What a SQL result filters out is counted as filtered, as with the query.</li>

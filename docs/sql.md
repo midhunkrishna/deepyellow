@@ -36,7 +36,8 @@ What the result contains decides what happens.
 
 Rules that apply to sets and groups:
 
-- **Folders bring their whole subtree.** If `id` is a folder, everything inside it is in the set. The chip counts the topmost items of the set.
+- **Folders bring their whole subtree.** If `id` is a folder, everything inside it is in the set. The chip counts the items the result names, as the table does, and counts each byte once even when a folder and its contents are both rows.
+- **Reclaim narrows too.** Its cards show what's in the result, such as "12.6 GB in this result, of 18.0 GB". Staging a card acts on whole folders, and the Plan lists exactly what is staged.
 - **Results AND with the `/` query.** If you also have a [query](query-language.md) typed in the query field, a node must satisfy both.
 - **A result stays true.** When the scan, a hide rule, a decision, the Trash or a safety tier changes, the query runs again by itself, and an old result is never applied to a new scan. If you had drilled into a group, that stays only when the number of groups is unchanged.
 - **The Ledger still reconciles.** Hidden space stays accounted for. What a SQL result filters out is counted as filtered, as with the query.

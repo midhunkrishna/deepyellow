@@ -314,6 +314,16 @@ enum SQLColumnLayout {
         }
     }
 
+    /// Gives the room left over to the last text column, or to the last column when all are numbers, so a narrow table fills the drawer.
+    static func fill(_ widths: [CGFloat], numeric: [Bool], available: CGFloat) -> [CGFloat] {
+        guard !widths.isEmpty else { return widths }
+        let extra = available - widths.reduce(0, +)
+        guard extra > 0 else { return widths }
+        var result = widths
+        result[numeric.lastIndex(of: false) ?? widths.count - 1] += extra
+        return result
+    }
+
     /// True for columns whose first non-null cell is a number.
     static func numeric(_ result: SQLResult) -> [Bool] {
         result.columns.indices.map { index in
@@ -328,24 +338,35 @@ struct SQLTable: View {
     let result: SQLResult
     let drillRow: Int?
     @State private var hovered: Int?
+    @State private var lastTapped: Int?
     private var workspace: Workspace { shell.workspace }
 
     var body: some View {
-        let widths = SQLColumnLayout.widths(result)
         let numeric = SQLColumnLayout.numeric(result)
         GeometryReader { proxy in
-            ScrollView([.horizontal, .vertical]) {
-                LazyVStack(alignment: .leading, spacing: 0, pinnedViews: [.sectionHeaders]) {
-                    Section {
-                        ForEach(result.rows.indices, id: \.self) { index in row(index, widths, numeric) }
-                    } header: {
-                        header(widths, numeric)
+            let widths = SQLColumnLayout.fill(SQLColumnLayout.widths(result), numeric: numeric, available: proxy.size.width - 28)
+            ScrollViewReader { scroller in
+                ScrollView([.horizontal, .vertical]) {
+                    LazyVStack(alignment: .leading, spacing: 0, pinnedViews: [.sectionHeaders]) {
+                        Section {
+                            ForEach(result.rows.indices, id: \.self) { index in row(index, widths, numeric).id(index) }
+                        } header: {
+                            header(widths, numeric)
+                        }
                     }
+                    .frame(minWidth: proxy.size.width, minHeight: proxy.size.height, alignment: .topLeading)
                 }
-                .frame(minWidth: proxy.size.width, minHeight: proxy.size.height, alignment: .topLeading)
+                .scrollIndicators(.automatic)
+                .onChange(of: workspace.selectedNodes.last) { _, node in revealRow(of: node, with: scroller) }
             }
-            .scrollIndicators(.automatic)
         }
+    }
+
+    /// Scrolls the table to a node chosen elsewhere, such as on the Map. A click inside the table leaves the scroll alone.
+    private func revealRow(of node: NodeID?, with scroller: ScrollViewProxy) {
+        guard result.shape == .nodes, let node, let index = result.rowNode.firstIndex(of: node) else { return }
+        if lastTapped == index { lastTapped = nil; return }
+        scroller.scrollTo(index)
     }
 
     /// The column names.
@@ -391,6 +412,7 @@ struct SQLTable: View {
         switch result.shape {
         case .nodes:
             guard let node else { return }
+            lastTapped = index
             let flags = NSEvent.modifierFlags
             workspace.click(node, additive: flags.contains(.shift) || flags.contains(.command))
         case .groups: workspace.drillSQL(row: drillRow == index ? nil : index)

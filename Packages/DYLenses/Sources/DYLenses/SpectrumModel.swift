@@ -63,6 +63,10 @@ enum SpectrumModel {
         let small = result.bins.filter { $0.upper <= 1_000_000 }
         let smallFiles = small.reduce(UInt64(0)) { $0 + $1.count }
         let smallBytes = small.reduce(UInt64(0)) { $0 + $1.bytes }
+        guard smallFiles > 0 else {
+            let count = Format.count(result.totalFiles)
+            return ("All \(count) files here are over 1 MB", "They total \(Format.bytes(result.totalBytes)). Click a column to add a size range to the query.")
+        }
         let title = "\(Format.percent(smallFiles, of: result.totalFiles)) of your files use only \(Format.percent(smallBytes, of: result.totalBytes)) of the space"
         let subtitle = "\(Format.count(smallFiles)) files are under 1 MB and total \(Format.bytes(smallBytes)). Click a column to add a size range to the query."
         return (title, subtitle)

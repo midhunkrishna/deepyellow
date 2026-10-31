@@ -184,6 +184,13 @@ final class ShellTests: XCTestCase {
         XCTAssertTrue(SQLHighlighter.spans(in: "").isEmpty)
     }
 
+    func testNarrowTablesFillTheDrawerWithTheLastTextColumn() {
+        XCTAssertEqual(SQLColumnLayout.fill([60, 100, 80], numeric: [true, false, true], available: 500), [60, 360, 80])
+        XCTAssertEqual(SQLColumnLayout.fill([60, 100], numeric: [true, true], available: 300), [60, 240])
+        XCTAssertEqual(SQLColumnLayout.fill([300, 300], numeric: [false, false], available: 400), [300, 300], "wide tables keep their widths and scroll")
+        XCTAssertEqual(SQLColumnLayout.fill([], numeric: [], available: 400), [])
+    }
+
     func testResultCellsReadPlainly() {
         XCTAssertEqual(SQLValueText.text(.null), "NULL")
         XCTAssertEqual(SQLValueText.text(.integer(-4)), "-4")

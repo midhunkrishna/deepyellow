@@ -311,8 +311,8 @@ enum Shaders {
         StarOut o;
         bool inside = fx >= 0.0 && fx <= 1.0 && fy >= 0.0 && fy <= 1.0;
         o.position = inside ? float4(px.x / u.viewSize.x * 2.0 - 1.0, 1.0 - px.y / u.viewSize.y * 2.0, 0.0, 1.0) : float4(2.0, 2.0, 0.0, 1.0);
-        o.point = (1.2 + 16.0 * pow(t, 2.8)) * u.scale * boost;
-        float intensity = (0.12 + 1.5 * pow(t, 2.8)) * (c.w > 0 ? 2.0 : 1.0);
+        o.point = (1.2 + 16.0 * pow(t, 2.8) + u.pad.x * 5.0) * u.scale * boost;
+        float intensity = (0.12 + 1.5 * pow(t, 2.8) + u.pad.x * 0.75) * (c.w > 0 ? 2.0 : 1.0);
         o.color = float3(c.rgb) / 255.0 * intensity;
         return o;
     }

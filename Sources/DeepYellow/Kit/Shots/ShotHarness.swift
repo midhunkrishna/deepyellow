@@ -21,7 +21,8 @@ public enum ShotHarness {
     /// Every scenario name the harness knows.
     public static let names = ["app-map", "app-map-safety", "app-map-files", "app-things", "app-spectrum", "app-field", "app-rings", "app-browse",
                                "app-reclaim", "app-worklists", "app-review", "app-plan", "app-ledger", "app-palette", "app-welcome",
-                               "app-preview-video", "app-preview-image", "app-sql-map", "app-sql-groups", "app-sql-table", "app-sql-error"]
+                               "app-preview-video", "app-preview-image", "app-sql-map", "app-sql-groups", "app-sql-table", "app-sql-error",
+                               "app-sql-spectrum", "app-sql-field", "app-sql-rings", "app-sql-browse", "app-sql-reclaim"]
 
     /// Renders `name` to `outPath`. `openPath` is the real folder to scan for a read-only session. Returns the process exit code.
     public static func run(name: String, outPath: String?, shell: ShellState, openPath: String? = nil) async -> Int32 {
@@ -77,8 +78,8 @@ public enum ShotHarness {
         switch name {
         case "app-map", "app-map-safety", "app-map-files", "app-plan", "app-ledger", "app-palette", "app-preview-video", "app-preview-image",
              "app-sql-map", "app-sql-table": .map
-        case "app-field": .field
-        case "app-rings": .rings
+        case "app-field", "app-sql-field": .field
+        case "app-rings", "app-sql-rings": .rings
         default: nil
         }
     }
@@ -172,7 +173,8 @@ public enum ShotHarness {
             workspace.setLens(.map)
             shell.paletteQuery = "re"
             shell.sheet = .palette
-        case "app-sql-map", "app-sql-groups", "app-sql-table", "app-sql-error": await sqlScenario(name, shell)
+        case "app-sql-map", "app-sql-groups", "app-sql-table", "app-sql-error", "app-sql-spectrum", "app-sql-field", "app-sql-rings", "app-sql-browse",
+             "app-sql-reclaim": await sqlScenario(name, shell)
         case "app-preview-video", "app-preview-image":
             workspace.setLens(.map)
             let kind: FileKind = name == "app-preview-video" ? .video : .image
@@ -206,6 +208,11 @@ public enum ShotHarness {
             workspace.setLens(.things)
             await run("Space by kind")
             if let row = workspace.sqlResult?.rows.firstIndex(where: { $0.first == .text("video") }) { workspace.drillSQL(row: row) }
+        case "app-sql-spectrum", "app-sql-field", "app-sql-rings", "app-sql-browse", "app-sql-reclaim":
+            let lenses: [String: LensKind] = ["app-sql-spectrum": .spectrum, "app-sql-field": .field, "app-sql-rings": .rings,
+                                              "app-sql-browse": .browse, "app-sql-reclaim": .reclaim]
+            workspace.setLens(lenses[name] ?? .map)
+            await run(name == "app-sql-reclaim" ? "Safe or rebuildable" : "Biggest files")
         case "app-sql-error":
             workspace.setLens(.map)
             await run("Video over")

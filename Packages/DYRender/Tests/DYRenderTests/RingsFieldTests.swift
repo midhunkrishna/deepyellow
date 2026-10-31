@@ -101,4 +101,22 @@ final class RingsFieldTests: XCTestCase {
         events.onBrush?(0...1, 3...5)
         XCTAssertEqual(got?.1, 3...5)
     }
+
+    @MainActor
+    func testFieldSurvivesFewPointsAndLiftsThem() throws {
+        try XCTSkipIf(GPUContext.shared == nil, "no Metal device")
+        _ = NSApplication.shared
+        for count in [1, 3, 15, 17] {
+            let canvas = FieldCanvas(frame: NSRect(x: 0, y: 0, width: 300, height: 200))
+            let positions = (0..<count).map { SIMD2(Float($0) / 5, 3 + Float($0) / 3) }
+            canvas.setPoints(positions: positions, kinds: [UInt8](repeating: 2, count: count), nodes: (0..<count).map { NodeID($0) },
+                             ageRange: 0...3.5, sizeRange: 3...9)
+            XCTAssertNotNil(canvas.snapshot(size: CGSize(width: 300, height: 200), scale: 1), "\(count) points")
+        }
+        XCTAssertEqual(FieldCanvas.fewPointBoost(count: 1), 1)
+        XCTAssertEqual(FieldCanvas.fewPointBoost(count: 100), 1)
+        XCTAssertEqual(FieldCanvas.fewPointBoost(count: 20_000), 0, "dense fields must render exactly as before")
+        XCTAssertEqual(FieldCanvas.fewPointBoost(count: 2_000_000), 0)
+        XCTAssertGreaterThan(FieldCanvas.fewPointBoost(count: 1_000), FieldCanvas.fewPointBoost(count: 5_000))
+    }
 }

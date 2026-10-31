@@ -39,7 +39,12 @@ public enum CLISQL {
     /// The sample disk, built the same way as in `--demo`.
     public static func demoDisk() -> (tree: FileTree, now: Int32, home: String) {
         let environment = WorkspaceEnvironment.demo(dataDirectory: FileManager.default.temporaryDirectory.appendingPathComponent("DeepYellowCLIDemo"))
-        let tree = environment.sampleDisk?() ?? SyntheticTree.make()
+        var tree = environment.sampleDisk?() ?? SyntheticTree.make()
+        // The app refines kinds after a scan; do the same here so `--demo` counts match what the app shows.
+        let reader = environment.reader, minimum = environment.kindRefinementMinimumSize, source = tree
+        if let refinement = CLIScan.blocking({ await KindRefiner.refine(lens: TreeLens(tree: source), reader: reader, minimumSize: minimum, isCancelled: { false }) }) {
+            tree = tree.replacingKinds(refinement.kinds)
+        }
         return (tree, Int32(environment.clock().timeIntervalSince1970), environment.homePath)
     }
 

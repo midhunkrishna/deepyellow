@@ -151,8 +151,6 @@ public final class Workspace {
     public internal(set) var sqlResult: SQLResult?
     /// The group row narrowing the views, if any.
     public internal(set) var sqlDrillRow: Int?
-    /// Topmost nodes of the set narrowing the views, as of the last published lens.
-    public internal(set) var sqlRootCount = 0
     var sqlHistoryEntries: [String] = []
 
     // MARK: Background bookkeeping
@@ -326,7 +324,6 @@ public final class Workspace {
         plan = bundle.plan
         planIsRefined = false
         isRecomputing = false
-        sqlRootCount = bundle.sqlRoots
         refreshSelection()
         scheduleViewResults()
         scheduleWorklists()

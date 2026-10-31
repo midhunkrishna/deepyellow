@@ -92,8 +92,8 @@ extension Workspace {
 
     /// "12 things · 184 GB" from the lens, or nil when not filtering.
     public var sqlFilterSummary: String? {
-        guard sqlIsFiltering, let lens else { return nil }
-        return "\(sqlRootCount) \(sqlRootCount == 1 ? "thing" : "things") · \(Format.bytes(lens.size.first ?? 0))"
+        guard let nodes = sqlActiveNodes, let lens else { return nil }
+        return "\(Format.count(nodes.count)) \(nodes.count == 1 ? "thing" : "things") · \(Format.bytes(lens.size.first ?? 0))"
     }
 
     // MARK: - History
@@ -188,7 +188,6 @@ extension Workspace {
         sqlDeferred = false
         sqlResult = nil
         sqlDrillRow = nil
-        sqlRootCount = 0
         sqlBasis = nil
         sqlPhase = .idle
     }

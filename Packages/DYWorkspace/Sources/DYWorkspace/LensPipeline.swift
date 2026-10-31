@@ -41,7 +41,6 @@ struct LensBundle: @unchecked Sendable {
     var dominantKinds: [UInt8]
     var plan: RemovalPlan
     /// Topmost nodes of the SQL set, for the filter summary.
-    var sqlRoots = 0
 }
 
 /// Computes a lens bundle: ignore rules, decisions, query, Trash state and the removal plan.
@@ -67,10 +66,8 @@ enum LensPipeline {
             guard let found = QueryEngine.matches(input.query, tree: tree, context: context, isCancelled: isCancelled) else { return nil }
             matches = found
         }
-        var sqlRoots = 0
         if let nodes = input.sqlNodes {
-            let (mask, roots) = sqlMask(nodes, tree: tree)
-            sqlRoots = roots
+            let mask = sqlMask(nodes, tree: tree)
             matches = matches.map { query in zip(query, mask).map { $0 && $1 } } ?? mask
         }
         if let matches { lens = TreeLens(tree: tree, hidden: ignore.hidden, matches: matches, removed: removed) }
@@ -78,22 +75,19 @@ enum LensPipeline {
         let dominant = input.wantsDominantKinds ? lens.dominantKinds() : []
         let plan = livePlan(tree: tree, resolved: resolved, nodeTier: padded(input.nodeTier, count: tree.count), home: input.home, lens: baseLens)
         return LensBundle(tree: tree, ignore: ignore, rulesRevision: input.rulesRevision, resolved: resolved, baseLens: baseLens,
-                          lens: lens, dominantKinds: dominant, plan: plan, sqlRoots: sqlRoots)
+                          lens: lens, dominantKinds: dominant, plan: plan)
     }
 
     /// A per-node mask that is true for `nodes` and everything beneath them, with the number of topmost nodes.
     ///
     /// One pass in breadth-first order: a parent is final before its children are visited. Ids outside the tree are ignored.
-    static func sqlMask(_ nodes: [NodeID], tree: FileTree) -> (mask: [Bool], roots: Int) {
+    static func sqlMask(_ nodes: [NodeID], tree: FileTree) -> [Bool] {
         let count = tree.count
         var mask = [Bool](repeating: false, count: count)
         for node in nodes where node >= 0 && Int(node) < count { mask[Int(node)] = true }
         let parent = tree.columns.parent
-        var roots = 0
-        for index in 0..<count {
-            if index > 0, mask[Int(parent[index])] { mask[index] = true } else if mask[index] { roots += 1 }
-        }
-        return (mask, roots)
+        for index in 1..<max(count, 1) where mask[Int(parent[index])] { mask[index] = true }
+        return mask
     }
 
     /// A per-node mask of the paths already moved to the Trash, or nil when there are none.

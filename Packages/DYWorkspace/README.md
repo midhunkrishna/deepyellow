@@ -62,7 +62,7 @@ A `.nodes` or `.groups` result is a set of things on disk, and every view shows 
 - A result stays true: after a tree swap, hide rule, decision, Trash or tier change the statement re-runs on the new lens, cancelling any older run. A set never applies to a tree its ids don't belong to; it is dropped until the re-run lands. Kind refinement keeps ids, so the result is rebound to the refined tree. `sqlDrillRow` survives a re-run only when the row count is unchanged.
 - `sqlHistory`: newest first, at most 20, no duplicates, saved as `sql-history.json` under the data directory.
 - SQL never marks anything, never builds a plan and never calls the Trash mover. Marks still go through selection and `mark(_:)`.
-- `sqlFilterSummary` counts topmost nodes of the set, and the bytes are the lens root, so they include the folders above the set.
+- `sqlFilterSummary` counts the nodes the result names, matching the results table. The bytes are the lens root: each byte once, even when a folder and its contents are both rows, and including the folders above the set.
 
 ## Ledger (`reconciliation`)
 

@@ -50,6 +50,15 @@ final class LensModelTests: XCTestCase {
         XCTAssertFalse(SpectrumModel.presentKinds(result).isEmpty)
     }
 
+    /// A filter can leave only big files, and the headline must not read "0% of your files use only 0%".
+    func testSpectrumHeadlineWithNoSmallFiles() {
+        var matches = [Bool](repeating: false, count: lens.tree.count)
+        for index in 0..<lens.tree.count where !lens.tree.isDirectory(NodeID(index)) && lens.tree.allocated(NodeID(index)) > 1_000_000_000 { matches[index] = true }
+        let result = SpectrumEngine.compute(lens: TreeLens(tree: lens.tree, matches: matches), under: 0)
+        XCTAssertGreaterThan(result.totalFiles, 0)
+        XCTAssertTrue(SpectrumModel.headline(result).title.hasPrefix("All \(Format.count(result.totalFiles)) files here"))
+    }
+
     func testSpectrumSizeTermsAreExactAndReplaceEachOther() {
         XCTAssertEqual(SpectrumModel.sizeToken(20_000_000), "20mb")
         XCTAssertEqual(SpectrumModel.sizeToken(1_000), "1kb")
@@ -108,5 +117,45 @@ final class LensModelTests: XCTestCase {
         XCTAssertEqual(TierPill.title(.never), "Not offered")
         XCTAssertNil(TierPill.title(.unknown))
         XCTAssertEqual(DecisionTag.title(.remove), "Remove")
+    }
+
+    private func rule(_ tier: SafetyTier = .safe) -> ReclaimRule {
+        ReclaimRule(id: "t", title: "T", pattern: "x", tier: tier, whatItIs: "", consequence: "")
+    }
+
+    /// A lens where only files under Movies pass, like a query would.
+    private func moviesOnly() -> (tree: FileTree, lens: TreeLens, movies: NodeID, music: NodeID) {
+        let tree = SyntheticTree.make(scale: 0.05)
+        let movies = tree.find(path: "/Users/demo/Movies")!, music = tree.find(path: "/Users/demo/Music")!
+        let matches = (0..<tree.count).map { tree.isAncestor(movies, of: Int32($0)) || Int32($0) == movies }
+        return (tree, TreeLens(tree: tree, matches: matches), movies, music)
+    }
+
+    func testNarrowingAFamilyKeepsOnlyNodesInTheResultAndResumsFromTheLens() {
+        let (tree, lens, movies, music) = moviesOnly()
+        let family = ReclaimFamily(rule: rule(), nodes: [movies, music], bytes: tree.allocated(movies) + tree.allocated(music),
+                                   reclaimable: UInt64.max, files: 99, newestModified: 5)
+        let narrowed = ReclaimModel.narrow(family, lens: lens)
+        XCTAssertEqual(narrowed?.nodes, [movies])
+        XCTAssertEqual(narrowed?.bytes, lens.size[Int(movies)])
+        XCTAssertEqual(narrowed?.files, UInt64(lens.files[Int(movies)]))
+        XCTAssertEqual(narrowed?.reclaimable, lens.size[Int(movies)], "reclaimable never exceeds the narrowed bytes")
+        XCTAssertEqual(narrowed?.newestModified, 5)
+        XCTAssertNil(ReclaimModel.narrow(ReclaimFamily(rule: rule(), nodes: [music], bytes: 1, reclaimable: 1, files: 1, newestModified: 1), lens: lens))
+    }
+
+    func testNarrowingAWorklistDropsExcludedNodes() {
+        let (_, lens, movies, music) = moviesOnly()
+        let list = Worklist(kind: .forgotten, title: "A", why: "w", nodes: [music, movies], bytes: 10, files: 10)
+        let narrowed = ReclaimModel.narrow(list, lens: lens)
+        XCTAssertEqual(narrowed?.nodes, [movies])
+        XCTAssertEqual(narrowed?.bytes, lens.size[Int(movies)])
+        XCTAssertNil(ReclaimModel.narrow(Worklist(kind: .forgotten, title: "A", why: "w", nodes: [music], bytes: 1, files: 1), lens: lens))
+    }
+
+    func testPartialNoteOnlyAppearsWhenSmallerThanTheWhole() {
+        XCTAssertEqual(ReclaimModel.partialNote(bytes: 12_600_000_000, full: 18_000_000_000), "12.6 GB in this result, of 18.0 GB")
+        XCTAssertNil(ReclaimModel.partialNote(bytes: 5, full: 5))
+        XCTAssertNil(ReclaimModel.partialNote(bytes: 5, full: nil))
     }
 }
