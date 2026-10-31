@@ -15,19 +15,20 @@ archs=${ARCHS:-"arm64 x86_64"}
 identity=${SIGN_IDENTITY:--}
 app="$root/dist/DeepYellow.app"
 
-arch_flags=""
-for a in $archs; do arch_flags="$arch_flags --arch $a"; done
-
-echo "==> swift build (release, $archs)"
-# shellcheck disable=SC2086
-swift build -c release --product DeepYellow $arch_flags
-# shellcheck disable=SC2086
-bin_dir=$(swift build -c release --product DeepYellow $arch_flags --show-bin-path)
+# One build per architecture, joined by lipo. Passing several --arch flags at once switches
+# SwiftPM to its Xcode build system, which rejects these packages on GitHub's runners.
+binaries=""
+for a in $archs; do
+    echo "==> swift build (release, $a)"
+    swift build -c release --product DeepYellow --arch "$a"
+    binaries="$binaries $(swift build -c release --product DeepYellow --arch "$a" --show-bin-path)/DeepYellow"
+done
 
 echo "==> assembling $app (version $version)"
 rm -rf "$app"
 mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources/bin"
-cp "$bin_dir/DeepYellow" "$app/Contents/MacOS/DeepYellow"
+# shellcheck disable=SC2086
+lipo -create $binaries -output "$app/Contents/MacOS/DeepYellow"
 cp "$root/Resources/AppIcon.icns" "$app/Contents/Resources/AppIcon.icns"
 cp "$root/Resources/bin/deepyellow" "$app/Contents/Resources/bin/deepyellow"
 chmod +x "$app/Contents/Resources/bin/deepyellow"
