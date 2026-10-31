@@ -1,0 +1,31 @@
+# Runs on pull requests: all package tests, then a quick app build to prove it still assembles.
+name: ci
+
+on:
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Swift version
+        run: swift --version
+      - name: Test
+        run: make test
+      - name: Build app and packages
+        run: make dmg
+        env:
+          ARCHS: arm64
+      - name: Smoke test
+        run: dist/DeepYellow.app/Contents/Resources/bin/deepyellow --version

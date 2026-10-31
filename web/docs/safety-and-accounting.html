@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Safety and accounting | DeepYellow docs</title>
+<meta name="description" content="How DeepYellow keeps you from removing the wrong thing, and how it keeps its numbers honest.">
+<meta name="theme-color" content="#0E0D0B">
+<link rel="icon" href="../favicon.png">
+<link rel="apple-touch-icon" href="../images/icon.png">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="nav"><div class="wrap">
+  <a class="brand" href="../index.html"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>DeepYellow</a>
+  <nav class="nav-links" aria-label="Main">
+    <a href="../features.html">Features</a>
+    <a href="index.html" aria-current="page">Docs</a>
+    <a href="../index.html#blocked">If macOS blocks it</a>
+    <a href="https://github.com/midhunkrishna/deepyellow">GitHub</a>
+    <a class="btn" href="https://github.com/midhunkrishna/deepyellow/releases/latest/download/DeepYellow.dmg">Download</a>
+  </nav>
+</div></header>
+<div class="trust"><ul aria-label="What DeepYellow does not do">
+  <li>No network code</li><li>No telemetry</li><li>Trash only, never permanent</li><li>CLI is read-only</li><li>Read-only mode for real scans</li><li>Open source, MIT</li>
+</ul></div>
+<div class="wrap docs">
+  <nav class="docnav" aria-label="Documentation">
+<h4>Start</h4><ul>
+<li><a href="index.html">Overview</a></li>
+<li><a href="getting-started.html">Getting started</a></li>
+<li><a href="install.html">Install</a></li>
+<li><a href="faq.html">FAQ</a></li>
+</ul>
+<h4>Using it</h4><ul>
+<li><a href="views.html">Views</a></li>
+<li><a href="query-language.html">Query language</a></li>
+<li><a href="safety-and-accounting.html" aria-current="page">Safety and accounting</a></li>
+<li><a href="reclaim-rules.html">Reclaim rules</a></li>
+<li><a href="cli.html">Command line</a></li>
+</ul>
+<h4>Project</h4><ul>
+<li><a href="building-from-source.html">Building from source</a></li>
+<li><a href="architecture.html">Architecture</a></li>
+<li><a href="uninstall.html">Uninstall</a></li>
+</ul>
+  </nav>
+  <main id="main" class="prose">
+<h1 id="safety-and-accounting">Safety and accounting</h1>
+<p>How DeepYellow keeps you from removing the wrong thing, and how it keeps its numbers honest.</p>
+<h2 id="the-rules-it-holds-itself-to">The rules it holds itself to <a class="anchor" href="#the-rules-it-holds-itself-to" aria-label="Link to this section">#</a></h2>
+<ol>
+<li>No network code, no telemetry, no analytics. Disk tools need wide access, so the app makes no network connections at all.</li>
+<li>It never permanently deletes anything. Apply moves items to the Trash. And <code>deepyellow &lt;path&gt; --read-only</code> opens a real scan in which nothing can be moved at all.</li>
+<li>The scan root, your home folder, top-level system folders and protected items can never be planned for removal, whatever you select.</li>
+<li>There is no hidden selection. Everything acted on is visibly selected, with the count and bytes always on screen.</li>
+<li>A scan never silently under-reports. Unreadable folders are counted and shown, and missing Full Disk Access is stated up front.</li>
+<li>Reading a file never downloads it and never modifies it. iCloud placeholders stay placeholders.</li>
+<li>Advice follows a documented table, and when the evidence is limited an item stays at <strong>review</strong>.</li>
+</ol>
+<h2 id="tiers">Tiers <a class="anchor" href="#tiers" aria-label="Link to this section">#</a></h2>
+<p>Every item carries a tier with its consequence in plain words.</p>
+<table>
+<thead><tr><th>Tier</th><th>Meaning</th><th>Example</th></tr></thead>
+<tbody>
+<tr><td><strong>Safe</strong></td><td>Regenerates automatically with no visible loss</td><td>Logs, Homebrew downloads</td></tr>
+<tr><td><strong>Rebuild</strong></td><td>Recoverable at a cost of time, network or a login</td><td>Xcode build files, <code>node_modules</code> next to a lockfile</td></tr>
+<tr><td><strong>Review</strong></td><td>May hold something of yours, so you have to look</td><td>A Docker disk image, iPhone backups, downloaded installers</td></tr>
+<tr><td><strong>Never offered</strong></td><td>Must not be planned for removal</td><td>Your Photos library, Mail data, system update areas</td></tr>
+<tr><td>(no advice)</td><td>Nothing is known</td><td>Most documents, photos, videos and downloads</td></tr>
+</tbody></table>
+<p><strong>Uncertain is review, never rounded up to safe.</strong> A <code>never</code> item always wins over anything above it, and the most specific rule wins otherwise. The rules, with each one's source and consequence, are in <a href="reclaim-rules.html">Reclaim rules</a>.</p>
+<p>Most of your disk will have <strong>no advice</strong>, and that is the honest answer. DeepYellow does not use AI to guess. It has a rule table and facts it can measure (size, age, kind, which app owns a folder, exact duplicates), and the decision is yours. The <a href="views.html#worklists">worklists</a> exist to turn "no advice" into factual lists such as "large, and untouched for over a year". On one measured home folder (188 GB, 2.18 million files), about 65% of the bytes had no safety advice, and the worklists covered 68 GB of that.</p>
+<h2 id="staged-decisions">Staged decisions <a class="anchor" href="#staged-decisions" aria-label="Link to this section">#</a></h2>
+<p>Marking works like <code>git add</code>. <kbd>x</kbd> stages an item for removal and changes nothing on disk. The staged total is always on screen at the right of the Ledger.</p>
+<ul>
+<li>Nothing is ever pre-marked. Keep is the default.</li>
+<li>Decisions inherit downward and the deepest one wins. Keeping one file inside a folder marked remove is a normal state, shown as partial, and the folder itself is not trashed.</li>
+<li>Decisions persist across scans, keyed by path with a fingerprint of the size, modified time and inode. If an item changes after you judged it, the verdict is flagged stale and is <strong>not applied</strong>.</li>
+<li><kbd>&#8984;Z</kbd> and <kbd>&#8679;&#8984;Z</kbd> undo and redo decisions.</li>
+</ul>
+<h2 id="the-plan">The Plan <a class="anchor" href="#the-plan" aria-label="Link to this section">#</a></h2>
+<p><kbd>&#8984;&#9166;</kbd> opens the Plan: the exact diff of what Apply will do. There are no per-item "are you sure" dialogs, because they teach blind clicking. The Plan shows:</p>
+<ul>
+<li><strong>Items</strong>: the minimal set of roots to move to the Trash, never a folder and something inside it.</li>
+<li><strong>Protected</strong>: what inside those roots is being kept.</li>
+<li><strong>Blocked</strong>: anything that cannot be removed, and the reason.</li>
+<li><strong>Estimate</strong>: "frees at least 41.2 GB" is only said when it is true. If the app could not measure how much space an item would actually free (for example, cloned data that is shared with something you keep), it says so instead.</li>
+</ul>
+<p><img src="../images/app-plan.webp" alt="The Plan" loading="lazy" width="1600" height="1000"></p>
+<p>These are always blocked, regardless of what was selected: the scan root, <code>/</code>, your home folder and its ancestors, <code>/System</code>, <code>/Applications</code>, <code>/Library</code>, <code>/Users</code>, <code>/usr</code>, <code>/bin</code>, <code>/sbin</code>, <code>/private</code>, <code>/Volumes</code>, direct children of <code>/</code>, <code>~/Library</code> itself, <code>~/Documents</code>, <code>~/Desktop</code>, <code>~/Pictures</code>, <code>~/Movies</code>, <code>~/Music</code> and <code>~/Downloads</code> themselves (their contents can be planned), unreadable or restricted items, mount boundaries, anything in tier <code>never</code>, anything inside a <code>.photoslibrary</code>, and anything whose fingerprint no longer matches.</p>
+<h3 id="apply-trash-and-undo">Apply, Trash and undo <a class="anchor" href="#apply-trash-and-undo" aria-label="Link to this section">#</a></h3>
+<p>Apply moves the roots to the Trash and re-checks each item's fingerprint immediately before moving it. If something changed, it is skipped and reported. The code that applies a plan has no path that deletes anything. <strong>One step undoes the last apply</strong> and puts everything back where it was.</p>
+<p>The Trash frees nothing until it is emptied, and DeepYellow never empties it. Do that in Finder when you are ready.</p>
+<h2 id="the-ledger">The Ledger <a class="anchor" href="#the-ledger" aria-label="Link to this section">#</a></h2>
+<p>The bar along the bottom is a single account of the whole volume: visible, hidden, unreadable or unaccounted, and free. Staged removal is hatched over the top.</p>
+<p><img src="../images/app-ledger.webp" alt="The Ledger" loading="lazy" width="1600" height="1000"></p>
+<p>Click it for the reconciliation, which explains why DeepYellow's numbers can differ from Finder's:</p>
+<ul>
+<li><strong>Logical against allocated size.</strong> A file's size and the space it occupies differ. DeepYellow measures allocated space by default.</li>
+<li><strong>Hard links and clones.</strong> Space shared by hard links or APFS clones is counted once.</li>
+<li><strong>Snapshots and purgeable space</strong> that macOS reports separately.</li>
+<li><strong>A labelled remainder.</strong> Whatever cannot be attributed is shown as such, not hidden.</li>
+</ul>
+<h3 id="hidden-is-never-gone">Hidden is never gone <a class="anchor" href="#hidden-is-never-gone" aria-label="Link to this section">#</a></h3>
+<p>Ignore rules remove things from views but never from the accounting. The Ledger always shows "Hidden: 18.2 GB in 41,204 files"-style totals and opens to per-rule totals.</p>
+<h2 id="full-disk-access">Full Disk Access <a class="anchor" href="#full-disk-access" aria-label="Link to this section">#</a></h2>
+<p>macOS protects parts of your disk from every app until you allow it. DeepYellow works without Full Disk Access, but a scan then cannot read some folders. It counts them, shows how many, and tells you at the start, rather than drawing them as empty.</p>
+<p>To grant it, see <a href="install.html#full-disk-access">Install: Full Disk Access</a>, including the note that an update of an ad-hoc signed build may need the permission granted again.</p>
+<h2 id="what-the-app-cannot-promise">What the app cannot promise <a class="anchor" href="#what-the-app-cannot-promise" aria-label="Link to this section">#</a></h2>
+<ul>
+<li>It cannot know that a file is unimportant to you. The tiers describe what the place is, not how you feel about it.</li>
+<li>A scan is a snapshot. Files that change after the scan are caught by the fingerprint check on Apply, but the picture on screen is not live.</li>
+<li>Space only returns after you empty the Trash.</li>
+</ul>
+<nav class="pager" aria-label="Pages"><a href="query-language.html">&larr; Query language</a><a href="reclaim-rules.html">Reclaim rules &rarr;</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="wrap">
+  <p>DeepYellow is a native macOS disk analyzer, MIT licence. <a href="../index.html">Home</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow">Source</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/releases">Releases</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/edit/master/docs/safety-and-accounting.md">Edit this page</a></p>
+</div></footer>
+<div class="ledger" role="complementary" aria-label="Page ledger"><div class="wrap">
+  <span class="lab">LEDGER</span>
+  <span class="track" aria-hidden="true"><i class="read"></i><i class="gold"></i></span>
+  <span class="txt"><b data-pct>0%</b> read<span class="long"> &middot; every byte accounted for</span> &middot; free, MIT</span>
+  <a class="btn primary" href="https://github.com/midhunkrishna/deepyellow/releases/latest/download/DeepYellow.dmg">Download</a>
+</div></div>
+<script src="../site.js" defer></script>
+</body>
+</html>

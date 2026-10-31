@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DeepYellow: a disk analyzer for macOS where gold means reclaimable</title>
+<meta name="description" content="A native macOS disk analyzer. See what's on your disk, understand it at the right level of detail, and clear it without fear. No network code, Trash only, open source.">
+<meta name="theme-color" content="#0E0D0B">
+<link rel="icon" href="favicon.png">
+<link rel="apple-touch-icon" href="images/icon.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="nav"><div class="wrap">
+  <a class="brand" href="index.html"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>DeepYellow</a>
+  <nav class="nav-links" aria-label="Main">
+    <a href="features.html">Features</a>
+    <a href="docs/index.html">Docs</a>
+    <a href="index.html#blocked">If macOS blocks it</a>
+    <a href="https://github.com/midhunkrishna/deepyellow">GitHub</a>
+    <a class="btn" href="https://github.com/midhunkrishna/deepyellow/releases/latest/download/DeepYellow.dmg">Download</a>
+  </nav>
+</div></header>
+
+<main id="main">
+<div class="wrap hero">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">Disk analyzer for macOS</div>
+      <h1>See what's on your disk. <em>Clear it without fear.</em></h1>
+      <p class="lede">A treemap you can zoom from the whole disk down to a single file, a ranked list that puts a 400 MB file next to a 410 MB folder, and a Ledger that accounts for every byte. Nothing is removed until you apply a plan, and it only ever moves things to the Trash.</p>
+      <div class="cta-row">
+        <a class="btn primary" href="https://github.com/midhunkrishna/deepyellow/releases/latest/download/DeepYellow.dmg">Download for macOS</a>
+        <a class="btn" href="https://github.com/midhunkrishna/deepyellow/releases">All releases</a>
+      </div>
+      <p class="note">macOS 15 or later, Apple silicon and Intel. The build is not notarized, so macOS asks you to approve it once: <a href="#blocked">here is how</a>.</p>
+    </div>
+    <div class="instrument" aria-label="Interactive demo: a sample disk being scanned, then recoloured by safety">
+      <div class="instrument-bar">
+        <span>~ demo disk</span>
+        <span class="seg" role="group" aria-label="Colour mode">
+          <button type="button" data-mode="kind" aria-pressed="true">Kind</button>
+          <button type="button" class="gold" data-mode="safety" aria-pressed="false">Safety</button>
+        </span>
+      </div>
+      <div class="tm" id="tm"><div class="tm-sweep"></div>
+        <noscript><img src="images/app-map-safety.webp" alt="DeepYellow's map in Safety mode: only what is reclaimable glows gold" width="1600" height="1000"></noscript>
+      </div>
+      <div class="tm-foot"><span id="tm-status">Sample disk. Scrolls into view, then scans.</span><span class="legend" id="tm-legend"></span></div>
+    </div>
+  </div>
+</div>
+
+<div class="trust"><ul aria-label="What DeepYellow does not do">
+  <li>No network code</li>
+  <li>No telemetry</li>
+  <li>Trash only, never permanent</li>
+  <li>CLI is read-only</li>
+  <li>Read-only mode for real scans</li>
+  <li>Open source, MIT</li>
+</ul></div>
+
+<section id="readonly">
+  <div class="wrap split">
+    <div>
+      <div class="eyebrow">Try it with zero risk</div>
+      <h2>A real scan where nothing can be moved.</h2>
+      <p class="sub">Start the app in read-only mode and it scans your actual disk, so the sizes, the map and the advice are real, but nothing can be moved to the Trash. It is the easiest way to see what DeepYellow thinks of your disk before you trust it with a Plan. Prefer a made-up disk? <code>--demo</code> starts a sample one.</p>
+      <p><a href="docs/cli.html#open-the-app">Read-only mode in the docs</a></p>
+    </div>
+    <div class="term"><div class="term-bar"><i></i><i></i><i></i></div>
+<pre><span class="p">$</span> deepyellow ~ --read-only
+<span class="d">real scan, real numbers, nothing can be moved</span>
+<span class="p">$</span> deepyellow --demo
+<span class="d">a made-up disk, always a new window</span></pre></div>
+  </div>
+</section>
+
+<section id="gold" class="alt">
+  <div class="wrap split">
+    <div>
+      <div class="eyebrow">The idea</div>
+      <h2>Gold means reclaimable.</h2>
+      <p class="sub">The canvas is near-black and file kinds are muted. Deep yellow is kept for one meaning: space you could get back. In Safety mode everything else goes dark and what is safe to remove, or will simply rebuild, glows. You see the answer before you read a label.</p>
+      <p class="sub">Every item carries a tier with its consequence in plain words: <b>safe</b>, <b>rebuild</b>, <b>review</b>, or <b>never offered</b>. When the evidence is thin the item is <b>review</b>, never rounded up to safe. For most personal files the honest answer is simply "no advice", and that is what you see.</p>
+      <p><a href="features.html#safety">How the tiers work</a> &middot; <a href="docs/reclaim-rules.html">Every built-in rule</a></p>
+    </div>
+    <figure><img src="images/app-map-safety.webp" alt="The map in Safety mode on the demo disk" width="1600" height="1000" loading="lazy"><figcaption>Safety mode on the demo disk. Screenshot of the app.</figcaption></figure>
+  </div>
+</section>
+
+<section id="things">
+  <div class="wrap split">
+    <div class="things" aria-label="Interactive demo of the Things slider on sample data">
+      <label for="things-t">Granularity: drag to change the threshold</label>
+      <input type="range" id="things-t" min="0" max="7" step="1" value="4">
+      <div class="things-head" id="things-head"></div>
+      <ul class="rows" id="things-rows"></ul>
+      <p class="things-note" id="things-note"></p>
+    </div>
+    <div>
+      <div class="eyebrow">Things, not files or folders</div>
+      <h2>One list where files and folders are peers.</h2>
+      <p class="sub">Trees make you choose a depth. Flat lists make you choose files. <b>Things</b> cuts the tree at a size instead: something is listed once it is at least the threshold and cannot be split into anything that big. The result never double counts and adds up exactly to the total.</p>
+      <p class="sub">The slider takes you from "your disk is a dozen things" to "your disk is thousands of things". Apps, <code>node_modules</code>, <code>.git</code> and similar stay whole until you ask to open them.</p>
+      <p><a href="docs/views.html#things">Things in the docs</a></p>
+    </div>
+  </div>
+</section>
+
+<section id="terminal" class="alt">
+  <div class="wrap split flip">
+    <div>
+      <div class="eyebrow">Also in your terminal</div>
+      <h2>The same engines, read-only.</h2>
+      <p class="sub"><code>deepyellow things</code>, <code>reclaim</code>, <code>spectrum</code> and <code>dupes</code> print their results with truecolor bars on a terminal and plain text when piped. Add <code>--json</code> for scripts. There is no delete command, on purpose.</p>
+      <p><a href="docs/cli.html">CLI reference</a></p>
+    </div>
+    <div class="term" role="img" aria-label="Output of deepyellow things on a small demo folder: five ranked items with bars">
+      <div class="term-bar"><i></i><i></i><i></i></div>
+<pre><span class="p">$</span> deepyellow things ~/Downloads --min 1mb --top 5
+Things under ~/Downloads  ·  47.2 MB total  ·  cut at 1.00 MB  ·  5 rows
+
+  <span class="b1">████████████████████</span>    13.6 MB     29%  Install macOS.pkg
+  <span class="b1">████████████▎</span>           8.39 MB     18%  Xcode_15.2.zip
+  <span class="b1">█████████▎</span>              6.29 MB     13%  Ubuntu-24.04.iso
+  <span class="b1">█████████▎</span>              6.29 MB     13%  old-backup.zip
+  <span class="b1">█████████▎</span>              6.29 MB     13%  design-handoff/Ubuntu-copy.iso</pre>
+    </div>
+  </div>
+</section>
+
+<section id="preview">
+  <div class="wrap split flip">
+    <div>
+      <div class="eyebrow">Preview</div>
+      <h2>Look before you decide.</h2>
+      <p class="sub">Press <kbd>Space</kbd> in any lens and a pane opens beside it. Video plays with a filmstrip you can scrub, images decode to screen size, audio shows a waveform, and PDFs and text render in place. Reading a file never changes it, and an iCloud placeholder is never downloaded by accident.</p>
+      <p><a href="docs/views.html#preview">Preview in the docs</a></p>
+    </div>
+    <div class="cols" style="grid-template-columns:1fr">
+      <figure><img src="images/app-preview-video.webp" alt="Previewing a video with its filmstrip scrubber" width="1600" height="1000" loading="lazy"><figcaption>Video, with a filmstrip.</figcaption></figure>
+      <figure><img src="images/app-preview-image.webp" alt="Previewing an image beside the map" width="1600" height="1000" loading="lazy"><figcaption>Images, decoded to screen size.</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section id="tour" class="alt">
+  <div class="wrap">
+    <div class="eyebrow">A quick tour</div>
+    <h2>Seven lenses on one selection.</h2>
+    <p class="sub">Map, Things, Spectrum, Field, Rings, Browse and Reclaim all read the same data and share one query, so switching keeps your focus. Every screenshot here is the real app on a built-in demo disk, not anyone's files.</p>
+    <div class="cols">
+      <figure><img src="images/app-ledger.webp" alt="The Ledger reconciling visible, hidden, unreadable and free space against the volume" width="1600" height="1000" loading="lazy"><figcaption><b>Ledger.</b> Every byte accounted for: visible, hidden, unreadable, free, and why it differs from Finder.</figcaption></figure>
+      <figure><img src="images/app-spectrum.webp" alt="Spectrum: size histogram of the demo disk" width="1600" height="1000" loading="lazy"><figcaption><b>Spectrum.</b> The shape of the disk: how many files and how many bytes at each size.</figcaption></figure>
+      <figure><img src="images/app-field.webp" alt="Field: every file as a point, age against size" width="1600" height="1000" loading="lazy"><figcaption><b>Field.</b> Age against size. The old and big corner is where the gold is.</figcaption></figure>
+      <figure><img src="images/app-review.webp" alt="Review mode: full-screen culling with verdict keys" width="1600" height="1000" loading="lazy"><figcaption><b>Review.</b> Keep, remove, later. Single keys, preview, and a backlog that shrinks.</figcaption></figure>
+      <figure><img src="images/app-plan.webp" alt="The Plan: exact list of items to move to Trash with protected and blocked items" width="1600" height="1000" loading="lazy"><figcaption><b>Plan.</b> Apply is a diff, not a dialog: what moves, what is protected, what is blocked.</figcaption></figure>
+      <figure><img src="images/app-worklists.webp" alt="Worklists: forgotten, duplicates, leftovers and largest undecided" width="1600" height="1000" loading="lazy"><figcaption><b>Worklists.</b> Forgotten large things, exact duplicates, leftovers of apps that are gone.</figcaption></figure>
+    </div>
+    <p style="margin-top:22px"><a href="features.html">All features</a></p>
+  </div>
+</section>
+
+<section id="no-ai">
+  <div class="wrap split">
+    <div>
+      <div class="eyebrow">How it decides</div>
+      <h2>No AI. Rules, measured facts, and you.</h2>
+      <p class="sub">That is on purpose. A built-in rule table says what a place is, what removing it costs, and the official cleanup command where one exists. File kinds come from extensions, system type data and a look at the first bytes of a file. Duplicates are exact: size, then partial hashes, then a full SHA-256.</p>
+      <p class="sub">On one 188 GB home folder with 2.18 million files, the rules and file signatures brought unknown bytes from 45% down to 12%. About 65% of the bytes there still have no safety advice. That part only you can judge, and the factual worklists cover 68 GB of it. One folder, not a promise about yours.</p>
+      <p class="sub">Nothing is pre-marked for removal, ever. Your marks are staged like <code>git add</code>, the staged total is always on screen, and nothing touches the disk until you apply.</p>
+    </div>
+    <div class="cols" style="grid-template-columns:1fr 1fr">
+      <div class="card"><div class="k">Safe</div><p>Regenerates on its own with no visible loss, like old logs.</p></div>
+      <div class="card"><div class="k">Rebuild</div><p>Comes back at a cost of time, network or a login, like build files.</p></div>
+      <div class="card"><div class="k">Review</div><p>May hold something of yours, so you have to look.</p></div>
+      <div class="card"><div class="k">Never</div><p>Not offered, whatever you select.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="speed" class="alt">
+  <div class="wrap">
+    <div class="eyebrow">Measured, not promised</div>
+    <h2>Fast enough to stay out of your way.</h2>
+    <div class="cols">
+      <div class="card"><div class="k">Things</div><h3>under 3 ms</h3><p>For a cut on a 4.86 million node tree.</p></div>
+      <div class="card"><div class="k">Queries</div><h3>23 to 42 ms</h3><p>On the same 4.86 million nodes.</p></div>
+      <div class="card"><div class="k">Map zoom</div><h3>about 200 fps</h3><p>Estimated at p95 on an M4, rendered offscreen, 4.86 million nodes.</p></div>
+      <div class="card"><div class="k">Scan</div><h3>about 150k files/s</h3><p>On a home folder of 2.18 million files, while the machine was under load.</p></div>
+    </div>
+    <p class="note" style="margin-top:14px">Your numbers will differ with your disk and Mac. When nothing is changing, DeepYellow does not draw, so idle costs no GPU.</p>
+  </div>
+</section>
+
+<section id="install">
+  <div class="wrap">
+    <div class="eyebrow">Install</div>
+    <h2>Three routes. Pick how much you want to trust.</h2>
+    <div class="routes">
+      <div class="card"><h3>1. Download the app</h3><p>A universal disk image for Apple silicon and Intel. Drag DeepYellow to Applications.</p>
+        <p><a class="btn primary small" href="https://github.com/midhunkrishna/deepyellow/releases/latest/download/DeepYellow.dmg">DeepYellow.dmg</a> <a class="btn small" href="https://github.com/midhunkrishna/deepyellow/releases/latest/download/DeepYellow.zip">.zip</a></p>
+        <p class="note">Verify with <a href="https://github.com/midhunkrishna/deepyellow/releases/latest/download/SHA256SUMS">SHA256SUMS</a>. <a href="#blocked">macOS will ask you to approve it once.</a></p></div>
+      <div class="card"><h3>2. One command</h3><p>Downloads the latest release, checks its checksum, installs to <code>~/Applications</code> and links the CLI. Prints exactly what it did.</p>
+        <div class="codebox"><code>curl -fsSL https://raw.githubusercontent.com/midhunkrishna/deepyellow/master/scripts/install.sh | sh</code><button type="button" data-copy>Copy</button></div>
+        <p class="note">Read it first, or use <code>--dry-run</code>. See <a href="docs/install.html">install</a>.</p></div>
+      <div class="card"><h3>3. Build it yourself</h3><p>Anyone can clone it and run <code>make app</code>. You need only the Swift 6 toolchain. This is the route that needs no trust in a binary.</p>
+        <div class="codebox"><code>git clone https://github.com/midhunkrishna/deepyellow
+cd deepyellow &amp;&amp; make app</code><button type="button" data-copy>Copy</button></div>
+        <p class="note"><a href="docs/building-from-source.html">Building from source</a></p></div>
+    </div>
+  </div>
+</section>
+
+<section id="blocked" class="alt">
+  <div class="wrap split">
+    <div>
+      <div class="eyebrow">If macOS blocks it</div>
+      <h2>The build is not notarized, so macOS asks first.</h2>
+      <p class="sub">Notarization needs a paid Apple developer account, and DeepYellow is a free open source project that does not have one. The build is signed ad hoc, so Gatekeeper cannot tell who made it and stops the first launch. Nothing is wrong with the download. You can also skip the question entirely by <a href="docs/building-from-source.html">building from source</a>.</p>
+      <div class="dialog" role="img" aria-label="Example of the macOS message: DeepYellow not opened"><b>"DeepYellow" Not Opened</b>Apple could not verify "DeepYellow" is free of malware that may harm your Mac or compromise your privacy.</div>
+      <p class="note" style="margin-top:12px">Control-click then Open no longer bypasses this since macOS 15. Use the steps on the right.</p>
+    </div>
+    <div>
+      <ol class="steps">
+        <li><b>Try to open it once.</b> Double-click DeepYellow in Applications. When the message appears, click <i>Done</i> (not <i>Move to Trash</i>).</li>
+        <li><b>Open System Settings, Privacy &amp; Security.</b> Scroll to the Security section. You will see "DeepYellow was blocked to protect your Mac".</li>
+        <li><b>Click Open Anyway</b>, then confirm with your password or Touch ID. The button stays available for about an hour after the attempt, so if it is missing, try to open the app again.</li>
+      </ol>
+      <p><b>Prefer the Terminal?</b> This removes the quarantine flag macOS put on the download:</p>
+      <div class="codebox"><code>xattr -dr com.apple.quarantine /Applications/DeepYellow.app</code><button type="button" data-copy>Copy</button></div>
+      <p class="note">It only deletes the "downloaded from the internet" marker, so Gatekeeper no longer assesses the app on launch. It verifies nothing and changes no code. Check the checksum first.</p>
+      <p><a href="docs/install.html#if-macos-blocks-it">Full steps, checksum and Full Disk Access</a></p>
+    </div>
+  </div>
+</section>
+
+<section id="limits">
+  <div class="wrap">
+    <div class="eyebrow">Plainly</div>
+    <h2>What it does not do.</h2>
+    <ul class="limits">
+      <li><b>Not notarized.</b> You approve it once, as above.</li>
+      <li><b>Needs Full Disk Access for a complete scan.</b> Without it, protected folders are counted as unreadable and shown as such, never silently left out.</li>
+      <li><b>macOS 15 or later.</b> Dark mode only in this version, on purpose.</li>
+      <li><b>No advice for most personal files.</b> Photos, documents and downloads are yours to judge. That is the honest answer.</li>
+      <li><b>No AI.</b> Rules and measured facts, and you decide.</li>
+      <li><b>No live updates or rescan of one folder yet.</b> A scan is a snapshot. Rescan to refresh.</li>
+    </ul>
+  </div>
+</section>
+</main>
+
+<footer class="foot"><div class="wrap">
+  <div class="cols">
+    <div><h4>DeepYellow</h4><p>A native macOS disk analyzer. MIT licence, Midhun Krishna.</p></div>
+    <div><h4>Use it</h4><ul><li><a href="https://github.com/midhunkrishna/deepyellow/releases/latest/download/DeepYellow.dmg">Download</a></li><li><a href="docs/install.html">Install</a></li><li><a href="docs/getting-started.html">Getting started</a></li><li><a href="docs/faq.html">FAQ</a></li></ul></div>
+    <div><h4>Learn</h4><ul><li><a href="features.html">Features</a></li><li><a href="docs/index.html">Documentation</a></li><li><a href="docs/safety-and-accounting.html">Safety and accounting</a></li><li><a href="docs/cli.html">Command line</a></li></ul></div>
+    <div><h4>Project</h4><ul><li><a href="https://github.com/midhunkrishna/deepyellow">Source on GitHub</a></li><li><a href="https://github.com/midhunkrishna/deepyellow/releases">Releases</a></li><li><a href="docs/uninstall.html">Uninstall</a></li></ul></div>
+  </div>
+</div></footer>
+
+<div class="ledger" role="complementary" aria-label="Page ledger"><div class="wrap">
+  <span class="lab">LEDGER</span>
+  <span class="track" aria-hidden="true"><i class="read"></i><i class="gold"></i></span>
+  <span class="txt"><b data-pct>0%</b> read<span class="long"> &middot; every byte accounted for</span> &middot; free, MIT</span>
+  <a class="btn primary" href="https://github.com/midhunkrishna/deepyellow/releases/latest/download/DeepYellow.dmg">Download</a>
+</div></div>
+<script src="site.js" defer></script>
+<script src="demo.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Views | DeepYellow docs</title>
+<meta name="description" content="Seven lenses and one mode. All of them read the same scan, share one selection and one query, and are one key away. Switching keeps your focus and selection.">
+<meta name="theme-color" content="#0E0D0B">
+<link rel="icon" href="../favicon.png">
+<link rel="apple-touch-icon" href="../images/icon.png">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="nav"><div class="wrap">
+  <a class="brand" href="../index.html"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>DeepYellow</a>
+  <nav class="nav-links" aria-label="Main">
+    <a href="../features.html">Features</a>
+    <a href="index.html" aria-current="page">Docs</a>
+    <a href="../index.html#blocked">If macOS blocks it</a>
+    <a href="https://github.com/midhunkrishna/deepyellow">GitHub</a>
+    <a class="btn" href="https://github.com/midhunkrishna/deepyellow/releases/latest/download/DeepYellow.dmg">Download</a>
+  </nav>
+</div></header>
+<div class="trust"><ul aria-label="What DeepYellow does not do">
+  <li>No network code</li><li>No telemetry</li><li>Trash only, never permanent</li><li>CLI is read-only</li><li>Read-only mode for real scans</li><li>Open source, MIT</li>
+</ul></div>
+<div class="wrap docs">
+  <nav class="docnav" aria-label="Documentation">
+<h4>Start</h4><ul>
+<li><a href="index.html">Overview</a></li>
+<li><a href="getting-started.html">Getting started</a></li>
+<li><a href="install.html">Install</a></li>
+<li><a href="faq.html">FAQ</a></li>
+</ul>
+<h4>Using it</h4><ul>
+<li><a href="views.html" aria-current="page">Views</a></li>
+<li><a href="query-language.html">Query language</a></li>
+<li><a href="safety-and-accounting.html">Safety and accounting</a></li>
+<li><a href="reclaim-rules.html">Reclaim rules</a></li>
+<li><a href="cli.html">Command line</a></li>
+</ul>
+<h4>Project</h4><ul>
+<li><a href="building-from-source.html">Building from source</a></li>
+<li><a href="architecture.html">Architecture</a></li>
+<li><a href="uninstall.html">Uninstall</a></li>
+</ul>
+  </nav>
+  <main id="main" class="prose">
+<h1 id="views">Views</h1>
+<p>Seven lenses and one mode. All of them read the same scan, share one selection and one query, and are one key away. Switching keeps your focus and selection.</p>
+<table>
+<thead><tr><th>Key</th><th>View</th><th>The question it answers</th></tr></thead>
+<tbody>
+<tr><td><kbd>1</kbd></td><td><a href="#map">Map</a></td><td>Where did it all go?</td></tr>
+<tr><td><kbd>2</kbd></td><td><a href="#things">Things</a></td><td>What are the biggest things?</td></tr>
+<tr><td><kbd>3</kbd></td><td><a href="#spectrum">Spectrum</a></td><td>What shape is my disk?</td></tr>
+<tr><td><kbd>4</kbd></td><td><a href="#field">Field</a></td><td>What is old, big and forgotten?</td></tr>
+<tr><td><kbd>5</kbd></td><td><a href="#rings">Rings</a></td><td>How is it nested?</td></tr>
+<tr><td><kbd>6</kbd></td><td><a href="#browse">Browse</a></td><td>Where is that thing I know about?</td></tr>
+<tr><td><kbd>7</kbd></td><td><a href="#reclaim">Reclaim</a></td><td>What can I remove safely?</td></tr>
+<tr><td><kbd>r</kbd></td><td><a href="#review">Review</a></td><td>Should this go? A mode, not a lens.</td></tr>
+</tbody></table>
+<p>The window is one thin line at the top (path, query, view tabs) and one at the bottom (the <a href="safety-and-accounting.html#the-ledger">Ledger</a>). Panels appear only when you ask. Hold <kbd>&#8997;</kbd> to overlay every shortcut on the screen.</p>
+<h2 id="map">Map <a class="anchor" href="#map" aria-label="Link to this section">#</a></h2>
+<p>A treemap: each rectangle is a file or folder, sized by its bytes. It zooms continuously. Scroll or pinch to zoom around the cursor, drag to pan, double-click or <kbd>&#9166;</kbd> to zoom in, <kbd>&#9003;</kbd> to zoom out. Layout is fixed in world space, so zooming never reflows tiles.</p>
+<p><img src="../images/app-map.webp" alt="The Map in kind colours" loading="lazy" width="1600" height="1000"></p>
+<ul>
+<li>Folders large enough on screen get a header with name and size. Tiles get labels when they fit.</li>
+<li><strong>Dust.</strong> Tiles too small to see merge into one stippled tile per folder, labelled like "3,988 small files, 9.11 GB". The stipple density follows the count. Zooming into dust keeps going and resolves into tiles at any depth.</li>
+<li><strong>Metric.</strong> Press <kbd>m</kbd> to switch between bytes and file count. Swarms invisible by bytes become giants by count.</li>
+</ul>
+<p><img src="../images/app-map-files.webp" alt="The Map by file count" loading="lazy" width="1600" height="1000"></p>
+<ul>
+<li><strong>Hover</strong> shows the name, size, share of the parent, last modified, file count, safety tier and why.</li>
+</ul>
+<h3 id="colour-modes">Colour modes <a class="anchor" href="#colour-modes" aria-label="Link to this section">#</a></h3>
+<p>Press <kbd>c</kbd> in Map, Rings or Field to cycle:</p>
+<table>
+<thead><tr><th>Mode</th><th>Colours mean</th></tr></thead>
+<tbody>
+<tr><td>Kind</td><td>Video, images, audio, documents, code and data, apps and libraries, archives and disks, other</td></tr>
+<tr><td>Age</td><td>How long since the item changed</td></tr>
+<tr><td>Safety</td><td>Gold where it is reclaimable, everything else dimmed</td></tr>
+<tr><td>Decision</td><td>What you marked: remove is a hatch, keep is a pin, later is a dot</td></tr>
+</tbody></table>
+<p>State is never colour alone.</p>
+<p><img src="../images/app-map-safety.webp" alt="The Map in Safety colours" loading="lazy" width="1600" height="1000"></p>
+<h2 id="things">Things <a class="anchor" href="#things" aria-label="Link to this section">#</a></h2>
+<p>A ranked list of the biggest things, with files and folders as peers. A thing is a file or folder that is at least the threshold and cannot be split into anything that big. A folder with a big child is split, and the remainder is rolled into "N smaller items in X", or carried up if it is still under the threshold. The result never counts anything twice and adds up exactly to the total.</p>
+<p><img src="../images/app-things.webp" alt="The Things view" loading="lazy" width="1600" height="1000"></p>
+<p>The slider sets the level of detail, from a dozen things to thousands. At a threshold of 400 MB, a 400 MB file and a 410 MB folder are neighbouring rows. A cumulative-share rail shows how much of the disk the top rows hold.</p>
+<p>Some folders are treated as <strong>atoms</strong> and stay whole until you open them: apps and other packages, and folders named <code>node_modules</code>, <code>.git</code>, <code>DerivedData</code>, <code>.venv</code>, <code>venv</code>, <code>__pycache__</code>, <code>Pods</code>, <code>.gradle</code>, <code>.next</code>, <code>.cache</code> and <code>.pnpm-store</code>. <code>target</code>, <code>dist</code> and <code>build</code> count as atoms only when a project file such as <code>Cargo.toml</code> or <code>package.json</code> sits beside them.</p>
+<h2 id="spectrum">Spectrum <a class="anchor" href="#spectrum" aria-label="Link to this section">#</a></h2>
+<p>The size histogram of your files in human ranges, three bins per power of ten. Count and bytes are shown as two separate small multiples, never on one dual axis, plus a cumulative curve that answers questions like "the top 40 items hold 80% of your disk". Brush a range to filter every other view.</p>
+<p><img src="../images/app-spectrum.webp" alt="Spectrum" loading="lazy" width="1600" height="1000"></p>
+<h2 id="field">Field <a class="anchor" href="#field" aria-label="Link to this section">#</a></h2>
+<p>Every file as a point of light, with age on one axis and size on the other, blended like a star field. The old and big corner is where the forgotten large things are. Brush a region to filter; the brush is written into the query so you can see and edit it.</p>
+<p><img src="../images/app-field.webp" alt="Field" loading="lazy" width="1600" height="1000"></p>
+<h2 id="rings">Rings <a class="anchor" href="#rings" aria-label="Link to this section">#</a></h2>
+<p>A sunburst for hierarchy. It is quick to understand and good for structure; read exact sizes from labels and the hover card, because arcs are harder to compare than rectangles.</p>
+<p><img src="../images/app-rings.webp" alt="Rings" loading="lazy" width="1600" height="1000"></p>
+<h2 id="browse">Browse <a class="anchor" href="#browse" aria-label="Link to this section">#</a></h2>
+<p>Miller columns, like Finder's column view, with an inline size bar on every row. Fully keyboard-driven.</p>
+<p><img src="../images/app-browse.webp" alt="Browse" loading="lazy" width="1600" height="1000"></p>
+<h2 id="reclaim">Reclaim <a class="anchor" href="#reclaim" aria-label="Link to this section">#</a></h2>
+<p>Rule families grouped by tier. Each row shows what the place is, what removing it costs, any condition ("close Xcode first"), how old it is, and the official cleanup command where one exists. One decision can cover hundreds of items. Duplicates are included. The <a href="reclaim-rules.html">rule table</a> lists every built-in rule.</p>
+<p><img src="../images/app-reclaim.webp" alt="Reclaim" loading="lazy" width="1600" height="1000"></p>
+<h3 id="worklists">Worklists <a class="anchor" href="#worklists" aria-label="Link to this section">#</a></h3>
+<p>Four factual lists for the many items that have no tier. They hide what you have already decided, and nothing in them is ever "never".</p>
+<table>
+<thead><tr><th>Worklist</th><th>What is in it</th></tr></thead>
+<tbody>
+<tr><td>Forgotten</td><td>Items of at least 100 MB whose newest change anywhere inside is over a year old. Files and folders are peers.</td></tr>
+<tr><td>Duplicates</td><td>Exact duplicate files, with the wasted bytes</td></tr>
+<tr><td>Leftovers</td><td>Folders in <code>~/Library</code> that belong to an app that is not installed. Where the owner is only a guess from a name, the list says so.</td></tr>
+<tr><td>Largest undecided</td><td>The biggest things you have not marked</td></tr>
+</tbody></table>
+<p><img src="../images/app-worklists.webp" alt="Worklists" loading="lazy" width="1600" height="1000"></p>
+<p>Leftovers never raise a tier. They stay "look first".</p>
+<h2 id="review">Review <a class="anchor" href="#review" aria-label="Link to this section">#</a></h2>
+<p>Press <kbd>r</kbd> to take the current set (a selection, a query result or a Reclaim family) full screen: a large preview, a filmstrip, and a counter like "38 left, 214 GB decided". The next item is preloaded so advancing is instant. Keep is the default, and nothing is pre-marked.</p>
+<p><img src="../images/app-review.webp" alt="Review" loading="lazy" width="1600" height="1000"></p>
+<h2 id="preview">Preview <a class="anchor" href="#preview" aria-label="Link to this section">#</a></h2>
+<p><kbd>Space</kbd> opens a pane on the right from any view, and the arrow keys keep working underneath it. Video plays with a filmstrip and hover scrub; images decode to screen size with pan and zoom; audio shows a waveform; PDFs and text render natively; everything else uses QuickLook. A folder shows a composition of its largest children. iCloud placeholders are never downloaded by a preview: you get metadata and an explicit Download button.</p>
+<p><img src="../images/app-preview-video.webp" alt="Previewing a video with its filmstrip" loading="lazy" width="1600" height="1000"></p>
+<p><img src="../images/app-preview-image.webp" alt="Previewing an image" loading="lazy" width="1600" height="1000"></p>
+<h2 id="palette-and-query">Palette and query <a class="anchor" href="#palette-and-query" aria-label="Link to this section">#</a></h2>
+<p><kbd>&#8984;K</kbd> opens the palette: every command, and a jump to an exact path you type or paste. There is no fuzzy path search and no saved queries. <kbd>/</kbd> focuses the <a href="query-language.html">query</a>.</p>
+<p><img src="../images/app-palette.webp" alt="The palette" loading="lazy" width="1600" height="1000"></p>
+<h2 id="keyboard">Keyboard <a class="anchor" href="#keyboard" aria-label="Link to this section">#</a></h2>
+<table>
+<thead><tr><th>Key</th><th>Action</th><th>Key</th><th>Action</th></tr></thead>
+<tbody>
+<tr><td><kbd>1</kbd> to <kbd>7</kbd></td><td>Switch view</td><td><kbd>k</kbd> <kbd>x</kbd> <kbd>l</kbd> <kbd>u</kbd></td><td>Keep, remove, later, clear</td></tr>
+<tr><td><kbd>Space</kbd></td><td>Toggle preview</td><td><kbd>r</kbd></td><td>Review the current set</td></tr>
+<tr><td><kbd>&#9166;</kbd> / <kbd>&#9003;</kbd></td><td>Zoom in / out</td><td><kbd>&#8984;&#9166;</kbd></td><td>Open the Plan</td></tr>
+<tr><td>arrow keys</td><td>Move selection</td><td><kbd>&#8984;Z</kbd> / <kbd>&#8679;&#8984;Z</kbd></td><td>Undo / redo</td></tr>
+<tr><td><kbd>/</kbd></td><td>Focus the query</td><td><kbd>h</kbd></td><td>Hide the selection</td></tr>
+<tr><td><kbd>&#8984;K</kbd></td><td>Palette</td><td><kbd>m</kbd> / <kbd>c</kbd></td><td>Metric / colour mode</td></tr>
+<tr><td><kbd>&#8997;</kbd> (hold)</td><td>Show all shortcuts</td><td><kbd>Esc</kbd></td><td>Back out one level</td></tr>
+</tbody></table>
+<h2 id="hiding">Hiding <a class="anchor" href="#hiding" aria-label="Link to this section">#</a></h2>
+<p>Hide rules take things out of the views, never out of the accounting. macOS plumbing such as Spotlight indexes and system volume internals is hidden by default, while <code>~/Library/Caches</code> is kept visible on purpose. Right-click for "Hide this", "Hide all named X" or "Hide all .ext". Rules apply instantly, with no rescan, and a toast offers Undo. The Ledger always shows how much is hidden and by which rule.</p>
+<nav class="pager" aria-label="Pages"><a href="faq.html">&larr; FAQ</a><a href="query-language.html">Query language &rarr;</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="wrap">
+  <p>DeepYellow is a native macOS disk analyzer, MIT licence. <a href="../index.html">Home</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow">Source</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/releases">Releases</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/edit/master/docs/views.md">Edit this page</a></p>
+</div></footer>
+<div class="ledger" role="complementary" aria-label="Page ledger"><div class="wrap">
+  <span class="lab">LEDGER</span>
+  <span class="track" aria-hidden="true"><i class="read"></i><i class="gold"></i></span>
+  <span class="txt"><b data-pct>0%</b> read<span class="long"> &middot; every byte accounted for</span> &middot; free, MIT</span>
+  <a class="btn primary" href="https://github.com/midhunkrishna/deepyellow/releases/latest/download/DeepYellow.dmg">Download</a>
+</div></div>
+<script src="../site.js" defer></script>
+</body>
+</html>

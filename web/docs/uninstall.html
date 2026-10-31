@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Uninstall | DeepYellow docs</title>
+<meta name="description" content="DeepYellow is one app bundle plus a few small folders in your Library. Removing it is deleting these paths. Nothing here is a system location, and nothing in your own files was eve">
+<meta name="theme-color" content="#0E0D0B">
+<link rel="icon" href="../favicon.png">
+<link rel="apple-touch-icon" href="../images/icon.png">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="nav"><div class="wrap">
+  <a class="brand" href="../index.html"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>DeepYellow</a>
+  <nav class="nav-links" aria-label="Main">
+    <a href="../features.html">Features</a>
+    <a href="index.html" aria-current="page">Docs</a>
+    <a href="../index.html#blocked">If macOS blocks it</a>
+    <a href="https://github.com/midhunkrishna/deepyellow">GitHub</a>
+    <a class="btn" href="https://github.com/midhunkrishna/deepyellow/releases/latest/download/DeepYellow.dmg">Download</a>
+  </nav>
+</div></header>
+<div class="trust"><ul aria-label="What DeepYellow does not do">
+  <li>No network code</li><li>No telemetry</li><li>Trash only, never permanent</li><li>CLI is read-only</li><li>Read-only mode for real scans</li><li>Open source, MIT</li>
+</ul></div>
+<div class="wrap docs">
+  <nav class="docnav" aria-label="Documentation">
+<h4>Start</h4><ul>
+<li><a href="index.html">Overview</a></li>
+<li><a href="getting-started.html">Getting started</a></li>
+<li><a href="install.html">Install</a></li>
+<li><a href="faq.html">FAQ</a></li>
+</ul>
+<h4>Using it</h4><ul>
+<li><a href="views.html">Views</a></li>
+<li><a href="query-language.html">Query language</a></li>
+<li><a href="safety-and-accounting.html">Safety and accounting</a></li>
+<li><a href="reclaim-rules.html">Reclaim rules</a></li>
+<li><a href="cli.html">Command line</a></li>
+</ul>
+<h4>Project</h4><ul>
+<li><a href="building-from-source.html">Building from source</a></li>
+<li><a href="architecture.html">Architecture</a></li>
+<li><a href="uninstall.html" aria-current="page">Uninstall</a></li>
+</ul>
+  </nav>
+  <main id="main" class="prose">
+<h1 id="uninstall">Uninstall</h1>
+<p>DeepYellow is one app bundle plus a few small folders in your Library. Removing it is deleting these paths. Nothing here is a system location, and nothing in your own files was ever changed by the app.</p>
+<table>
+<thead><tr><th>What</th><th>Path</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td>The app</td><td><code>/Applications/DeepYellow.app</code> or <code>~/Applications/DeepYellow.app</code></td><td>Wherever you or the installer put it</td></tr>
+<tr><td>Command-line link</td><td><code>~/.local/bin/deepyellow</code></td><td>Or the folder you gave with <code>--bin</code>. It is a symlink into the app.</td></tr>
+<tr><td>Decisions, scan cache, removal journal and <code>recent-folders.json</code></td><td><code>~/Library/Application Support/DeepYellow</code></td><td>Your keep, remove and later marks, cached scans, the journal used for undo, and the list of recently opened folders. If you set <code>DEEPYELLOW_HOME</code>, this folder is that directory instead.</td></tr>
+<tr><td>Possible system files</td><td><code>~/Library/Preferences/com.midhunkrishna.deepyellow.plist</code>, <code>~/Library/Caches/com.midhunkrishna.deepyellow</code></td><td>macOS may create these for any app with this bundle identifier. They are safe to remove if they exist.</td></tr>
+</tbody></table>
+<p>Full Disk Access is stored by macOS. Remove the DeepYellow entry in <strong>System Settings &gt; Privacy &amp; Security &gt; Full Disk Access</strong> with the <strong>-</strong> button.</p>
+<h2 id="step-by-step">Step by step <a class="anchor" href="#step-by-step" aria-label="Link to this section">#</a></h2>
+<ol>
+<li>Quit DeepYellow.</li>
+<li>Move the app to the Trash from Finder.</li>
+<li><p>If you linked the command, remove the link, which does not touch the app:</p>
+<pre><code>rm ~/.local/bin/deepyellow</code></pre></li>
+<li>In Finder choose <strong>Go &gt; Go to Folder</strong> (<kbd>&#8679;&#8984;G</kbd>) and open <code>~/Library/Application Support</code>. Move the <code>DeepYellow</code> folder to the Trash.</li>
+<li>Do the same for the possible system files if they exist.</li>
+<li>Empty the Trash when you are ready.</li>
+</ol>
+<h2 id="if-you-used-the-installer">If you used the installer <a class="anchor" href="#if-you-used-the-installer" aria-label="Link to this section">#</a></h2>
+<p>The <a href="install.html#route-2-the-one-line-installer">installer</a> prints exactly which paths it wrote when it finishes. They are the app (in <code>~/Applications</code> unless you passed <code>--dir</code>) and the command link (in <code>~/.local/bin</code> unless you passed <code>--bin</code>), and nothing else.</p>
+<h2 id="things-deepyellow-moved-to-the-trash">Things DeepYellow moved to the Trash <a class="anchor" href="#things-deepyellow-moved-to-the-trash" aria-label="Link to this section">#</a></h2>
+<p>Items you applied through a Plan are in the Trash like anything else you trashed, until you empty it. Uninstalling DeepYellow does not restore or remove them. The undo step lives in the app and its journal, so undo anything you want back <strong>before</strong> you delete <code>~/Library/Application Support/DeepYellow</code>, or move the items out of the Trash by hand.</p>
+<nav class="pager" aria-label="Pages"><a href="architecture.html">&larr; Architecture</a><span></span></nav>
+  </main>
+</div>
+<footer class="foot"><div class="wrap">
+  <p>DeepYellow is a native macOS disk analyzer, MIT licence. <a href="../index.html">Home</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow">Source</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/releases">Releases</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/edit/master/docs/uninstall.md">Edit this page</a></p>
+</div></footer>
+<div class="ledger" role="complementary" aria-label="Page ledger"><div class="wrap">
+  <span class="lab">LEDGER</span>
+  <span class="track" aria-hidden="true"><i class="read"></i><i class="gold"></i></span>
+  <span class="txt"><b data-pct>0%</b> read<span class="long"> &middot; every byte accounted for</span> &middot; free, MIT</span>
+  <a class="btn primary" href="https://github.com/midhunkrishna/deepyellow/releases/latest/download/DeepYellow.dmg">Download</a>
+</div></div>
+<script src="../site.js" defer></script>
+</body>
+</html>

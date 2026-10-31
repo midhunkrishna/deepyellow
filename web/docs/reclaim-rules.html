@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reclaim rules | DeepYellow docs</title>
+<meta name="description" content="Every built-in rule DeepYellow uses to advise on a place on disk. This page is generated from the rule table in `BuiltinRules.swift`, so it lists exactly what the app contains.">
+<meta name="theme-color" content="#0E0D0B">
+<link rel="icon" href="../favicon.png">
+<link rel="apple-touch-icon" href="../images/icon.png">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="nav"><div class="wrap">
+  <a class="brand" href="../index.html"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>DeepYellow</a>
+  <nav class="nav-links" aria-label="Main">
+    <a href="../features.html">Features</a>
+    <a href="index.html" aria-current="page">Docs</a>
+    <a href="../index.html#blocked">If macOS blocks it</a>
+    <a href="https://github.com/midhunkrishna/deepyellow">GitHub</a>
+    <a class="btn" href="https://github.com/midhunkrishna/deepyellow/releases/latest/download/DeepYellow.dmg">Download</a>
+  </nav>
+</div></header>
+<div class="trust"><ul aria-label="What DeepYellow does not do">
+  <li>No network code</li><li>No telemetry</li><li>Trash only, never permanent</li><li>CLI is read-only</li><li>Read-only mode for real scans</li><li>Open source, MIT</li>
+</ul></div>
+<div class="wrap docs">
+  <nav class="docnav" aria-label="Documentation">
+<h4>Start</h4><ul>
+<li><a href="index.html">Overview</a></li>
+<li><a href="getting-started.html">Getting started</a></li>
+<li><a href="install.html">Install</a></li>
+<li><a href="faq.html">FAQ</a></li>
+</ul>
+<h4>Using it</h4><ul>
+<li><a href="views.html">Views</a></li>
+<li><a href="query-language.html">Query language</a></li>
+<li><a href="safety-and-accounting.html">Safety and accounting</a></li>
+<li><a href="reclaim-rules.html" aria-current="page">Reclaim rules</a></li>
+<li><a href="cli.html">Command line</a></li>
+</ul>
+<h4>Project</h4><ul>
+<li><a href="building-from-source.html">Building from source</a></li>
+<li><a href="architecture.html">Architecture</a></li>
+<li><a href="uninstall.html">Uninstall</a></li>
+</ul>
+  </nav>
+  <main id="main" class="prose">
+<h1 id="reclaim-rules">Reclaim rules</h1>
+<p>Every built-in rule DeepYellow uses to advise on a place on disk. This page is generated from the rule table in <a href="https://github.com/midhunkrishna/deepyellow/blob/master/Packages/DYAdvisor/Sources/DYAdvisor/BuiltinRules.swift"><code>BuiltinRules.swift</code></a>, so it lists exactly what the app contains.</p>
+<p>A rule says what a place is, how safe it is to remove, what removal costs, any condition to meet first, and an official cleanup command when one exists. <strong>Commands are shown and never run.</strong> Removal always goes through a <a href="safety-and-accounting.html#the-plan">Plan</a> and the Trash.</p>
+<h2 id="how-to-read-it">How to read it <a class="anchor" href="#how-to-read-it" aria-label="Link to this section">#</a></h2>
+<table>
+<thead><tr><th>Tier</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><strong>safe</strong></td><td>Regenerates automatically with no user-visible loss</td></tr>
+<tr><td><strong>rebuild</strong></td><td>Recoverable at a cost of time, network or a login</td></tr>
+<tr><td><strong>review</strong></td><td>May hold personal or unique data, so you must look</td></tr>
+<tr><td><strong>never</strong></td><td>Not offered for removal, whatever you select</td></tr>
+</tbody></table>
+<ul>
+<li>A rule applies to everything inside the matched place. The most specific rule wins, and a <code>never</code> ancestor always beats anything beneath it.</li>
+<li>Uncertain means <code>review</code>. Rules whose source is "Research notes (unverified)" are never given a tier safer than the evidence supports.</li>
+<li>The <strong>source</strong> records where the claim comes from.</li>
+<li>Rules marked "name heuristic" go only on a folder or file name, so they are hints.</li>
+</ul>
+<h3 id="pattern-grammar">Pattern grammar <a class="anchor" href="#pattern-grammar" aria-label="Link to this section">#</a></h3>
+<p>Patterns are case-insensitive. <code>~/</code> is your home folder and a leading <code>/</code> is an absolute path. <code>*</code> matches any run of characters within one path segment, and <code>**</code> as a middle segment matches zero or more folders. <code>**/name</code> at the start matches <code>name</code> anywhere. A segment may list alternatives with <code>|</code> and exclusions with <code>&amp;!</code>, for example <code>*.sqlite&amp;!*cache*</code>. Several full paths may be joined with <code>||</code>. A trailing <code>if-sibling:a|b</code> applies the rule only when a sibling named <code>a</code> or <code>b</code> exists next to the match.</p>
+<h2 id="caches">Caches <a class="anchor" href="#caches" aria-label="Link to this section">#</a></h2>
+<p><code>~/Library/Caches</code> and its exceptions.</p>
+<h3 id="app-cache">App cache <a class="anchor" href="#app-cache" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: rebuild</strong> · <code>caches.thirdparty</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Caches/*</code></li>
+<li><strong>What it is:</strong> A cache an app keeps so it can start faster.</li>
+<li><strong>If you remove it:</strong> The app will be slower the next time it opens while it rebuilds the cache, and an app that stores real data here could lose it.</li>
+<li><strong>Condition:</strong> Close the app first. Do not offer this when the owning app is unknown.</li>
+<li><strong>Source:</strong> Apple developer documentation</li>
+</ul>
+<h3 id="apple-system-cache">Apple system cache <a class="anchor" href="#apple-system-cache" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: never</strong> · <code>caches.apple</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Caches/com.apple.*</code></li>
+<li><strong>What it is:</strong> A cache belonging to macOS or an Apple app.</li>
+<li><strong>If you remove it:</strong> It is probably harmless to remove but belongs to running system services, and the benefit is small.</li>
+<li><strong>Condition:</strong> Not offered. macOS clears these itself.</li>
+<li><strong>Source:</strong> Policy choice</li>
+</ul>
+<h3 id="homebrew-downloads">Homebrew downloads <a class="anchor" href="#homebrew-downloads" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: safe</strong> · <code>caches.homebrew</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Caches/Homebrew</code></li>
+<li><strong>What it is:</strong> Installer files Homebrew downloaded earlier.</li>
+<li><strong>If you remove it:</strong> Homebrew will download a package again if you reinstall it.</li>
+<li><strong>Condition:</strong> Use the command, not manual deletion. Add -n for a dry run.</li>
+<li><strong>Official command:</strong> <code>brew cleanup</code></li>
+<li><strong>Source:</strong> Homebrew manual</li>
+</ul>
+<h3 id="jetbrains-ide-data">JetBrains IDE data <a class="anchor" href="#jetbrains-ide-data" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: review</strong> · <code>caches.jetbrains</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Caches/JetBrains/*</code></li>
+<li><strong>What it is:</strong> Indexes, caches and logs for a JetBrains IDE, including its Local History.</li>
+<li><strong>If you remove it:</strong> Indexes rebuild slowly, and Local History (your edit history outside version control) cannot be recovered.</li>
+<li><strong>Condition:</strong> Close the IDE first. Never offer this as one blob.</li>
+<li><strong>Source:</strong> Research notes (unverified)</li>
+</ul>
+<h3 id="spotify-offline-songs">Spotify offline songs <a class="anchor" href="#spotify-offline-songs" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: rebuild</strong> · <code>caches.spotify</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Caches/com.spotify.client/Storage</code></li>
+<li><strong>What it is:</strong> Songs Spotify saved for offline listening.</li>
+<li><strong>If you remove it:</strong> You will need to download the songs again, with network access and your account.</li>
+<li><strong>Condition:</strong> Close Spotify first.</li>
+<li><strong>Owning app:</strong> <code>com.spotify.client</code></li>
+<li><strong>Source:</strong> Research notes (unverified)</li>
+</ul>
+<h3 id="xcode-cache">Xcode cache <a class="anchor" href="#xcode-cache" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: rebuild</strong> · <code>caches.xcode</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Caches/com.apple.dt.Xcode</code></li>
+<li><strong>What it is:</strong> Cached data that Xcode uses for indexing.</li>
+<li><strong>If you remove it:</strong> Xcode will re-index and fetch some information again.</li>
+<li><strong>Condition:</strong> Close Xcode first.</li>
+<li><strong>Owning app:</strong> <code>com.apple.dt.Xcode</code></li>
+<li><strong>Source:</strong> Research notes (unverified)</li>
+</ul>
+<h3 id="chrome-cache">Chrome cache <a class="anchor" href="#chrome-cache" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: rebuild</strong> · <code>caches.chrome</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Caches/Google/Chrome</code></li>
+<li><strong>What it is:</strong> Web pages and images Chrome saved to load sites faster.</li>
+<li><strong>If you remove it:</strong> Pages load more slowly the first time you visit them again; your logins are not stored here.</li>
+<li><strong>Condition:</strong> Close the browser first.</li>
+<li><strong>Owning app:</strong> <code>com.google.Chrome</code></li>
+<li><strong>Source:</strong> Research notes (unverified)</li>
+</ul>
+<h3 id="firefox-cache">Firefox cache <a class="anchor" href="#firefox-cache" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: rebuild</strong> · <code>caches.firefox</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Caches/Firefox/Profiles/*/cache2</code></li>
+<li><strong>What it is:</strong> Web pages and images Firefox saved to load sites faster.</li>
+<li><strong>If you remove it:</strong> Pages load more slowly the first time you visit them again; your logins are not stored here.</li>
+<li><strong>Condition:</strong> Close the browser first.</li>
+<li><strong>Owning app:</strong> <code>org.mozilla.firefox</code></li>
+<li><strong>Source:</strong> Research notes (unverified)</li>
+</ul>
+<h3 id="cache-folder-that-may-hold-your-data">Cache folder that may hold your data <a class="anchor" href="#cache-folder-that-may-hold-your-data" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: review</strong> · <code>caches.heuristic.names</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Caches/*/**/*Offline*|*Downloads*|*Drafts*|*Recordings*</code></li>
+<li><strong>What it is:</strong> A folder inside a cache whose name suggests saved content rather than temporary files.</li>
+<li><strong>If you remove it:</strong> If it holds your own content, removing it could lose that content for good.</li>
+<li><strong>Condition:</strong> Based on the folder name only, so treat it as a hint.</li>
+<li><strong>Source:</strong> Name heuristic</li>
+</ul>
+<h3 id="database-inside-a-cache">Database inside a cache <a class="anchor" href="#database-inside-a-cache" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: review</strong> · <code>caches.heuristic.sqlite</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Caches/*/**/*.sqlite&amp;!*cache*</code></li>
+<li><strong>What it is:</strong> A database file inside a cache folder that does not look like a cache.</li>
+<li><strong>If you remove it:</strong> If it holds your own records, removing it could lose them for good.</li>
+<li><strong>Condition:</strong> Based on the file name only, so treat it as a hint.</li>
+<li><strong>Source:</strong> Name heuristic</li>
+</ul>
+<h2 id="xcode-and-developer-tools">Xcode and developer tools <a class="anchor" href="#xcode-and-developer-tools" aria-label="Link to this section">#</a></h2>
+<p>Xcode, simulators and the toolchain.</p>
+<h3 id="xcode-build-files">Xcode build files <a class="anchor" href="#xcode-build-files" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: rebuild</strong> · <code>xcode.deriveddata</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Developer/Xcode/DerivedData</code></li>
+<li><strong>What it is:</strong> Build results and indexes Xcode creates for your projects.</li>
+<li><strong>If you remove it:</strong> Every project will rebuild and re-index in full the next time you open it.</li>
+<li><strong>Condition:</strong> Quit Xcode and any builds. Delete the contents, not the folder.</li>
+<li><strong>Source:</strong> Third-party guides</li>
+</ul>
+<h3 id="xcode-archives">Xcode archives <a class="anchor" href="#xcode-archives" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: review</strong> · <code>xcode.archives</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Developer/Xcode/Archives</code></li>
+<li><strong>What it is:</strong> Saved builds of apps you shipped, with their debugging symbols.</li>
+<li><strong>If you remove it:</strong> You would lose the ability to read crash reports for those builds or re-export them.</li>
+<li><strong>Condition:</strong> Review each archive by date and version. Move to Trash only.</li>
+<li><strong>Source:</strong> Third-party guides</li>
+</ul>
+<h3 id="device-support-files">Device support files <a class="anchor" href="#device-support-files" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: rebuild</strong> · <code>xcode.devicesupport</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Developer/Xcode/*DeviceSupport/*</code></li>
+<li><strong>What it is:</strong> Debugging symbols Xcode copied from a connected iPhone, iPad or watch.</li>
+<li><strong>If you remove it:</strong> Xcode copies them again the next time you connect that device, which is slow, and old crash logs lose their symbols until then.</li>
+<li><strong>Condition:</strong> Delete the folders inside, never the parent. Keep the newest two versions. Close Xcode first.</li>
+<li><strong>Source:</strong> Apple Developer Forums</li>
+</ul>
+<h3 id="simulator-devices">Simulator devices <a class="anchor" href="#simulator-devices" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: review</strong> · <code>xcode.simulators</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Developer/CoreSimulator/Devices/*</code></li>
+<li><strong>What it is:</strong> A simulated iPhone or iPad with its installed apps and test data.</li>
+<li><strong>If you remove it:</strong> You would lose the apps and test data inside that simulator.</li>
+<li><strong>Condition:</strong> Do not delete by hand. The command removes only simulators whose runtime is gone.</li>
+<li><strong>Official command:</strong> <code>xcrun simctl delete unavailable</code></li>
+<li><strong>Source:</strong> Third-party guides</li>
+</ul>
+<h3 id="simulator-runtimes">Simulator runtimes <a class="anchor" href="#simulator-runtimes" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: rebuild</strong> · <code>xcode.simruntimes</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>/Library/Developer/CoreSimulator/Volumes|Images|Cryptex</code></li>
+<li><strong>What it is:</strong> The system images that simulators run on.</li>
+<li><strong>If you remove it:</strong> You would need to download the runtime again, which can be several gigabytes.</li>
+<li><strong>Condition:</strong> Remove through Xcode Settings or the runtime commands, never by hand or by unmounting.</li>
+<li><strong>Official command:</strong> <code>xcrun simctl runtime list</code></li>
+<li><strong>Source:</strong> Local tool help</li>
+</ul>
+<h3 id="xcode-settings">Xcode settings <a class="anchor" href="#xcode-settings" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: never</strong> · <code>xcode.userdata</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Developer/Xcode/UserData</code></li>
+<li><strong>What it is:</strong> Your Xcode snippets, themes and key bindings.</li>
+<li><strong>If you remove it:</strong> You would lose settings you wrote yourself.</li>
+<li><strong>Condition:</strong> Not offered.</li>
+<li><strong>Source:</strong> Research notes (unverified)</li>
+</ul>
+<h2 id="containers-backups-and-system-areas">Containers, backups and system areas <a class="anchor" href="#containers-backups-and-system-areas" aria-label="Link to this section">#</a></h2>
+<p>Virtual machines, backups and parts of macOS that are shown but not offered.</p>
+<h3 id="iphone-or-ipad-backup">iPhone or iPad backup <a class="anchor" href="#iphone-or-ipad-backup" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: review</strong> · <code>backup.iphone</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Application Support/MobileSync/Backup/*</code></li>
+<li><strong>What it is:</strong> A backup of an iPhone or iPad stored on this Mac.</li>
+<li><strong>If you remove it:</strong> That backup would be gone for good, and if the device is lost with no iCloud backup its data cannot be recovered.</li>
+<li><strong>Condition:</strong> Delete from Finder or the Apple Devices app, not by hand.</li>
+<li><strong>Source:</strong> Apple Support</li>
+</ul>
+<h3 id="docker-disk-image">Docker disk image <a class="anchor" href="#docker-disk-image" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: review</strong> · <code>docker.raw</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Containers/com.docker.docker/Data/vms/0/data/Docker.raw</code></li>
+<li><strong>What it is:</strong> The single file holding every Docker image, container and volume.</li>
+<li><strong>If you remove it:</strong> Deleting it would destroy all your images, containers and volume data, including databases.</li>
+<li><strong>Condition:</strong> Never remove the file itself. The command clears only unused items.</li>
+<li><strong>Official command:</strong> <code>docker system prune</code></li>
+<li><strong>Owning app:</strong> <code>com.docker.docker</code></li>
+<li><strong>Source:</strong> Docker documentation</li>
+</ul>
+<h3 id="virtual-machine">Virtual machine <a class="anchor" href="#virtual-machine" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: review</strong> · <code>vm.disks</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Parallels || ~/Virtual Machines.localized || ~/.lima || ~/.colima || ~/Library/Containers/com.utmapp.UTM</code></li>
+<li><strong>What it is:</strong> A virtual machine and everything stored inside it.</li>
+<li><strong>If you remove it:</strong> You would lose that virtual machine and all of its data.</li>
+<li><strong>Condition:</strong> Shown for information only.</li>
+<li><strong>Source:</strong> Research notes (unverified)</li>
+</ul>
+<h3 id="os-update-area">OS update area <a class="anchor" href="#os-update-area" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: never</strong> · <code>system.osupdate</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>/Library/Updates || /System/Library/AssetsV2 || /System/Library/Assets</code></li>
+<li><strong>What it is:</strong> Files macOS uses to stage and apply updates.</li>
+<li><strong>If you remove it:</strong> Removing them could interfere with system updates.</li>
+<li><strong>Condition:</strong> Manage only through System Settings.</li>
+<li><strong>Source:</strong> Research notes (unverified)</li>
+</ul>
+<h3 id="swap-and-sleep-files">Swap and sleep files <a class="anchor" href="#swap-and-sleep-files" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: never</strong> · <code>system.swap</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>/System/Volumes/VM/swapfile* || /private/var/vm</code></li>
+<li><strong>What it is:</strong> Memory swap files managed by the system.</li>
+<li><strong>If you remove it:</strong> They are managed by macOS and the space returns by itself.</li>
+<li><strong>Condition:</strong> Shown under system volumes, not offered.</li>
+<li><strong>Source:</strong> Local observation</li>
+</ul>
+<h3 id="system-temporary-data">System temporary data <a class="anchor" href="#system-temporary-data" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: never</strong> · <code>system.varfolders</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>/private/var/folders || /var/folders</code></li>
+<li><strong>What it is:</strong> Temporary files and caches in use by running programs.</li>
+<li><strong>If you remove it:</strong> Programs that are running would fail or lose their working data.</li>
+<li><strong>Condition:</strong> Display only.</li>
+<li><strong>Source:</strong> Local observation</li>
+</ul>
+<h3 id="system-logs">System logs <a class="anchor" href="#system-logs" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: never</strong> · <code>system.logs.protected</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>/var/log || /private/var/log || /var/db/diagnostics || /private/var/db/diagnostics</code></li>
+<li><strong>What it is:</strong> System logs and diagnostics.</li>
+<li><strong>If you remove it:</strong> They are needed by the system and are not offered for removal.</li>
+<li><strong>Source:</strong> Research notes</li>
+</ul>
+<h3 id="app-language-files">App language files <a class="anchor" href="#app-language-files" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: never</strong> · <code>system.lproj</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>/Applications/*.app/Contents/Resources/*.lproj</code></li>
+<li><strong>What it is:</strong> Language files inside an installed app.</li>
+<li><strong>If you remove it:</strong> Removing them may invalidate the app's signature so it will not open.</li>
+<li><strong>Condition:</strong> Not offered.</li>
+<li><strong>Source:</strong> Eclectic Light Company</li>
+</ul>
+<h2 id="package-managers-and-build-output">Package managers and build output <a class="anchor" href="#package-managers-and-build-output" aria-label="Link to this section">#</a></h2>
+<p>Language caches, dependencies and build folders.</p>
+<h3 id="javascript-dependencies">JavaScript dependencies <a class="anchor" href="#javascript-dependencies" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: rebuild</strong> · <code>node.modules</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>**/node_modules if-sibling:package-lock.json|npm-shrinkwrap.json|yarn.lock|pnpm-lock.yaml</code></li>
+<li><strong>What it is:</strong> Libraries a JavaScript project installed.</li>
+<li><strong>If you remove it:</strong> You will need to run the install again, with network access, and any local patches are lost.</li>
+<li><strong>Condition:</strong> Offered because a lockfile sits next to it.</li>
+<li><strong>Source:</strong> Research notes (unverified)</li>
+</ul>
+<h3 id="javascript-dependencies-without-a-lockfile">JavaScript dependencies without a lockfile <a class="anchor" href="#javascript-dependencies-without-a-lockfile" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: review</strong> · <code>node.modules.nolock</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>**/node_modules</code></li>
+<li><strong>What it is:</strong> Libraries a JavaScript project installed, with no lockfile beside them.</li>
+<li><strong>If you remove it:</strong> Without a lockfile the same versions may not come back, and local patches are lost.</li>
+<li><strong>Source:</strong> Research notes (unverified)</li>
+</ul>
+<h3 id="yarn-committed-cache">Yarn committed cache <a class="anchor" href="#yarn-committed-cache" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: never</strong> · <code>yarn.zeroinstall</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>**/.yarn/cache</code></li>
+<li><strong>What it is:</strong> A Yarn cache that some projects keep in version control as their dependency source.</li>
+<li><strong>If you remove it:</strong> The project may be unable to install its dependencies.</li>
+<li><strong>Condition:</strong> Not offered.</li>
+<li><strong>Source:</strong> Research notes (unverified)</li>
+</ul>
+<h3 id="npm-download-cache">npm download cache <a class="anchor" href="#npm-download-cache" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: rebuild</strong> · <code>npm.cache</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/.npm</code></li>
+<li><strong>What it is:</strong> Packages npm downloaded earlier.</li>
+<li><strong>If you remove it:</strong> npm will download them again when needed.</li>
+<li><strong>Official command:</strong> <code>npm cache clean --force</code></li>
+<li><strong>Source:</strong> Research notes (unverified)</li>
+</ul>
+<h3 id="pnpm-package-store">pnpm package store <a class="anchor" href="#pnpm-package-store" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: rebuild</strong> · <code>pnpm.store</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/pnpm/store || ~/.local/share/pnpm/store</code></li>
+<li><strong>What it is:</strong> The shared store that pnpm links project dependencies from.</li>
+<li><strong>If you remove it:</strong> Packages will be downloaded again when needed.</li>
+<li><strong>Condition:</strong> Use the command, which removes only unreferenced packages. Do not delete by hand.</li>
+<li><strong>Official command:</strong> <code>pnpm store prune</code></li>
+<li><strong>Source:</strong> pnpm documentation</li>
+</ul>
+<h3 id="pip-cache">pip cache <a class="anchor" href="#pip-cache" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: rebuild</strong> · <code>pip.cache</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Caches/pip || ~/.cache/pip</code></li>
+<li><strong>What it is:</strong> Python packages pip downloaded earlier.</li>
+<li><strong>If you remove it:</strong> pip will download or rebuild them when needed.</li>
+<li><strong>Official command:</strong> <code>pip cache purge</code></li>
+<li><strong>Source:</strong> Research notes (unverified)</li>
+</ul>
+<h3 id="uv-cache">uv cache <a class="anchor" href="#uv-cache" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: rebuild</strong> · <code>uv.cache</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/.cache/uv</code></li>
+<li><strong>What it is:</strong> Python packages uv downloaded earlier.</li>
+<li><strong>If you remove it:</strong> uv will download or rebuild them when needed.</li>
+<li><strong>Condition:</strong> Do not touch it while uv is running.</li>
+<li><strong>Official command:</strong> <code>uv cache clean</code></li>
+<li><strong>Source:</strong> uv documentation</li>
+</ul>
+<h3 id="conda-packages">conda packages <a class="anchor" href="#conda-packages" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: rebuild</strong> · <code>conda.pkgs</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/miniconda3/pkgs || ~/anaconda3/pkgs || ~/miniforge3/pkgs</code></li>
+<li><strong>What it is:</strong> Package files shared by your conda environments.</li>
+<li><strong>If you remove it:</strong> Only unused packages should be removed, and conda will download them again if needed.</li>
+<li><strong>Condition:</strong> Use the command, never delete by hand.</li>
+<li><strong>Official command:</strong> <code>conda clean --all</code></li>
+<li><strong>Source:</strong> Research notes (unverified)</li>
+</ul>
+<h3 id="conda-environments">conda environments <a class="anchor" href="#conda-environments" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: review</strong> · <code>conda.envs</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/miniconda3/envs/* || ~/anaconda3/envs/* || ~/miniforge3/envs/*</code></li>
+<li><strong>What it is:</strong> Python environments you created.</li>
+<li><strong>If you remove it:</strong> You would lose the environment and its installed packages.</li>
+<li><strong>Source:</strong> Research notes (unverified)</li>
+</ul>
+<h3 id="cargo-downloads">Cargo downloads <a class="anchor" href="#cargo-downloads" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: rebuild</strong> · <code>cargo.cache</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/.cargo/registry || ~/.cargo/git</code></li>
+<li><strong>What it is:</strong> Rust libraries Cargo downloaded earlier.</li>
+<li><strong>If you remove it:</strong> Cargo will download them again, which needs the network.</li>
+<li><strong>Source:</strong> Cargo documentation</li>
+</ul>
+<h3 id="cargo-tools-and-settings">Cargo tools and settings <a class="anchor" href="#cargo-tools-and-settings" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: never</strong> · <code>cargo.keep</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/.cargo/bin || ~/.cargo/credentials.toml || ~/.cargo/config.toml || ~/.cargo/.crates.toml || ~/.cargo/.crates2.json</code></li>
+<li><strong>What it is:</strong> Rust tools you installed, your registry login and your settings.</li>
+<li><strong>If you remove it:</strong> You would lose installed tools and have to log in and configure Cargo again.</li>
+<li><strong>Condition:</strong> Not offered.</li>
+<li><strong>Source:</strong> Cargo documentation</li>
+</ul>
+<h3 id="rust-build-output">Rust build output <a class="anchor" href="#rust-build-output" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: rebuild</strong> · <code>cargo.target</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>**/target if-sibling:Cargo.toml</code></li>
+<li><strong>What it is:</strong> Files produced by building a Rust project.</li>
+<li><strong>If you remove it:</strong> The project will rebuild in full next time.</li>
+<li><strong>Official command:</strong> <code>cargo clean</code></li>
+<li><strong>Source:</strong> Research notes (unverified)</li>
+</ul>
+<h3 id="gradle-downloads">Gradle downloads <a class="anchor" href="#gradle-downloads" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: rebuild</strong> · <code>gradle.cache</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/.gradle/caches || ~/.gradle/wrapper/dists || ~/.gradle/daemon</code></li>
+<li><strong>What it is:</strong> Libraries and tools Gradle downloaded earlier.</li>
+<li><strong>If you remove it:</strong> Gradle will download them again and the next build will be slower.</li>
+<li><strong>Condition:</strong> Not while a Gradle daemon is running.</li>
+<li><strong>Source:</strong> Gradle documentation</li>
+</ul>
+<h3 id="gradle-settings">Gradle settings <a class="anchor" href="#gradle-settings" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: never</strong> · <code>gradle.keep</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/.gradle/gradle.properties || ~/.gradle/init.d || ~/.gradle/init.gradle</code></li>
+<li><strong>What it is:</strong> Gradle settings you wrote.</li>
+<li><strong>If you remove it:</strong> You would lose your own configuration.</li>
+<li><strong>Condition:</strong> Not offered.</li>
+<li><strong>Source:</strong> Gradle documentation</li>
+</ul>
+<h3 id="maven-repository">Maven repository <a class="anchor" href="#maven-repository" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: review</strong> · <code>maven.repository</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/.m2/repository</code></li>
+<li><strong>What it is:</strong> Libraries Maven downloaded, plus any you installed locally.</li>
+<li><strong>If you remove it:</strong> Downloaded libraries come back from the network, but ones installed only on this Mac are lost.</li>
+<li><strong>Source:</strong> Research notes (unverified)</li>
+</ul>
+<h3 id="maven-settings">Maven settings <a class="anchor" href="#maven-settings" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: never</strong> · <code>maven.keep</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/.m2/settings.xml || ~/.m2/settings-security.xml</code></li>
+<li><strong>What it is:</strong> Maven settings and credentials.</li>
+<li><strong>If you remove it:</strong> You would lose your own configuration.</li>
+<li><strong>Condition:</strong> Not offered.</li>
+<li><strong>Source:</strong> Research notes (unverified)</li>
+</ul>
+<h3 id="go-modules">Go modules <a class="anchor" href="#go-modules" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: rebuild</strong> · <code>go.modcache</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/go/pkg/mod</code></li>
+<li><strong>What it is:</strong> Go libraries downloaded earlier.</li>
+<li><strong>If you remove it:</strong> Go will download them again.</li>
+<li><strong>Condition:</strong> These files are read-only, so use the command.</li>
+<li><strong>Official command:</strong> <code>go clean -modcache</code></li>
+<li><strong>Source:</strong> Go documentation</li>
+</ul>
+<h3 id="go-build-cache">Go build cache <a class="anchor" href="#go-build-cache" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: rebuild</strong> · <code>go.buildcache</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Caches/go-build</code></li>
+<li><strong>What it is:</strong> Compiled Go packages kept to speed up builds.</li>
+<li><strong>If you remove it:</strong> The next builds will be slower.</li>
+<li><strong>Official command:</strong> <code>go clean -cache</code></li>
+<li><strong>Source:</strong> Go documentation</li>
+</ul>
+<h3 id="go-tools-and-sources">Go tools and sources <a class="anchor" href="#go-tools-and-sources" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: never</strong> · <code>go.keep</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/go/bin || ~/go/src</code></li>
+<li><strong>What it is:</strong> Go tools you installed and sources you keep.</li>
+<li><strong>If you remove it:</strong> You would lose installed tools or your own code.</li>
+<li><strong>Condition:</strong> Not offered.</li>
+<li><strong>Source:</strong> Go documentation</li>
+</ul>
+<h3 id="cocoapods-data">CocoaPods data <a class="anchor" href="#cocoapods-data" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: rebuild</strong> · <code>cocoapods.cache</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/.cocoapods || ~/Library/Caches/CocoaPods</code></li>
+<li><strong>What it is:</strong> Pod specifications and downloaded pods.</li>
+<li><strong>If you remove it:</strong> CocoaPods will download them again, which is large.</li>
+<li><strong>Condition:</strong> Check that no project keeps its Pods folder only here.</li>
+<li><strong>Official command:</strong> <code>pod cache clean --all</code></li>
+<li><strong>Source:</strong> Research notes (unverified)</li>
+</ul>
+<h3 id="swift-package-cache">Swift package cache <a class="anchor" href="#swift-package-cache" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: rebuild</strong> · <code>swiftpm.cache</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Caches/org.swift.swiftpm</code></li>
+<li><strong>What it is:</strong> Swift packages downloaded earlier.</li>
+<li><strong>If you remove it:</strong> They will be fetched again.</li>
+<li><strong>Official command:</strong> <code>swift package purge-cache</code></li>
+<li><strong>Source:</strong> Research notes (unverified)</li>
+</ul>
+<h3 id="swift-build-output">Swift build output <a class="anchor" href="#swift-build-output" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: rebuild</strong> · <code>swiftpm.build</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>**/.build if-sibling:Package.swift</code></li>
+<li><strong>What it is:</strong> Files produced by building a Swift package.</li>
+<li><strong>If you remove it:</strong> The package will rebuild in full next time.</li>
+<li><strong>Official command:</strong> <code>swift package clean</code></li>
+<li><strong>Source:</strong> Research notes (unverified)</li>
+</ul>
+<h3 id="swift-package-trust-data">Swift package trust data <a class="anchor" href="#swift-package-trust-data" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: never</strong> · <code>swiftpm.security</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/org.swift.swiftpm/security</code></li>
+<li><strong>What it is:</strong> Records of packages you chose to trust.</li>
+<li><strong>If you remove it:</strong> You would lose those trust decisions.</li>
+<li><strong>Condition:</strong> Not offered.</li>
+<li><strong>Source:</strong> Research notes (unverified)</li>
+</ul>
+<h3 id="homebrew-installed-software">Homebrew installed software <a class="anchor" href="#homebrew-installed-software" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: never</strong> · <code>homebrew.installed</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>/opt/homebrew/Cellar || /opt/homebrew/Caskroom</code></li>
+<li><strong>What it is:</strong> The software Homebrew installed.</li>
+<li><strong>If you remove it:</strong> Deleting it removes the apps and tools themselves.</li>
+<li><strong>Condition:</strong> Not offered. The cleanup command removes only outdated versions.</li>
+<li><strong>Official command:</strong> <code>brew cleanup</code></li>
+<li><strong>Source:</strong> Homebrew manual</li>
+</ul>
+<h2 id="logs-trash-downloads-and-personal-data">Logs, Trash, downloads and personal data <a class="anchor" href="#logs-trash-downloads-and-personal-data" aria-label="Link to this section">#</a></h2>
+<p>Logs, the Trash, installers, and data that belongs to you.</p>
+<h3 id="trash">Trash <a class="anchor" href="#trash" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: review</strong> · <code>trash</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/.Trash || /Volumes/*/.Trashes</code></li>
+<li><strong>What it is:</strong> Items you already moved to the Trash.</li>
+<li><strong>If you remove it:</strong> They would be deleted for good.</li>
+<li><strong>Condition:</strong> Use Empty Trash in Finder. The Trash frees nothing until it is emptied.</li>
+<li><strong>Source:</strong> Apple Support</li>
+</ul>
+<h3 id="logs">Logs <a class="anchor" href="#logs" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: safe</strong> · <code>logs</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Logs || /Library/Logs</code></li>
+<li><strong>What it is:</strong> Records apps and the system wrote about what they did.</li>
+<li><strong>If you remove it:</strong> You would lose logs that help diagnose a past crash.</li>
+<li><strong>Condition:</strong> Skip files changed in the last hour.</li>
+<li><strong>Source:</strong> Apple Support</li>
+</ul>
+<h3 id="downloaded-installers">Downloaded installers <a class="anchor" href="#downloaded-installers" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: review</strong> · <code>downloads.installers</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Downloads/*.dmg|*.pkg|*.iso|*.zip</code></li>
+<li><strong>What it is:</strong> Installers and archives you downloaded.</li>
+<li><strong>If you remove it:</strong> If this is your only copy, such as licensed software or an old version, it is gone for good.</li>
+<li><strong>Condition:</strong> Move to Trash only. Whether the app is already installed is a guess.</li>
+<li><strong>Source:</strong> Research notes (unverified)</li>
+</ul>
+<h3 id="mail-attachment-copies">Mail attachment copies <a class="anchor" href="#mail-attachment-copies" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: rebuild</strong> · <code>mail.downloads</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Containers/com.apple.mail/Data/Library/Mail Downloads</code></li>
+<li><strong>What it is:</strong> Copies of attachments you opened from Mail.</li>
+<li><strong>If you remove it:</strong> Only the copies go; the originals stay in the messages.</li>
+<li><strong>Condition:</strong> Close Mail first.</li>
+<li><strong>Owning app:</strong> <code>com.apple.mail</code></li>
+<li><strong>Source:</strong> Third-party guides</li>
+</ul>
+<h3 id="mail-data">Mail data <a class="anchor" href="#mail-data" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: never</strong> · <code>mail.store</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Mail</code></li>
+<li><strong>What it is:</strong> Your mailboxes, messages and attachments.</li>
+<li><strong>If you remove it:</strong> Manual deletion can corrupt Mail, and some messages may exist nowhere else.</li>
+<li><strong>Condition:</strong> Use Mail itself.</li>
+<li><strong>Owning app:</strong> <code>com.apple.mail</code></li>
+<li><strong>Source:</strong> Third-party guides</li>
+</ul>
+<h3 id="messages-data">Messages data <a class="anchor" href="#messages-data" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: never</strong> · <code>messages.data</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Messages/Attachments || ~/Library/Messages/chat.db*</code></li>
+<li><strong>What it is:</strong> Your message history and attachments.</li>
+<li><strong>If you remove it:</strong> Manual deletion can corrupt your history, and it may be the only copy.</li>
+<li><strong>Condition:</strong> Use the Messages app settings.</li>
+<li><strong>Owning app:</strong> <code>com.apple.MobileSMS</code></li>
+<li><strong>Source:</strong> Third-party guides</li>
+</ul>
+<h3 id="photos-library">Photos library <a class="anchor" href="#photos-library" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: never</strong> · <code>photos.library</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Pictures/*.photoslibrary || ~/Library/Containers/com.apple.photolibraryd || ~/Library/Photos</code></li>
+<li><strong>What it is:</strong> Your photo library and its service data.</li>
+<li><strong>If you remove it:</strong> Changes inside it can corrupt the library, and the originals may be the only copies.</li>
+<li><strong>Condition:</strong> Free space from within Photos instead.</li>
+<li><strong>Owning app:</strong> <code>com.apple.Photos</code></li>
+<li><strong>Source:</strong> Apple Support</li>
+</ul>
+<h3 id="embedded-browser-cache">Embedded browser cache <a class="anchor" href="#embedded-browser-cache" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: rebuild</strong> · <code>chromium.caches</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Application Support/**/GPUCache || ~/Library/Application Support/**/Code Cache || ~/Library/Application Support/**/Service Worker/CacheStorage</code></li>
+<li><strong>What it is:</strong> A cache kept by an app that embeds a web browser.</li>
+<li><strong>If you remove it:</strong> It rebuilds on its own, though some web apps keep offline-only data in the service worker cache.</li>
+<li><strong>Condition:</strong> Close the app first. IndexedDB, Local Storage and Cookies are not caches.</li>
+<li><strong>Source:</strong> Research notes (unverified)</li>
+</ul>
+<h2 id="summary">Summary <a class="anchor" href="#summary" aria-label="Link to this section">#</a></h2>
+<p>56 rules in total.</p>
+<nav class="pager" aria-label="Pages"><a href="safety-and-accounting.html">&larr; Safety and accounting</a><a href="cli.html">Command line &rarr;</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="wrap">
+  <p>DeepYellow is a native macOS disk analyzer, MIT licence. <a href="../index.html">Home</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow">Source</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/releases">Releases</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/edit/master/docs/reclaim-rules.md">Edit this page</a></p>
+</div></footer>
+<div class="ledger" role="complementary" aria-label="Page ledger"><div class="wrap">
+  <span class="lab">LEDGER</span>
+  <span class="track" aria-hidden="true"><i class="read"></i><i class="gold"></i></span>
+  <span class="txt"><b data-pct>0%</b> read<span class="long"> &middot; every byte accounted for</span> &middot; free, MIT</span>
+  <a class="btn primary" href="https://github.com/midhunkrishna/deepyellow/releases/latest/download/DeepYellow.dmg">Download</a>
+</div></div>
+<script src="../site.js" defer></script>
+</body>
+</html>

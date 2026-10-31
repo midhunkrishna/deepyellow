@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Features: DeepYellow</title>
+<meta name="description" content="Seven lenses, a Ledger that reconciles every byte, tiered safety advice, and a Plan that only moves to the Trash.">
+<meta name="theme-color" content="#0E0D0B">
+<link rel="icon" href="favicon.png">
+<link rel="apple-touch-icon" href="images/icon.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="nav"><div class="wrap">
+  <a class="brand" href="index.html"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>DeepYellow</a>
+  <nav class="nav-links" aria-label="Main">
+    <a href="features.html" aria-current="page">Features</a>
+    <a href="docs/index.html">Docs</a>
+    <a href="index.html#blocked">If macOS blocks it</a>
+    <a href="https://github.com/midhunkrishna/deepyellow">GitHub</a>
+    <a class="btn" href="https://github.com/midhunkrishna/deepyellow/releases/latest/download/DeepYellow.dmg">Download</a>
+  </nav>
+</div></header>
+
+<main id="main">
+<div class="wrap hero" style="padding-bottom:8px">
+  <div class="eyebrow">Features</div>
+  <h1 style="max-width:20ch">An instrument for your disk.</h1>
+  <p class="lede">Seven lenses read the same data and share one selection and one query. Dark only, GPU-drawn on demand, native Swift. Screenshots are the real app on a built-in demo disk.</p>
+  <div class="cta-row"><a class="btn primary" href="https://github.com/midhunkrishna/deepyellow/releases/latest/download/DeepYellow.dmg">Download for macOS</a><a class="btn" href="docs/getting-started.html">Getting started</a></div>
+</div>
+<section id="map">
+  <div class="wrap split">
+    <div>
+      <div class="eyebrow">1 &middot; Map</div>
+      <h2>Where did it all go?</h2>
+      <p class="sub">A continuously zoomable treemap with labels on tiles and nested folder headers. Layout is fixed in world space, so zooming never reflows and you keep your bearings. Tiles too small to see merge into a stippled <b>dust</b> tile per folder, labelled with its count and size, and zooming into dust keeps going.</p><p class="sub">Press <kbd>m</kbd> to switch between bytes and file count: swarms that are invisible by bytes become giants by count.</p>
+    </div>
+    <figure><img src="images/app-map.webp" alt="The Map lens on the demo disk" width="1600" height="1000" loading="lazy"><figcaption>Map, coloured by kind.</figcaption></figure>
+  </div>
+</section>
+<section id="files" class="alt">
+  <div class="wrap split flip">
+    <div>
+      <div class="eyebrow">Honest dust</div>
+      <h2>Small files are never dropped.</h2>
+      <p class="sub">Most tools drop or grey out small files, which makes the picture quietly wrong. Here they are counted, shown, and resolve into tiles as you zoom. The metric switch makes the point: the same folder by bytes and by file count.</p>
+    </div>
+    <figure><img src="images/app-map-files.webp" alt="The Map lens in file-count metric" width="1600" height="1000" loading="lazy"><figcaption>Map in file-count metric: where the swarms are.</figcaption></figure>
+  </div>
+</section>
+<section id="things-lens">
+  <div class="wrap split">
+    <div>
+      <div class="eyebrow">2 &middot; Things</div>
+      <h2>What are the biggest things?</h2>
+      <p class="sub">A ranked list cut at a size threshold rather than a depth, with a granularity slider and a cumulative-share rail. Files and folders are peers, the list is disjoint, and it adds up to the total. <a href="docs/views.html#things">Details</a></p>
+    </div>
+    <figure><img src="images/app-things.webp" alt="The Things lens: ranked list with a granularity slider" width="1600" height="1000" loading="lazy"><figcaption>Things: one slider from a dozen things to thousands.</figcaption></figure>
+  </div>
+</section>
+<section id="spectrum" class="alt">
+  <div class="wrap split flip">
+    <div>
+      <div class="eyebrow">3 &middot; Spectrum and 4 &middot; Field</div>
+      <h2>What shape is my disk? What is old, big and forgotten?</h2>
+      <p class="sub"><b>Spectrum</b> shows count and bytes per size range as separate small multiples, plus a cumulative curve that answers "how many items hold 80% of my disk". <b>Field</b> plots every file as a point of light, age against size. Brush either one and the query updates, so it stays visible and editable.</p>
+    </div>
+    <figure><img src="images/app-field.webp" alt="The Field lens: age against size" width="1600" height="1000" loading="lazy"><figcaption>Field: the old and big corner is where the gold is.</figcaption></figure>
+  </div>
+</section>
+<section id="rings">
+  <div class="wrap split">
+    <div>
+      <div class="eyebrow">5 &middot; Rings and 6 &middot; Browse</div>
+      <h2>How is it nested? Where is that thing I know?</h2>
+      <p class="sub"><b>Rings</b> is a sunburst for structure; read sizes from labels and the hover card. <b>Browse</b> is Miller columns with inline size bars, fully keyboard-driven, for people who think in Finder.</p>
+    </div>
+    <figure><img src="images/app-rings.webp" alt="The Rings lens: a sunburst" width="1600" height="1000" loading="lazy"><figcaption>Rings. Browse is one key away: <kbd>6</kbd>.</figcaption></figure>
+  </div>
+</section>
+<section id="safety" class="alt">
+  <div class="wrap split flip">
+    <div>
+      <div class="eyebrow">7 &middot; Reclaim</div>
+      <h2>What can I remove safely?</h2>
+      <p class="sub">Rule families grouped by tier. Each shows what the place is, what removing it costs, any condition such as "close Xcode first", and the official cleanup command where one exists. Commands are shown, never run. One decision can cover hundreds of items. Duplicates and leftovers of apps that are gone live here too.</p><p class="sub">Tiers are <b>safe</b>, <b>rebuild</b>, <b>review</b> and <b>never offered</b>, and uncertain always means review. <a href="docs/reclaim-rules.html">Every rule, with its source</a></p>
+    </div>
+    <figure><img src="images/app-reclaim.webp" alt="The Reclaim lens: rule families grouped by tier" width="1600" height="1000" loading="lazy"><figcaption>Reclaim: consequence first.</figcaption></figure>
+  </div>
+</section>
+<section id="review">
+  <div class="wrap split">
+    <div>
+      <div class="eyebrow">Review and Plan</div>
+      <h2>Decide like a photo editor. Apply is a diff.</h2>
+      <p class="sub"><kbd>k</kbd> keep, <kbd>x</kbd> remove, <kbd>l</kbd> later, from any view. Review takes the current set full screen with a preview and a backlog that shrinks to zero. Decisions persist across scans, and an item changed after you judged it is flagged and skipped.</p><p class="sub">Apply opens the Plan: the exact roots to move to the Trash, what is protected inside them, what is blocked and why, and an honest estimate. One step undoes it. The scan root, your home folder, system folders and protected items can never be planned for removal.</p>
+    </div>
+    <figure><img src="images/app-plan.webp" alt="The Plan sheet" width="1600" height="1000" loading="lazy"><figcaption>The Plan lists everything before anything moves.</figcaption></figure>
+  </div>
+</section>
+<section id="ledger" class="alt">
+  <div class="wrap split flip">
+    <div>
+      <div class="eyebrow">The Ledger</div>
+      <h2>Every byte accounted for.</h2>
+      <p class="sub">One bar for the whole volume: visible, hidden, unreadable, free. Hidden never means gone: ignore rules hide things from views but not from accounting, and the Ledger shows what each rule hides. Click it for the reconciliation: logical against allocated, hard-link and clone savings, snapshots and purgeable space, and a labelled remainder, including why the total differs from Finder.</p>
+    </div>
+    <figure><img src="images/app-ledger.webp" alt="The Ledger reconciliation" width="1600" height="1000" loading="lazy"><figcaption>The Ledger.</figcaption></figure>
+  </div>
+</section>
+<section id="query">
+  <div class="wrap split">
+    <div>
+      <div class="eyebrow">Query and palette</div>
+      <h2>One language everywhere.</h2>
+      <p class="sub"><kbd>/</kbd> opens the query. <code>size&gt;100mb age&gt;1y kind:video -path:Photos safe:safe</code> filters every lens live. <kbd>&#8984;K</kbd> runs any command and jumps to an exact path. <a href="docs/query-language.html">Query language</a></p>
+    </div>
+    <figure><img src="images/app-palette.webp" alt="The command palette" width="1600" height="1000" loading="lazy"><figcaption>The palette.</figcaption></figure>
+  </div>
+</section>
+<section id="preview" class="alt">
+  <div class="wrap">
+    <div class="eyebrow">Preview</div>
+    <h2>Look before you decide.</h2>
+    <p class="sub"><kbd>Space</kbd> opens a pane from any lens: video with a filmstrip scrubber, images decoded to screen size, audio waveforms, PDFs, text, and QuickLook for the rest. iCloud placeholders are never downloaded by accident; you get metadata and a Download button. Reading a file never changes it.</p>
+    <div class="cols" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr));margin:0 0 22px"><figure><img src="images/app-preview-video.webp" alt="Previewing a video with its filmstrip scrubber" width="1600" height="1000" loading="lazy"><figcaption>Video, with a filmstrip.</figcaption></figure><figure><img src="images/app-preview-image.webp" alt="Previewing an image" width="1600" height="1000" loading="lazy"><figcaption>Images, decoded to screen size.</figcaption></figure></div>
+    <p><a class="btn" href="docs/views.html">All views</a> <a class="btn" href="docs/safety-and-accounting.html">Safety and accounting</a></p>
+  </div>
+</section>
+</main>
+
+<footer class="foot"><div class="wrap">
+  <div class="cols">
+    <div><h4>DeepYellow</h4><p>A native macOS disk analyzer. MIT licence, Midhun Krishna.</p></div>
+    <div><h4>Use it</h4><ul><li><a href="https://github.com/midhunkrishna/deepyellow/releases/latest/download/DeepYellow.dmg">Download</a></li><li><a href="docs/install.html">Install</a></li><li><a href="docs/getting-started.html">Getting started</a></li><li><a href="docs/faq.html">FAQ</a></li></ul></div>
+    <div><h4>Learn</h4><ul><li><a href="features.html">Features</a></li><li><a href="docs/index.html">Documentation</a></li><li><a href="docs/safety-and-accounting.html">Safety and accounting</a></li><li><a href="docs/cli.html">Command line</a></li></ul></div>
+    <div><h4>Project</h4><ul><li><a href="https://github.com/midhunkrishna/deepyellow">Source on GitHub</a></li><li><a href="https://github.com/midhunkrishna/deepyellow/releases">Releases</a></li><li><a href="docs/uninstall.html">Uninstall</a></li></ul></div>
+  </div>
+</div></footer>
+
+<div class="ledger" role="complementary" aria-label="Page ledger"><div class="wrap">
+  <span class="lab">LEDGER</span>
+  <span class="track" aria-hidden="true"><i class="read"></i><i class="gold"></i></span>
+  <span class="txt"><b data-pct>0%</b> read<span class="long"> &middot; every byte accounted for</span> &middot; free, MIT</span>
+  <a class="btn primary" href="https://github.com/midhunkrishna/deepyellow/releases/latest/download/DeepYellow.dmg">Download</a>
+</div></div>
+<script src="site.js" defer></script>
+<script src="demo.js" defer></script>
+</body>
+</html>

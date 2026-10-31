@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Architecture | DeepYellow docs</title>
+<meta name="description" content="DeepYellow is native Swift with Metal for the map. Each module is its own Swift package under Packages/, depends only on DYCore, and has its own tests, so a change in one cannot br">
+<meta name="theme-color" content="#0E0D0B">
+<link rel="icon" href="../favicon.png">
+<link rel="apple-touch-icon" href="../images/icon.png">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="nav"><div class="wrap">
+  <a class="brand" href="../index.html"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>DeepYellow</a>
+  <nav class="nav-links" aria-label="Main">
+    <a href="../features.html">Features</a>
+    <a href="index.html" aria-current="page">Docs</a>
+    <a href="../index.html#blocked">If macOS blocks it</a>
+    <a href="https://github.com/midhunkrishna/deepyellow">GitHub</a>
+    <a class="btn" href="https://github.com/midhunkrishna/deepyellow/releases/latest/download/DeepYellow.dmg">Download</a>
+  </nav>
+</div></header>
+<div class="trust"><ul aria-label="What DeepYellow does not do">
+  <li>No network code</li><li>No telemetry</li><li>Trash only, never permanent</li><li>CLI is read-only</li><li>Read-only mode for real scans</li><li>Open source, MIT</li>
+</ul></div>
+<div class="wrap docs">
+  <nav class="docnav" aria-label="Documentation">
+<h4>Start</h4><ul>
+<li><a href="index.html">Overview</a></li>
+<li><a href="getting-started.html">Getting started</a></li>
+<li><a href="install.html">Install</a></li>
+<li><a href="faq.html">FAQ</a></li>
+</ul>
+<h4>Using it</h4><ul>
+<li><a href="views.html">Views</a></li>
+<li><a href="query-language.html">Query language</a></li>
+<li><a href="safety-and-accounting.html">Safety and accounting</a></li>
+<li><a href="reclaim-rules.html">Reclaim rules</a></li>
+<li><a href="cli.html">Command line</a></li>
+</ul>
+<h4>Project</h4><ul>
+<li><a href="building-from-source.html">Building from source</a></li>
+<li><a href="architecture.html" aria-current="page">Architecture</a></li>
+<li><a href="uninstall.html">Uninstall</a></li>
+</ul>
+  </nav>
+  <main id="main" class="prose">
+<h1 id="architecture">Architecture</h1>
+<p>DeepYellow is native Swift with Metal for the map. Each module is its own Swift package under <code>Packages/</code>, depends only on <code>DYCore</code>, and has its own tests, so a change in one cannot break the build of another.</p>
+<h2 id="modules">Modules <a class="anchor" href="#modules" aria-label="Link to this section">#</a></h2>
+<table>
+<thead><tr><th>Package</th><th>Responsibility</th></tr></thead>
+<tbody>
+<tr><td><code>DYCore</code></td><td>The shared vocabulary: the compact file tree, file kinds, safety tiers, decisions, the colour palette, number formatting, and the synthetic tree used for demos and tests</td></tr>
+<tr><td><code>DYScan</code></td><td>The scanner, the scan cache, volume information, and the Full Disk Access probe</td></tr>
+<tr><td><code>DYAnalysis</code></td><td>Ignore rules, the <a href="query-language.html">query language</a>, Things, Spectrum and Field</td></tr>
+<tr><td><code>DYAdvisor</code></td><td>The <a href="reclaim-rules.html">reclaim rules</a>, duplicate finding, app ownership and worklists</td></tr>
+<tr><td><code>DYDecide</code></td><td>Decisions, the removal Plan and its guards, and the Trash executor with its journal</td></tr>
+<tr><td><code>DYRender</code></td><td>The Metal map, Rings and Field canvases</td></tr>
+<tr><td><code>DYPreview</code></td><td>Preview of video, images, audio, PDFs and text</td></tr>
+<tr><td><code>DYWorkspace</code></td><td>A headless model that all of the interface binds to: scan lifecycle, selection, lenses, decisions, plan and apply</td></tr>
+<tr><td><code>DYLenses</code></td><td>The SwiftUI views for each lens</td></tr>
+<tr><td><code>Sources/DeepYellow</code></td><td>The app and command-line entry point</td></tr>
+</tbody></table>
+<p>There is no network code in any module. The only way a file is ever moved is through one protocol, <code>TrashMoving</code>, and the real implementation is handed to the workspace by the app's entry point alone. The <code>--demo</code> mode hands it an in-memory fake, which is enforced by a test.</p>
+<h2 id="the-file-tree">The file tree <a class="anchor" href="#the-file-tree" aria-label="Link to this section">#</a></h2>
+<p>A scan produces one flat, columnar tree: parallel arrays for size, file count, timestamps, kind and flags, indexed by a node number. A million-node tree is a handful of arrays rather than a million objects, which is what makes scanning, queries and the map fast on millions of nodes. A <code>TreeLens</code> is a filtered view of that tree, which is how a query or a hide rule changes every lens without copying.</p>
+<h2 id="scanning">Scanning <a class="anchor" href="#scanning" aria-label="Link to this section">#</a></h2>
+<p>The scanner reads directories in bulk with <code>getattrlistbulk</code>, with several workers feeding a single thread that owns the tree builder. Accounting follows macOS rules rather than adding up file sizes:</p>
+<ul>
+<li>Allocated size, not logical size, is the default measure.</li>
+<li>Hard links are counted once, and so are APFS clones that share all their data.</li>
+<li>Device boundaries use the real device id, so other mounted volumes are not entered and the Data volume is not double counted when scanning <code>/</code>.</li>
+<li>iCloud placeholders are detected and are never materialized by a read.</li>
+<li>Unreadable folders are counted and reported.</li>
+</ul>
+<p>Scans publish snapshots while they run, so the map is interactive from the first second, and every scan can be cancelled and ends with a tree that says whether it is partial. Finished scans are cached under <code>~/Library/Application Support/DeepYellow/scans/</code>.</p>
+<h2 id="things">Things <a class="anchor" href="#things" aria-label="Link to this section">#</a></h2>
+<p>Things cuts the tree at a size threshold <code>T</code>, not at a depth. A file or folder is a thing when it is at least <code>T</code> and cannot be split into anything at least <code>T</code>. A folder with a big child is split and the remainder is rolled into one "N smaller items" row, or carried upward if that is still under <code>T</code>. A test asserts, for every threshold and in both bytes and file-count metrics, that results are disjoint and sum exactly to the total. The cut is fast enough to run on every slider tick.</p>
+<h2 id="kinds-without-guessing">Kinds without guessing <a class="anchor" href="#kinds-without-guessing" aria-label="Link to this section">#</a></h2>
+<p>Every file has a kind. It is resolved in three steps that never involve a model:</p>
+<ol>
+<li>A table of extensions, then macOS's own type information for extensions not in the table.</li>
+<li>For files still classed as <code>other</code> above a size limit, a signature check on the first bytes of the file. Only a short header is read. Placeholders and restricted files are skipped, so nothing is downloaded.</li>
+<li>A few corrections where size changes the answer, such as a very large <code>.raw</code> file, which is a disk image rather than a camera file.</li>
+</ol>
+<h2 id="reclaim">Reclaim <a class="anchor" href="#reclaim" aria-label="Link to this section">#</a></h2>
+<p>A rule has a path pattern, a tier, one sentence on what the place is, one on what removing it costs, optional conditions, an optional cleanup command (displayed, never run) and a source. The matcher supports <code>~</code>, <code>**</code>, alternatives, exclusions and <code>if-sibling:</code> conditions, so <code>node_modules</code> is offered as rebuildable when a lockfile sits next to it and as review when it does not. The most specific rule wins, and a <code>never</code> ancestor always wins. See <a href="reclaim-rules.html">Reclaim rules</a>.</p>
+<p>Ownership adds facts without changing tiers: it looks only at the direct children of a fixed list of <code>~/Library</code> folders and decides whether the owning app appears to be installed. It never applies to <code>com.apple.*</code>, and a plain name that matches nothing is only "possibly not installed".</p>
+<h2 id="plan-and-trash">Plan and Trash <a class="anchor" href="#plan-and-trash" aria-label="Link to this section">#</a></h2>
+<p><code>RemovalPlanner</code> turns decisions into the minimal set of roots and applies the guards listed in <a href="safety-and-accounting.html#the-plan">Safety and accounting</a>. The guards run inside the planner regardless of input, so no caller can bypass them. <code>TrashExecutor</code> re-checks each fingerprint just before moving, writes a journal so a step can be undone, and has no code path that deletes.</p>
+<h2 id="rendering">Rendering <a class="anchor" href="#rendering" aria-label="Link to this section">#</a></h2>
+<p>The map is drawn with Metal using instanced rounded rectangles and a fragment shader for lighting, hatches and stipple. Layout is lazy and in world space: each folder lays out its children only when it is visible and large enough, and zooming moves a camera instead of recomputing the layout. Tiles too small to see become one dust tile per folder, which lays out the next chunk recursively when you zoom in. Drawing is on demand, so there is no display link while nothing animates and idle costs no GPU.</p>
+<h2 id="measured">Measured <a class="anchor" href="#measured" aria-label="Link to this section">#</a></h2>
+<table>
+<thead><tr><th>Measure</th><th>Figure</th><th>Conditions</th></tr></thead>
+<tbody>
+<tr><td>Things cut</td><td>under 3 ms</td><td>4.86 million nodes</td></tr>
+<tr><td>Queries</td><td>23 to 42 ms</td><td>4.86 million nodes</td></tr>
+<tr><td>Map zoom</td><td>about 200 fps, estimated at p95</td><td>M4, offscreen, 4.86 million nodes</td></tr>
+<tr><td>Scan</td><td>about 150,000 files per second</td><td>A home folder of 2.18 million files, machine under load</td></tr>
+</tbody></table>
+<p>These are single measurements on one machine, and your results will differ.</p>
+<h2 id="the-site">The site <a class="anchor" href="#the-site" aria-label="Link to this section">#</a></h2>
+<p><code>docs/*.md</code> is the single source of the documentation. <code>python3 scripts/build-site-docs.py</code> renders it into <code>web/docs/</code> with the site's chrome, using only the Python standard library, and <code>python3 scripts/check-site-links.py</code> verifies every link and image. The site in <code>web/</code> is plain HTML, CSS and a little JavaScript, with no build step and no external requests.</p>
+<nav class="pager" aria-label="Pages"><a href="building-from-source.html">&larr; Building from source</a><a href="uninstall.html">Uninstall &rarr;</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="wrap">
+  <p>DeepYellow is a native macOS disk analyzer, MIT licence. <a href="../index.html">Home</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow">Source</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/releases">Releases</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/edit/master/docs/architecture.md">Edit this page</a></p>
+</div></footer>
+<div class="ledger" role="complementary" aria-label="Page ledger"><div class="wrap">
+  <span class="lab">LEDGER</span>
+  <span class="track" aria-hidden="true"><i class="read"></i><i class="gold"></i></span>
+  <span class="txt"><b data-pct>0%</b> read<span class="long"> &middot; every byte accounted for</span> &middot; free, MIT</span>
+  <a class="btn primary" href="https://github.com/midhunkrishna/deepyellow/releases/latest/download/DeepYellow.dmg">Download</a>
+</div></div>
+<script src="../site.js" defer></script>
+</body>
+</html>

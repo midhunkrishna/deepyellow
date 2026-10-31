@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Getting started | DeepYellow docs</title>
+<meta name="description" content="From download to your first reclaimed gigabytes. About five minutes, most of it the scan.">
+<meta name="theme-color" content="#0E0D0B">
+<link rel="icon" href="../favicon.png">
+<link rel="apple-touch-icon" href="../images/icon.png">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="nav"><div class="wrap">
+  <a class="brand" href="../index.html"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>DeepYellow</a>
+  <nav class="nav-links" aria-label="Main">
+    <a href="../features.html">Features</a>
+    <a href="index.html" aria-current="page">Docs</a>
+    <a href="../index.html#blocked">If macOS blocks it</a>
+    <a href="https://github.com/midhunkrishna/deepyellow">GitHub</a>
+    <a class="btn" href="https://github.com/midhunkrishna/deepyellow/releases/latest/download/DeepYellow.dmg">Download</a>
+  </nav>
+</div></header>
+<div class="trust"><ul aria-label="What DeepYellow does not do">
+  <li>No network code</li><li>No telemetry</li><li>Trash only, never permanent</li><li>CLI is read-only</li><li>Read-only mode for real scans</li><li>Open source, MIT</li>
+</ul></div>
+<div class="wrap docs">
+  <nav class="docnav" aria-label="Documentation">
+<h4>Start</h4><ul>
+<li><a href="index.html">Overview</a></li>
+<li><a href="getting-started.html" aria-current="page">Getting started</a></li>
+<li><a href="install.html">Install</a></li>
+<li><a href="faq.html">FAQ</a></li>
+</ul>
+<h4>Using it</h4><ul>
+<li><a href="views.html">Views</a></li>
+<li><a href="query-language.html">Query language</a></li>
+<li><a href="safety-and-accounting.html">Safety and accounting</a></li>
+<li><a href="reclaim-rules.html">Reclaim rules</a></li>
+<li><a href="cli.html">Command line</a></li>
+</ul>
+<h4>Project</h4><ul>
+<li><a href="building-from-source.html">Building from source</a></li>
+<li><a href="architecture.html">Architecture</a></li>
+<li><a href="uninstall.html">Uninstall</a></li>
+</ul>
+  </nav>
+  <main id="main" class="prose">
+<h1 id="getting-started">Getting started</h1>
+<p>From download to your first reclaimed gigabytes. About five minutes, most of it the scan.</p>
+<h2 id="1-install-and-open">1. Install and open <a class="anchor" href="#1-install-and-open" aria-label="Link to this section">#</a></h2>
+<p>Download <code>DeepYellow.dmg</code> from the <a href="https://github.com/midhunkrishna/deepyellow/releases/latest">latest release</a>, drag DeepYellow to Applications and open it. The build is not notarized, so the first launch is blocked until you approve it once; the steps are in <a href="install.html#if-macos-blocks-it">If macOS blocks it</a>. Other routes are in <a href="install.html">Install</a>.</p>
+<p>DeepYellow needs macOS 15 or later.</p>
+<h2 id="2-give-it-full-disk-access-recommended">2. Give it Full Disk Access (recommended) <a class="anchor" href="#2-give-it-full-disk-access-recommended" aria-label="Link to this section">#</a></h2>
+<p>Without Full Disk Access macOS hides parts of your disk from every app. DeepYellow says so up front and counts what it could not read, but a complete scan needs the permission.</p>
+<ol>
+<li>Open <strong>System Settings &gt; Privacy &amp; Security &gt; Full Disk Access</strong>.</li>
+<li>Switch <strong>DeepYellow</strong> on. If it is not listed, click <strong>+</strong> and add it from Applications.</li>
+<li>Quit and reopen DeepYellow.</li>
+</ol>
+<p>You can skip this and scan a single folder instead. See <a href="safety-and-accounting.html#full-disk-access">Full Disk Access</a>.</p>
+<p><img src="../images/app-welcome.webp" alt="The welcome screen" loading="lazy" width="1600" height="1000"></p>
+<h2 id="3-scan">3. Scan <a class="anchor" href="#3-scan" aria-label="Link to this section">#</a></h2>
+<p>Choose a volume or a folder on the welcome screen, or drop a folder onto the Dock icon. The map grows while the scan runs and is interactive from the first second. You can also try everything on a built-in sample disk:</p>
+<pre><code>deepyellow --demo</code></pre>
+<h3 id="want-to-look-at-your-real-disk-with-zero-risk">Want to look at your real disk with zero risk? <a class="anchor" href="#want-to-look-at-your-real-disk-with-zero-risk" aria-label="Link to this section">#</a></h3>
+<p>Open it in read-only mode:</p>
+<pre><code>deepyellow ~ --read-only</code></pre>
+<p>That does a real scan, so the sizes, the map and the advice are real, but <strong>nothing can be moved to the Trash</strong> in that mode. It is the natural way to get to know the app before you trust it with a Plan. (Link the <code>deepyellow</code> command first, see <a href="install.html#install-the-command-line-tool">Install</a>.) More in <a href="cli.html">Command line</a>.</p>
+<h2 id="4-find-the-gold">4. Find the gold <a class="anchor" href="#4-find-the-gold" aria-label="Link to this section">#</a></h2>
+<p>The <a href="views.html#map">Map</a> is the main view. Press <kbd>c</kbd> until the colour mode is <strong>Safety</strong>: everything dims except what is safe or rebuildable, which glows gold.</p>
+<p><img src="../images/app-map-safety.webp" alt="The map in Safety mode" loading="lazy" width="1600" height="1000"></p>
+<p>Then press <kbd>7</kbd> for <a href="views.html#reclaim">Reclaim</a>. Items are grouped by tier, and each shows what it is, what removing it costs, and the official cleanup command where there is one.</p>
+<p>Not everything has advice. For most personal files, such as photos, documents and downloads, the honest answer is "no advice", and the decision is yours.</p>
+<h2 id="5-decide">5. Decide <a class="anchor" href="#5-decide" aria-label="Link to this section">#</a></h2>
+<p>Select something and press one key.</p>
+<table>
+<thead><tr><th>Key</th><th>Verdict</th></tr></thead>
+<tbody>
+<tr><td><kbd>k</kbd></td><td>Keep</td></tr>
+<tr><td><kbd>x</kbd></td><td>Remove (staged, not done)</td></tr>
+<tr><td><kbd>l</kbd></td><td>Later</td></tr>
+<tr><td><kbd>u</kbd></td><td>Clear</td></tr>
+</tbody></table>
+<p>Nothing is pre-marked. For a long list press <kbd>r</kbd> to open <a href="views.html#review">Review</a>, which goes through the current set one item at a time with a preview.</p>
+<h2 id="6-apply-then-check-the-trash">6. Apply, then check the Trash <a class="anchor" href="#6-apply-then-check-the-trash" aria-label="Link to this section">#</a></h2>
+<p>Press <kbd>&#8984;&#9166;</kbd> to open the <strong>Plan</strong>: the exact list of items that will be moved to the Trash, what is protected inside them, and what is blocked and why.</p>
+<p><img src="../images/app-plan.webp" alt="The plan" loading="lazy" width="1600" height="1000"></p>
+<p>Apply moves them to the Trash and offers one-step undo. <strong>Space is not freed until you empty the Trash.</strong> DeepYellow never empties it for you. More in <a href="safety-and-accounting.html">Safety and accounting</a>.</p>
+<h2 id="next">Next <a class="anchor" href="#next" aria-label="Link to this section">#</a></h2>
+<ul>
+<li><a href="views.html">Views and keys</a></li>
+<li><a href="query-language.html">Query language</a></li>
+<li><a href="cli.html">The command line</a></li>
+</ul>
+<nav class="pager" aria-label="Pages"><a href="index.html">&larr; Overview</a><a href="install.html">Install &rarr;</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="wrap">
+  <p>DeepYellow is a native macOS disk analyzer, MIT licence. <a href="../index.html">Home</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow">Source</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/releases">Releases</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/edit/master/docs/getting-started.md">Edit this page</a></p>
+</div></footer>
+<div class="ledger" role="complementary" aria-label="Page ledger"><div class="wrap">
+  <span class="lab">LEDGER</span>
+  <span class="track" aria-hidden="true"><i class="read"></i><i class="gold"></i></span>
+  <span class="txt"><b data-pct>0%</b> read<span class="long"> &middot; every byte accounted for</span> &middot; free, MIT</span>
+  <a class="btn primary" href="https://github.com/midhunkrishna/deepyellow/releases/latest/download/DeepYellow.dmg">Download</a>
+</div></div>
+<script src="../site.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+# Releases on every push to master that contains a releasable change.
+#
+# The version comes from conventional commits since the last vX.Y.Z tag (scripts/next-version.sh).
+# When it prints "none" (docs-only or chore(release) pushes) nothing is published.
+# The tag is created by `gh release create`; nothing is committed back to master.
+#
+# Without any secrets the app is ad-hoc signed and not notarized. Optional repository secrets
+# switch on Developer ID signing and notarization:
+#   MACOS_CERTIFICATE_P12       base64 of a "Developer ID Application" certificate (.p12)
+#   MACOS_CERTIFICATE_PASSWORD  password of that .p12
+#   NOTARY_APPLE_ID             Apple ID used for notarization
+#   NOTARY_TEAM_ID              Apple developer team id
+#   NOTARY_PASSWORD             app-specific password for that Apple ID
+# Signing needs the first two. Notarization needs all three NOTARY_* secrets and signing.
+name: release
+
+on:
+  push:
+    branches: [master]
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-15
+    timeout-minutes: 90
+    env:
+      MACOS_CERTIFICATE_P12: ${{ secrets.MACOS_CERTIFICATE_P12 }}
+      MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+      NOTARY_APPLE_ID: ${{ secrets.NOTARY_APPLE_ID }}
+      NOTARY_TEAM_ID: ${{ secrets.NOTARY_TEAM_ID }}
+      NOTARY_PASSWORD: ${{ secrets.NOTARY_PASSWORD }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Swift version
+        run: swift --version
+
+      - name: Test
+        run: make test
+
+      - name: Compute version
+        id: version
+        run: |
+          next=$(scripts/next-version.sh)
+          echo "next version: $next"
+          if [ "$next" = "none" ]; then
+            echo "release=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "release=true" >> "$GITHUB_OUTPUT"
+            echo "version=$next" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Import signing certificate
+        if: steps.version.outputs.release == 'true' && env.MACOS_CERTIFICATE_P12 != '' && env.MACOS_CERTIFICATE_PASSWORD != ''
+        run: |
+          keychain="$RUNNER_TEMP/build.keychain-db"
+          keychain_password=$(uuidgen)
+          echo "$MACOS_CERTIFICATE_P12" | base64 --decode > "$RUNNER_TEMP/certificate.p12"
+          security create-keychain -p "$keychain_password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$keychain_password" "$keychain"
+          security import "$RUNNER_TEMP/certificate.p12" -P "$MACOS_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$keychain"
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$keychain_password" "$keychain"
+          security list-keychains -d user -s "$keychain" login.keychain-db
+          identity=$(security find-identity -v -p codesigning "$keychain" | awk -F'"' '/Developer ID Application/ {print $2; exit}')
+          [ -n "$identity" ] || { echo "no Developer ID Application identity in the certificate" >&2; exit 1; }
+          echo "SIGN_IDENTITY=$identity" >> "$GITHUB_ENV"
+          rm -f "$RUNNER_TEMP/certificate.p12"
+
+      - name: Build universal app
+        if: steps.version.outputs.release == 'true'
+        run: scripts/build-app.sh
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+
+      - name: Notarize
+        if: steps.version.outputs.release == 'true' && env.SIGN_IDENTITY != '' && env.NOTARY_APPLE_ID != '' && env.NOTARY_TEAM_ID != '' && env.NOTARY_PASSWORD != ''
+        run: scripts/notarize.sh
+
+      - name: Package
+        if: steps.version.outputs.release == 'true'
+        run: scripts/package.sh
+
+      - name: Smoke test
+        if: steps.version.outputs.release == 'true'
+        run: |
+          out=$(dist/DeepYellow.app/Contents/Resources/bin/deepyellow --version)
+          echo "$out"
+          case "$out" in *"${{ steps.version.outputs.version }}"*) ;; *) echo "version stamp missing" >&2; exit 1 ;; esac
+
+      - name: Publish release
+        if: steps.version.outputs.release == 'true'
+        run: |
+          gh release create "v${{ steps.version.outputs.version }}" \
+            --target "$GITHUB_SHA" \
+            --title "DeepYellow ${{ steps.version.outputs.version }}" \
+            --generate-notes \
+            dist/DeepYellow.dmg dist/DeepYellow.zip dist/SHA256SUMS

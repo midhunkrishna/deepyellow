@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Query language | DeepYellow docs</title>
+<meta name="description" content="One small language, used everywhere. Press &lt;kbd&gt;/&lt;/kbd&gt; to type a query. It filters every view live, and brushing in Spectrum or Field writes into it, so the filter is always visib">
+<meta name="theme-color" content="#0E0D0B">
+<link rel="icon" href="../favicon.png">
+<link rel="apple-touch-icon" href="../images/icon.png">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="nav"><div class="wrap">
+  <a class="brand" href="../index.html"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>DeepYellow</a>
+  <nav class="nav-links" aria-label="Main">
+    <a href="../features.html">Features</a>
+    <a href="index.html" aria-current="page">Docs</a>
+    <a href="../index.html#blocked">If macOS blocks it</a>
+    <a href="https://github.com/midhunkrishna/deepyellow">GitHub</a>
+    <a class="btn" href="https://github.com/midhunkrishna/deepyellow/releases/latest/download/DeepYellow.dmg">Download</a>
+  </nav>
+</div></header>
+<div class="trust"><ul aria-label="What DeepYellow does not do">
+  <li>No network code</li><li>No telemetry</li><li>Trash only, never permanent</li><li>CLI is read-only</li><li>Read-only mode for real scans</li><li>Open source, MIT</li>
+</ul></div>
+<div class="wrap docs">
+  <nav class="docnav" aria-label="Documentation">
+<h4>Start</h4><ul>
+<li><a href="index.html">Overview</a></li>
+<li><a href="getting-started.html">Getting started</a></li>
+<li><a href="install.html">Install</a></li>
+<li><a href="faq.html">FAQ</a></li>
+</ul>
+<h4>Using it</h4><ul>
+<li><a href="views.html">Views</a></li>
+<li><a href="query-language.html" aria-current="page">Query language</a></li>
+<li><a href="safety-and-accounting.html">Safety and accounting</a></li>
+<li><a href="reclaim-rules.html">Reclaim rules</a></li>
+<li><a href="cli.html">Command line</a></li>
+</ul>
+<h4>Project</h4><ul>
+<li><a href="building-from-source.html">Building from source</a></li>
+<li><a href="architecture.html">Architecture</a></li>
+<li><a href="uninstall.html">Uninstall</a></li>
+</ul>
+  </nav>
+  <main id="main" class="prose">
+<h1 id="query-language">Query language</h1>
+<p>One small language, used everywhere. Press <kbd>/</kbd> to type a query. It filters every view live, and brushing in <a href="views.html#spectrum">Spectrum</a> or <a href="views.html#field">Field</a> writes into it, so the filter is always visible and editable.</p>
+<pre><code>size&gt;100mb age&gt;1y kind:video -path:Photos ext:mov,mp4 is:clone mark:remove safe:safe</code></pre>
+<p>A query is a list of terms separated by spaces. A file must match <strong>all</strong> of them. Put a <code>-</code> in front of a term to negate it. Wrap text that contains spaces in double quotes: <code>path:"Application Support"</code>. At most 24 terms are used.</p>
+<h2 id="terms">Terms <a class="anchor" href="#terms" aria-label="Link to this section">#</a></h2>
+<table>
+<thead><tr><th>Term</th><th>Matches</th></tr></thead>
+<tbody>
+<tr><td><code>size&gt;100mb</code>, <code>size&lt;1gb</code></td><td>Size greater or less than a value</td></tr>
+<tr><td><code>age&gt;1y</code>, <code>age&lt;2w</code></td><td>Time since last <strong>modified</strong></td></tr>
+<tr><td><code>opened&gt;6m</code>, <code>opened&lt;3d</code></td><td>Time since last <strong>opened</strong> (accessed)</td></tr>
+<tr><td><code>kind:video</code></td><td>A kind. See below. Commas combine: <code>kind:video,audio</code></td></tr>
+<tr><td><code>ext:mov,mp4</code></td><td>File extension, with or without the dot</td></tr>
+<tr><td><code>name:backup</code></td><td>The name contains the text</td></tr>
+<tr><td><code>path:Photos</code></td><td>The name or any parent folder's name contains the text</td></tr>
+<tr><td><code>path:Library/Caches</code></td><td>With a <code>/</code>, the full path contains the text</td></tr>
+<tr><td><code>is:dir</code></td><td>Is a folder: matches every file inside a matching folder</td></tr>
+<tr><td><code>is:clone</code></td><td>Shares its data with an APFS clone</td></tr>
+<tr><td><code>is:hardlink</code></td><td>Is a hard link</td></tr>
+<tr><td><code>is:package</code></td><td>Is a package such as an app or a library bundle</td></tr>
+<tr><td><code>is:dataless</code></td><td>Is an iCloud placeholder that is not stored here</td></tr>
+<tr><td><code>mark:keep</code>, <code>mark:remove</code>, <code>mark:later</code>, <code>mark:none</code></td><td>Your decision on it</td></tr>
+<tr><td><code>safe:safe</code>, <code>safe:rebuild</code>, <code>safe:review</code>, <code>safe:never</code></td><td>Its safety tier</td></tr>
+<tr><td><code>anything</code></td><td>A bare word matches a name or a path</td></tr>
+</tbody></table>
+<p>Matching is case-insensitive.</p>
+<h2 id="units">Units <a class="anchor" href="#units" aria-label="Link to this section">#</a></h2>
+<table>
+<thead><tr><th>Sizes</th><th>Durations</th></tr></thead>
+<tbody>
+<tr><td><code>b</code>, <code>kb</code>, <code>mb</code>, <code>gb</code>, <code>tb</code> (decimal, 1 kb = 1,000 bytes)</td><td><code>s</code> seconds, <code>h</code> hours, <code>d</code> days, <code>w</code> weeks, <code>m</code> months (30 days), <code>y</code> years (365 days)</td></tr>
+</tbody></table>
+<p>A bare number for a size is bytes. A bare number for an age is days. Decimals work: <code>size&gt;1.5gb</code>.</p>
+<h2 id="kinds">Kinds <a class="anchor" href="#kinds" aria-label="Link to this section">#</a></h2>
+<table>
+<thead><tr><th>Name</th><th>Also accepted</th></tr></thead>
+<tbody>
+<tr><td><code>video</code></td><td><code>videos</code></td></tr>
+<tr><td><code>image</code></td><td><code>images</code></td></tr>
+<tr><td><code>audio</code></td><td></td></tr>
+<tr><td><code>document</code></td><td><code>documents</code>, <code>doc</code>, <code>docs</code></td></tr>
+<tr><td><code>code</code></td><td><code>data</code></td></tr>
+<tr><td><code>application</code></td><td><code>applications</code>, <code>app</code>, <code>apps</code>, <code>library</code>, <code>libraries</code></td></tr>
+<tr><td><code>archive</code></td><td><code>archives</code>, <code>disk</code>, <code>disks</code></td></tr>
+<tr><td><code>other</code></td><td></td></tr>
+</tbody></table>
+<p>Kinds come from the file extension, from macOS type information, and, for files that would otherwise be <code>other</code>, from a look at the first bytes of the file. See <a href="architecture.html#kinds-without-guessing">Architecture</a>.</p>
+<h2 id="examples">Examples <a class="anchor" href="#examples" aria-label="Link to this section">#</a></h2>
+<table>
+<thead><tr><th>Goal</th><th>Query</th></tr></thead>
+<tbody>
+<tr><td>Large videos untouched for a year</td><td><code>kind:video size&gt;1gb age&gt;1y</code></td></tr>
+<tr><td>Everything I marked for removal</td><td><code>mark:remove</code></td></tr>
+<tr><td>Big things DeepYellow considers safe</td><td><code>safe:safe size&gt;100mb</code></td></tr>
+<tr><td>Disk images and installers in Downloads</td><td><code>path:Downloads ext:dmg,pkg,iso</code></td></tr>
+<tr><td>Everything except Photos and Music</td><td><code>-path:Photos -path:Music</code></td></tr>
+<tr><td>Large files I have not opened in half a year</td><td><code>size&gt;500mb opened&gt;6m</code></td></tr>
+</tbody></table>
+<h2 id="mistakes">Mistakes <a class="anchor" href="#mistakes" aria-label="Link to this section">#</a></h2>
+<p>A term that cannot be understood is ignored and listed under the query bar, for example "unknown kind" or "bad size unit". The rest of the query still applies.</p>
+<nav class="pager" aria-label="Pages"><a href="views.html">&larr; Views</a><a href="safety-and-accounting.html">Safety and accounting &rarr;</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="wrap">
+  <p>DeepYellow is a native macOS disk analyzer, MIT licence. <a href="../index.html">Home</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow">Source</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/releases">Releases</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/edit/master/docs/query-language.md">Edit this page</a></p>
+</div></footer>
+<div class="ledger" role="complementary" aria-label="Page ledger"><div class="wrap">
+  <span class="lab">LEDGER</span>
+  <span class="track" aria-hidden="true"><i class="read"></i><i class="gold"></i></span>
+  <span class="txt"><b data-pct>0%</b> read<span class="long"> &middot; every byte accounted for</span> &middot; free, MIT</span>
+  <a class="btn primary" href="https://github.com/midhunkrishna/deepyellow/releases/latest/download/DeepYellow.dmg">Download</a>
+</div></div>
+<script src="../site.js" defer></script>
+</body>
+</html>

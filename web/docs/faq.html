@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FAQ | DeepYellow docs</title>
+<meta name="description" content="It is built so that mistakes are hard. Nothing is marked for you, nothing happens until you open the Plan and apply it, apply only moves items to the Trash, and one step undoes it.">
+<meta name="theme-color" content="#0E0D0B">
+<link rel="icon" href="../favicon.png">
+<link rel="apple-touch-icon" href="../images/icon.png">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="nav"><div class="wrap">
+  <a class="brand" href="../index.html"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>DeepYellow</a>
+  <nav class="nav-links" aria-label="Main">
+    <a href="../features.html">Features</a>
+    <a href="index.html" aria-current="page">Docs</a>
+    <a href="../index.html#blocked">If macOS blocks it</a>
+    <a href="https://github.com/midhunkrishna/deepyellow">GitHub</a>
+    <a class="btn" href="https://github.com/midhunkrishna/deepyellow/releases/latest/download/DeepYellow.dmg">Download</a>
+  </nav>
+</div></header>
+<div class="trust"><ul aria-label="What DeepYellow does not do">
+  <li>No network code</li><li>No telemetry</li><li>Trash only, never permanent</li><li>CLI is read-only</li><li>Read-only mode for real scans</li><li>Open source, MIT</li>
+</ul></div>
+<div class="wrap docs">
+  <nav class="docnav" aria-label="Documentation">
+<h4>Start</h4><ul>
+<li><a href="index.html">Overview</a></li>
+<li><a href="getting-started.html">Getting started</a></li>
+<li><a href="install.html">Install</a></li>
+<li><a href="faq.html" aria-current="page">FAQ</a></li>
+</ul>
+<h4>Using it</h4><ul>
+<li><a href="views.html">Views</a></li>
+<li><a href="query-language.html">Query language</a></li>
+<li><a href="safety-and-accounting.html">Safety and accounting</a></li>
+<li><a href="reclaim-rules.html">Reclaim rules</a></li>
+<li><a href="cli.html">Command line</a></li>
+</ul>
+<h4>Project</h4><ul>
+<li><a href="building-from-source.html">Building from source</a></li>
+<li><a href="architecture.html">Architecture</a></li>
+<li><a href="uninstall.html">Uninstall</a></li>
+</ul>
+  </nav>
+  <main id="main" class="prose">
+<h1 id="faq">FAQ</h1>
+<h2 id="is-it-safe-to-use">Is it safe to use? <a class="anchor" href="#is-it-safe-to-use" aria-label="Link to this section">#</a></h2>
+<p>It is built so that mistakes are hard. Nothing is marked for you, nothing happens until you open the Plan and apply it, apply only moves items to the Trash, and one step undoes it. Protected places such as your home folder, system folders and Photos libraries can never be planned for removal. Details: <a href="safety-and-accounting.html">Safety and accounting</a>.</p>
+<p>Reading a disk is also safe. DeepYellow never modifies the files it scans.</p>
+<h2 id="can-i-try-it-on-my-real-disk-without-any-risk">Can I try it on my real disk without any risk? <a class="anchor" href="#can-i-try-it-on-my-real-disk-without-any-risk" aria-label="Link to this section">#</a></h2>
+<p>Yes: <code>deepyellow ~ --read-only</code> does a real scan in which nothing can be moved to the Trash. See <a href="cli.html#open-the-app">Command line</a>. <code>deepyellow --demo</code> uses a made-up disk instead.</p>
+<h2 id="does-it-phone-home">Does it phone home? <a class="anchor" href="#does-it-phone-home" aria-label="Link to this section">#</a></h2>
+<p>No. There is no network code in the app, and no telemetry or analytics. You can check: the source is open, and <a href="building-from-source.html">building it yourself</a> is a supported route.</p>
+<h2 id="does-it-use-ai">Does it use AI? <a class="anchor" href="#does-it-use-ai" aria-label="Link to this section">#</a></h2>
+<p>No, and that is on purpose. Advice comes from a table of rules written down in the open (<a href="reclaim-rules.html">Reclaim rules</a>), plus facts the app can measure: size, age, kind, which app owns a folder, whether two files are identical. A guess about your own files would be the wrong thing to automate, so you decide.</p>
+<p>Measured on one 188 GB home folder with 2.18 million files: the built-in rules and file signatures brought bytes of unknown kind from 45% down to 12%. About 65% of the bytes there still have no safety advice, which is the honest part only the owner can judge, and the factual <a href="views.html#worklists">worklists</a> cover 68 GB of that. This is one folder, not a promise about yours.</p>
+<h2 id="why-does-it-say-no-advice-for-most-of-my-files">Why does it say "no advice" for most of my files? <a class="anchor" href="#why-does-it-say-no-advice-for-most-of-my-files" aria-label="Link to this section">#</a></h2>
+<p>Because the honest answer for photos, documents, downloads and projects is that DeepYellow cannot know whether you still want them. It would rather say nothing than round up to "safe". The <a href="views.html#worklists">worklists</a> give you factual ways to look: large and untouched for a year, exact duplicates, leftovers of apps that are gone.</p>
+<h2 id="why-does-macos-block-it">Why does macOS block it? <a class="anchor" href="#why-does-macos-block-it" aria-label="Link to this section">#</a></h2>
+<p>The release build is not notarized, because notarization needs a paid Apple developer account. See <a href="install.html#if-macos-blocks-it">If macOS blocks it</a> for the steps on macOS 15 and later, or <a href="building-from-source.html">build it yourself</a> and macOS will not complain at all.</p>
+<h2 id="can-i-really-clone-it-and-build-it">Can I really clone it and build it? <a class="anchor" href="#can-i-really-clone-it-and-build-it" aria-label="Link to this section">#</a></h2>
+<p>Yes. <code>git clone https://github.com/midhunkrishna/deepyellow</code> then <code>make app</code>. It needs the Swift 6 toolchain.</p>
+<h2 id="why-are-the-numbers-different-from-finder">Why are the numbers different from Finder? <a class="anchor" href="#why-are-the-numbers-different-from-finder" aria-label="Link to this section">#</a></h2>
+<p>Finder and DeepYellow answer slightly different questions. DeepYellow measures allocated space, counts hard links and APFS clones once, and reports snapshots and purgeable space separately. The <a href="safety-and-accounting.html#the-ledger">Ledger</a> reconciles the total against the volume and puts anything left over in a labelled remainder rather than hiding it.</p>
+<h2 id="why-is-there-a-gap-between-what-i-free-and-what-the-plan-said">Why is there a gap between what I free and what the Plan said? <a class="anchor" href="#why-is-there-a-gap-between-what-i-free-and-what-the-plan-said" aria-label="Link to this section">#</a></h2>
+<p>The Plan says "frees at least" only when that is true. Space shared with something you keep, such as cloned files, may not come back, and Trash frees nothing until you empty it.</p>
+<h2 id="does-it-handle-icloud-drive">Does it handle iCloud Drive? <a class="anchor" href="#does-it-handle-icloud-drive" aria-label="Link to this section">#</a></h2>
+<p>Files that live only in iCloud are shown as placeholders with their size, and DeepYellow never downloads them: not in a scan, a preview or a duplicate check. A preview of one shows metadata and a Download button you must press yourself.</p>
+<h2 id="which-macos-versions">Which macOS versions? <a class="anchor" href="#which-macos-versions" aria-label="Link to this section">#</a></h2>
+<p>macOS 15 or later, on Apple silicon and Intel.</p>
+<h2 id="do-i-need-full-disk-access">Do I need Full Disk Access? <a class="anchor" href="#do-i-need-full-disk-access" aria-label="Link to this section">#</a></h2>
+<p>For a complete scan of your whole disk, yes. Without it macOS hides some folders from the app, and DeepYellow counts and reports them as unreadable instead of leaving them out silently. You can scan one folder you own without the permission. See <a href="install.html#full-disk-access">Full Disk Access</a>.</p>
+<h2 id="can-the-command-line-tool-delete-anything">Can the command-line tool delete anything? <a class="anchor" href="#can-the-command-line-tool-delete-anything" aria-label="Link to this section">#</a></h2>
+<p>No. It is read-only, and there is no delete command, by design. See <a href="cli.html">Command line</a>.</p>
+<h2 id="is-there-a-light-mode">Is there a light mode? <a class="anchor" href="#is-there-a-light-mode" aria-label="Link to this section">#</a></h2>
+<p>Not in this version. The idea of the app depends on a dark canvas where gold stands out.</p>
+<h2 id="can-i-scan-a-network-drive-or-an-external-disk">Can I scan a network drive or an external disk? <a class="anchor" href="#can-i-scan-a-network-drive-or-an-external-disk" aria-label="Link to this section">#</a></h2>
+<p>External disks that macOS mounts as volumes are listed and can be scanned. Network volumes are not a tested target.</p>
+<h2 id="does-it-keep-scanning-in-the-background-or-update-live">Does it keep scanning in the background or update live? <a class="anchor" href="#does-it-keep-scanning-in-the-background-or-update-live" aria-label="Link to this section">#</a></h2>
+<p>No. A scan is a snapshot, and you rescan to refresh. Live updates and rescanning a single folder are not in this version. The app does not draw, and uses no GPU, while nothing is changing on screen.</p>
+<h2 id="what-does-it-store-and-where">What does it store, and where? <a class="anchor" href="#what-does-it-store-and-where" aria-label="Link to this section">#</a></h2>
+<p>Decisions, the scan cache and the removal journal under <code>~/Library/Application Support/DeepYellow</code>. <a href="uninstall.html">Uninstall</a> lists every path.</p>
+<h2 id="what-does-it-cost">What does it cost? <a class="anchor" href="#what-does-it-cost" aria-label="Link to this section">#</a></h2>
+<p>Nothing. It is open source under the MIT licence.</p>
+<h2 id="how-do-i-report-a-problem">How do I report a problem? <a class="anchor" href="#how-do-i-report-a-problem" aria-label="Link to this section">#</a></h2>
+<p>Open an issue on <a href="https://github.com/midhunkrishna/deepyellow/issues">GitHub</a>. Please do not paste real file names if they are private.</p>
+<nav class="pager" aria-label="Pages"><a href="install.html">&larr; Install</a><a href="views.html">Views &rarr;</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="wrap">
+  <p>DeepYellow is a native macOS disk analyzer, MIT licence. <a href="../index.html">Home</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow">Source</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/releases">Releases</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/edit/master/docs/faq.md">Edit this page</a></p>
+</div></footer>
+<div class="ledger" role="complementary" aria-label="Page ledger"><div class="wrap">
+  <span class="lab">LEDGER</span>
+  <span class="track" aria-hidden="true"><i class="read"></i><i class="gold"></i></span>
+  <span class="txt"><b data-pct>0%</b> read<span class="long"> &middot; every byte accounted for</span> &middot; free, MIT</span>
+  <a class="btn primary" href="https://github.com/midhunkrishna/deepyellow/releases/latest/download/DeepYellow.dmg">Download</a>
+</div></div>
+<script src="../site.js" defer></script>
+</body>
+</html>

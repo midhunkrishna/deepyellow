@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DeepYellow documentation | DeepYellow docs</title>
+<meta name="description" content="DeepYellow is a native macOS disk analyzer. It shows where your space went, tells you what each thing is and what removing it would cost, and moves only what you choose to the Tras">
+<meta name="theme-color" content="#0E0D0B">
+<link rel="icon" href="../favicon.png">
+<link rel="apple-touch-icon" href="../images/icon.png">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="nav"><div class="wrap">
+  <a class="brand" href="../index.html"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>DeepYellow</a>
+  <nav class="nav-links" aria-label="Main">
+    <a href="../features.html">Features</a>
+    <a href="index.html" aria-current="page">Docs</a>
+    <a href="../index.html#blocked">If macOS blocks it</a>
+    <a href="https://github.com/midhunkrishna/deepyellow">GitHub</a>
+    <a class="btn" href="https://github.com/midhunkrishna/deepyellow/releases/latest/download/DeepYellow.dmg">Download</a>
+  </nav>
+</div></header>
+<div class="trust"><ul aria-label="What DeepYellow does not do">
+  <li>No network code</li><li>No telemetry</li><li>Trash only, never permanent</li><li>CLI is read-only</li><li>Read-only mode for real scans</li><li>Open source, MIT</li>
+</ul></div>
+<div class="wrap docs">
+  <nav class="docnav" aria-label="Documentation">
+<h4>Start</h4><ul>
+<li><a href="index.html" aria-current="page">Overview</a></li>
+<li><a href="getting-started.html">Getting started</a></li>
+<li><a href="install.html">Install</a></li>
+<li><a href="faq.html">FAQ</a></li>
+</ul>
+<h4>Using it</h4><ul>
+<li><a href="views.html">Views</a></li>
+<li><a href="query-language.html">Query language</a></li>
+<li><a href="safety-and-accounting.html">Safety and accounting</a></li>
+<li><a href="reclaim-rules.html">Reclaim rules</a></li>
+<li><a href="cli.html">Command line</a></li>
+</ul>
+<h4>Project</h4><ul>
+<li><a href="building-from-source.html">Building from source</a></li>
+<li><a href="architecture.html">Architecture</a></li>
+<li><a href="uninstall.html">Uninstall</a></li>
+</ul>
+  </nav>
+  <main id="main" class="prose">
+<h1 id="deepyellow-documentation">DeepYellow documentation</h1>
+<p>DeepYellow is a native macOS disk analyzer. It shows where your space went, tells you what each thing is and what removing it would cost, and moves only what you choose to the Trash. These pages are the full manual.</p>
+<h2 id="start-here">Start here <a class="anchor" href="#start-here" aria-label="Link to this section">#</a></h2>
+<table>
+<thead><tr><th>Page</th><th>What it covers</th></tr></thead>
+<tbody>
+<tr><td><a href="getting-started.html">Getting started</a></td><td>Install, grant access, scan, find your first gold, apply a plan</td></tr>
+<tr><td><a href="install.html">Install</a></td><td>Download, one-line installer, building yourself, and what to do <strong>if macOS blocks it</strong></td></tr>
+<tr><td><a href="faq.html">FAQ</a></td><td>Short answers: is it safe, does it use AI, what about iCloud, why are the numbers different from Finder</td></tr>
+</tbody></table>
+<h2 id="using-it">Using it <a class="anchor" href="#using-it" aria-label="Link to this section">#</a></h2>
+<table>
+<thead><tr><th>Page</th><th>What it covers</th></tr></thead>
+<tbody>
+<tr><td><a href="views.html">Views</a></td><td>Map, Things, Spectrum, Field, Rings, Browse, Reclaim, Review, colour modes, keyboard</td></tr>
+<tr><td><a href="query-language.html">Query language</a></td><td><code>size&gt;100mb age&gt;1y kind:video</code> and every other term</td></tr>
+<tr><td><a href="safety-and-accounting.html">Safety and accounting</a></td><td>Tiers, staged decisions, the Plan, Trash and undo, the Ledger, Full Disk Access</td></tr>
+<tr><td><a href="reclaim-rules.html">Reclaim rules</a></td><td>Every built-in rule: pattern, tier, consequence, side condition, command</td></tr>
+<tr><td><a href="cli.html">Command line</a></td><td><code>deepyellow things</code>, <code>reclaim</code>, <code>spectrum</code>, <code>dupes</code>; read-only by design</td></tr>
+</tbody></table>
+<h2 id="building-and-maintaining">Building and maintaining <a class="anchor" href="#building-and-maintaining" aria-label="Link to this section">#</a></h2>
+<table>
+<thead><tr><th>Page</th><th>What it covers</th></tr></thead>
+<tbody>
+<tr><td><a href="building-from-source.html">Building from source</a></td><td><code>make app</code>, tests, the packages</td></tr>
+<tr><td><a href="architecture.html">Architecture</a></td><td>Modules, the file tree, how Things, Reclaim and the Plan work</td></tr>
+<tr><td><a href="uninstall.html">Uninstall</a></td><td>Every path DeepYellow uses, and how to remove each</td></tr>
+</tbody></table>
+<h2 id="the-short-version">The short version <a class="anchor" href="#the-short-version" aria-label="Link to this section">#</a></h2>
+<ul>
+<li><strong>Gold means reclaimable.</strong> Deep yellow is used for one meaning: space you could get back.</li>
+<li><strong>Nothing is removed without a Plan.</strong> Apply only ever moves items to the Trash, and one step undoes it.</li>
+<li><strong>No network code, no telemetry, no AI.</strong> Advice comes from a rule table and measured facts. You decide.</li>
+<li><strong>Open source, MIT.</strong> Source: <a href="https://github.com/midhunkrishna/deepyellow">github.com/midhunkrishna/deepyellow</a>.</li>
+</ul>
+<nav class="pager" aria-label="Pages"><span></span><a href="getting-started.html">Getting started &rarr;</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="wrap">
+  <p>DeepYellow is a native macOS disk analyzer, MIT licence. <a href="../index.html">Home</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow">Source</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/releases">Releases</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/edit/master/docs/README.md">Edit this page</a></p>
+</div></footer>
+<div class="ledger" role="complementary" aria-label="Page ledger"><div class="wrap">
+  <span class="lab">LEDGER</span>
+  <span class="track" aria-hidden="true"><i class="read"></i><i class="gold"></i></span>
+  <span class="txt"><b data-pct>0%</b> read<span class="long"> &middot; every byte accounted for</span> &middot; free, MIT</span>
+  <a class="btn primary" href="https://github.com/midhunkrishna/deepyellow/releases/latest/download/DeepYellow.dmg">Download</a>
+</div></div>
+<script src="../site.js" defer></script>
+</body>
+</html>
