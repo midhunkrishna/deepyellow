@@ -70,7 +70,7 @@ External disks that macOS mounts as volumes are listed and can be scanned. Netwo
 
 ## Does it keep scanning in the background or update live?
 
-No. A scan is a snapshot, and you rescan to refresh. Live updates and rescanning a single folder are not in this version. The app does not draw, and uses no GPU, while nothing is changing on screen.
+No. A scan is a snapshot, and you rescan to refresh: press <kbd>&#8984;R</kbd> or the Rescan button, and you stay in the same folder with the same selection. Live updates and rescanning a single folder are not in this version. The app does not draw, and uses no GPU, while nothing is changing on screen.
 
 ## What does it store, and where?
 

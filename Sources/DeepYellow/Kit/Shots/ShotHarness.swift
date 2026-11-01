@@ -22,7 +22,7 @@ public enum ShotHarness {
     public static let names = ["app-map", "app-map-safety", "app-map-files", "app-things", "app-spectrum", "app-field", "app-rings", "app-browse",
                                "app-reclaim", "app-worklists", "app-review", "app-plan", "app-ledger", "app-palette", "app-welcome",
                                "app-preview-video", "app-preview-image", "app-sql-map", "app-sql-groups", "app-sql-table", "app-sql-error",
-                               "app-sql-spectrum", "app-sql-field", "app-sql-rings", "app-sql-browse", "app-sql-reclaim"]
+                               "app-sql-spectrum", "app-sql-field", "app-sql-rings", "app-sql-browse", "app-sql-reclaim", "app-review-folder", "app-map-keys", "app-things-keys"]
 
     /// Renders `name` to `outPath`. `openPath` is the real folder to scan for a read-only session. Returns the process exit code.
     public static func run(name: String, outPath: String?, shell: ShellState, openPath: String? = nil) async -> Int32 {
@@ -51,7 +51,7 @@ public enum ShotHarness {
             if shell.isDemo || name == "app-plan" { await stage(shell.workspace) }
         }
         await scenario(name, shell)
-        await pause(name == "app-review" || name.hasPrefix("app-preview") ? 3000 : (name.hasPrefix("app-sql") ? 1600 : 900))
+        await pause(name.hasPrefix("app-review") || name.hasPrefix("app-preview") ? 3000 : (name.hasPrefix("app-sql") ? 1600 : 900))
         if let kind = canvasLens(name), let canvas = shell.canvases.canvas(for: kind), canvas.bounds.width > 10 {
             if kind == .field { shell.syncField(); await pause(300) }
             if let image = canvas.snapshot(size: canvas.bounds.size, scale: 2) {
@@ -77,7 +77,7 @@ public enum ShotHarness {
     private static func canvasLens(_ name: String) -> LensKind? {
         switch name {
         case "app-map", "app-map-safety", "app-map-files", "app-plan", "app-ledger", "app-palette", "app-preview-video", "app-preview-image",
-             "app-sql-map", "app-sql-table": .map
+             "app-sql-map", "app-sql-table", "app-map-keys": .map
         case "app-field", "app-sql-field": .field
         case "app-rings", "app-sql-rings": .rings
         default: nil
@@ -161,6 +161,22 @@ public enum ShotHarness {
                 _ = workspace.reviewVerdict(.keep)
                 _ = workspace.reviewVerdict(.remove)
             }
+        case "app-review-folder":
+            workspace.setLens(.map)
+            if let file = largestFiles(of: .image, in: workspace, limit: 1).first, let tree = workspace.tree {
+                workspace.select([tree.parent(file)])
+                _ = await workspace.startReview()
+            }
+        case "app-map-keys":
+            workspace.setLens(.map)
+            await pause(900)
+            for command in [ShellCommand.move(.down), .zoomIn, .zoomIn, .move(.right), .move(.down)] { shell.perform(command) }
+            workspace.hover = nil
+        case "app-things-keys":
+            workspace.setLens(.things)
+            await workspace.settle()
+            for _ in 0..<6 { shell.perform(.move(.down)) }
+            shell.perform(.move(.up))
         case "app-plan":
             workspace.setLens(.map)
             shell.sheet = .plan

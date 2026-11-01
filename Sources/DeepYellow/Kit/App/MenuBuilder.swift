@@ -45,7 +45,7 @@ enum MenuBuilder {
         let menu = NSMenu(title: "File")
         menu.addItem(item("Choose Folder to Scan…", .chooseFolder, shell, key: "o"))
         menu.addItem(item("Open Sample Disk", .openDemo, shell))
-        menu.addItem(item("Rescan", .rescan, shell, key: "r", enabled: { if case .path? = shell.workspace.source { true } else { false } }))
+        menu.addItem(item("Rescan", .rescan, shell, key: "r", enabled: { shell.workspace.canRescan }))
         menu.addItem(.separator())
         menu.addItem(withTitle: "Close Window", action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w")
         return menu

@@ -1,6 +1,7 @@
 import CoreGraphics
 import DYCore
 import Foundation
+import SwiftUI
 import XCTest
 @testable import DYPreview
 
@@ -234,4 +235,59 @@ final class ControllerTests: XCTestCase {
 extension PreviewController {
     /// Test helper: the download handler is replaceable and does nothing here.
     func requestDownloadNoop() { downloadHandler = { _ in } ; requestDownload() }
+}
+
+/// A picture of any shape has to stay inside its tile, or a folder of photos paints over the whole window.
+@MainActor
+final class TileFaceTests: XCTestCase {
+    /// A solid red image of the given size.
+    private func redImage(width: Int, height: Int) throws -> CGImage {
+        let context = try XCTUnwrap(CGContext(data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 0,
+                                              space: CGColorSpace(name: CGColorSpace.sRGB)!, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+        context.setFillColor(CGColor(srgbRed: 1, green: 0, blue: 0, alpha: 1))
+        context.fill(CGRect(x: 0, y: 0, width: width, height: height))
+        return try XCTUnwrap(context.makeImage())
+    }
+
+    /// The red channel of one pixel of a rendered 400 by 400 scene with a 100 by 100 tile in the middle.
+    private func renderedRed(picture: CGImage, atX x: Int, y: Int) throws -> UInt8 {
+        let child = PreviewChild(url: URL(fileURLWithPath: "/a.jpg"), name: "a.jpg", size: 10, kind: .image, isDirectory: false)
+        let scene = ZStack { Color.black; TileFace(child: child, thumbnail: picture).frame(width: 100, height: 100) }.frame(width: 400, height: 400)
+        let renderer = ImageRenderer(content: scene)
+        renderer.scale = 1
+        let image = try XCTUnwrap(renderer.cgImage)
+        let context = try XCTUnwrap(CGContext(data: nil, width: 400, height: 400, bitsPerComponent: 8, bytesPerRow: 1600,
+                                              space: CGColorSpace(name: CGColorSpace.sRGB)!, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+        context.draw(image, in: CGRect(x: 0, y: 0, width: 400, height: 400))
+        let bytes = try XCTUnwrap(context.data).assumingMemoryBound(to: UInt8.self)
+        return bytes[y * 1600 + x * 4]
+    }
+
+    /// Every tile of a folder shows, right up to the far edge, because offset tiles reach past the widest tile's own frame.
+    func testAFolderDrawsItsTilesAcrossTheWholeSpace() throws {
+        let children = ["a", "b"].map { PreviewChild(url: URL(fileURLWithPath: "/\($0)"), name: $0, size: 10, kind: .image, isDirectory: false) }
+        let scene = ZStack { Color.black; DirectoryView(children: children) }.frame(width: 400, height: 400)
+        let renderer = ImageRenderer(content: scene)
+        renderer.scale = 1
+        let image = try XCTUnwrap(renderer.cgImage)
+        let context = try XCTUnwrap(CGContext(data: nil, width: 400, height: 400, bitsPerComponent: 8, bytesPerRow: 1600,
+                                              space: CGColorSpace(name: CGColorSpace.sRGB)!, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+        context.draw(image, in: CGRect(x: 0, y: 0, width: 400, height: 400))
+        let bytes = try XCTUnwrap(context.data).assumingMemoryBound(to: UInt8.self)
+        func brightness(_ x: Int) -> Int { (0..<3).reduce(0) { $0 + Int(bytes[200 * 1600 + x * 4 + $1]) } }
+        XCTAssertGreaterThan(brightness(100), 20, "the left tile")
+        XCTAssertGreaterThan(brightness(300), 20, "the right tile")
+        XCTAssertEqual(brightness(100), brightness(300), "both tiles draw alike")
+    }
+
+    func testWideAndTallPicturesStayInsideTheTile() throws {
+        let wide = try redImage(width: 1000, height: 100)
+        XCTAssertGreaterThan(try renderedRed(picture: wide, atX: 200, y: 200), 200, "the picture fills the tile")
+        XCTAssertLessThan(try renderedRed(picture: wide, atX: 60, y: 200), 20, "nothing left of the tile")
+        XCTAssertLessThan(try renderedRed(picture: wide, atX: 340, y: 200), 20, "nothing right of the tile")
+        let tall = try redImage(width: 100, height: 1000)
+        XCTAssertGreaterThan(try renderedRed(picture: tall, atX: 200, y: 200), 200)
+        XCTAssertLessThan(try renderedRed(picture: tall, atX: 200, y: 60), 20, "nothing above the tile")
+        XCTAssertLessThan(try renderedRed(picture: tall, atX: 200, y: 340), 20, "nothing below the tile")
+    }
 }

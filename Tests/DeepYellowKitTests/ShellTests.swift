@@ -1,6 +1,8 @@
 import AVFoundation
 import AppKit
 import DYDecide
+import DYCore
+import DYLenses
 import DYSQL
 import DYAnalysis
 import DYWorkspace
@@ -96,6 +98,8 @@ final class ShellTests: XCTestCase {
         XCTAssertEqual(key(" ", 49), .togglePreview)
         XCTAssertEqual(key("", 53), .escape)
         XCTAssertEqual(key("", 123), .move(.left))
+        XCTAssertEqual(key("\r", 36), .zoomIn)
+        XCTAssertEqual(key("c", 8, .command), .copyReviewPath)
         XCTAssertNil(key("x", 7, .command))
         XCTAssertNil(key("q", 12))
     }
@@ -169,6 +173,159 @@ final class ShellTests: XCTestCase {
         XCTAssertFalse(shell.sqlOpen)
         shell.perform(.runSQL)
         XCTAssertTrue(shell.sqlOpen, "running opens the drawer so the answer is visible")
+    }
+
+    /// A demo shell on a finished scan, with the Map's canvas holding the same lens the window would give it.
+    @MainActor private func demoShell() async -> ShellState {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("dy-keys-\(UUID().uuidString)")
+        let workspace = Workspace(environment: .demo(dataDirectory: directory))
+        let shell = ShellState(workspace: workspace, isDemo: true, fullDiskAccess: .denied)
+        workspace.open(.demo)
+        await workspace.settle()
+        workspace.setLens(.map)
+        await workspace.settle()
+        shell.canvases.map.update(lens: workspace.lens!, style: workspace.nodeStyle, metric: workspace.metric, selection: [], animated: false)
+        return shell
+    }
+
+    /// ⏎ goes into a folder and selects its first item, and Esc comes back to exactly where it was.
+    @MainActor func testEnterGoesInAndEscapeComesBackOnTheMap() async throws {
+        let shell = await demoShell()
+        let workspace = shell.workspace
+        let lens = try XCTUnwrap(workspace.lens)
+        let tree = lens.tree
+        var folder: NodeID = 0
+        while let child = lens.visibleChildren(of: folder).first(where: { tree.isDirectory($0) && !lens.visibleChildren(of: $0).isEmpty }),
+              tree.ancestry(child).count < 3 { folder = child }
+        workspace.setFocus(folder)
+        let start = try XCTUnwrap(lens.visibleChildren(of: folder).first { tree.isDirectory($0) && !lens.visibleChildren(of: $0).isEmpty })
+        workspace.select([start])
+
+        shell.perform(.zoomIn)
+        XCTAssertEqual(workspace.focus, start)
+        XCTAssertEqual(workspace.selectedNodes, [lens.visibleChildren(of: start).first!])
+
+        shell.perform(.escape)
+        XCTAssertEqual(workspace.focus, folder)
+        XCTAssertEqual(workspace.selectedNodes, [start])
+
+        var file = start
+        while tree.isDirectory(file) { file = try XCTUnwrap(lens.visibleChildren(of: file).first) }
+        workspace.select([file])
+        let before = workspace.focus
+        shell.perform(.zoomIn)
+        XCTAssertEqual(workspace.focus, before, "a file has nothing to go into")
+        XCTAssertEqual(workspace.selectedNodes, [file])
+    }
+
+    /// Esc walks all the way out: at the top level it clears the selection, and it clears a multi-selection straight away.
+    @MainActor func testEscapeAtTheTopAndWithSeveralSelected() async throws {
+        let shell = await demoShell()
+        let workspace = shell.workspace
+        let top = workspace.lens!.visibleChildren(of: 0)
+        workspace.select([top[0]])
+        shell.perform(.escape)
+        XCTAssertTrue(workspace.selectedNodes.isEmpty)
+        XCTAssertEqual(workspace.focus, 0)
+
+        let inner = workspace.lens!.visibleChildren(of: top[0])
+        XCTAssertGreaterThan(inner.count, 0)
+        workspace.setFocus(top[0])
+        shell.perform(.escape)
+        XCTAssertEqual(workspace.focus, 0, "nothing selected steps out")
+        XCTAssertEqual(workspace.selectedNodes, [top[0]], "and selects the folder just left")
+
+        workspace.setFocus(top[0])
+        workspace.select(Array(inner.prefix(2)) + [top[0]])
+        shell.perform(.escape)
+        XCTAssertTrue(workspace.selectedNodes.isEmpty)
+    }
+
+    /// All four arrows stay in the level, go the way the tiles really lie, and can reach every item.
+    @MainActor func testArrowsWalkEveryTileOfALevelOnTheMap() async throws {
+        let shell = await demoShell()
+        let workspace = shell.workspace
+        let lens = try XCTUnwrap(workspace.lens)
+        var parent: NodeID = 0
+        while let next = lens.visibleChildren(of: parent).max(by: { lens.visibleChildren(of: $0).count < lens.visibleChildren(of: $1).count }),
+              lens.visibleChildren(of: parent).count < 8 { parent = next }
+        let siblings = lens.visibleChildren(of: parent)
+        XCTAssertGreaterThanOrEqual(siblings.count, 8)
+        workspace.setFocus(parent)
+        let rects = shell.canvases.map.levelRects(parent: parent)
+        XCTAssertEqual(Set(rects.keys), Set(siblings))
+
+        var reached: Set<NodeID> = [siblings[0]]
+        var frontier = [siblings[0]]
+        while let node = frontier.popLast() {
+            for direction in [MoveDirection.left, .right, .up, .down] {
+                workspace.select([node])
+                shell.perform(.move(direction))
+                let landed = try XCTUnwrap(workspace.selectedNodes.first)
+                XCTAssertEqual(workspace.focus, parent)
+                XCTAssertTrue(siblings.contains(landed), "arrows stay in the level")
+                if landed != node {
+                    let (from, to) = (rects[node]!, rects[landed]!)
+                    switch direction {
+                    case .left: XCTAssertLessThanOrEqual(to.maxX, from.minX + 1e-9)
+                    case .right: XCTAssertGreaterThanOrEqual(to.minX, from.maxX - 1e-9)
+                    case .up: XCTAssertLessThanOrEqual(to.maxY, from.minY + 1e-9)
+                    case .down: XCTAssertGreaterThanOrEqual(to.minY, from.maxY - 1e-9)
+                    }
+                }
+                if reached.insert(landed).inserted { frontier.append(landed) }
+            }
+        }
+        XCTAssertEqual(reached, Set(siblings), "every item in the level can be reached")
+    }
+
+    /// Picks the tile straight ahead, not one that is merely closer off to the side.
+    func testTileStepPrefersWhatIsStraightAhead() {
+        let rects: [NodeID: CGRect] = [
+            1: CGRect(x: 0, y: 0, width: 2, height: 2), 2: CGRect(x: 2, y: 0, width: 1, height: 1), 3: CGRect(x: 2, y: 1, width: 1, height: 1),
+            4: CGRect(x: 0, y: 2, width: 3, height: 1),
+        ]
+        XCTAssertEqual(LevelNavigation.tile(from: 2, .left, rects: rects), 1)
+        XCTAssertEqual(LevelNavigation.tile(from: 2, .down, rects: rects), 3)
+        XCTAssertEqual(LevelNavigation.tile(from: 3, .down, rects: rects), 4)
+        XCTAssertEqual(LevelNavigation.tile(from: 1, .down, rects: rects), 4)
+        XCTAssertNil(LevelNavigation.tile(from: 1, .left, rects: rects))
+        XCTAssertNil(LevelNavigation.tile(from: 1, .up, rects: rects))
+        XCTAssertNil(LevelNavigation.tile(from: 99, .up, rects: rects))
+    }
+
+    /// In Things, up and down walk the list in order, skipping "smaller items" rows, and left and right do nothing.
+    @MainActor func testThingsMovesWithUpAndDown() async throws {
+        let shell = await demoShell()
+        let workspace = shell.workspace
+        workspace.setLens(.things)
+        await workspace.settle()
+        let rows = try XCTUnwrap(workspace.things).items.compactMap { thing -> NodeID? in
+            if case .node(let node) = thing.content { node } else { nil }
+        }
+        XCTAssertGreaterThan(rows.count, 3)
+        shell.perform(.move(.down))
+        XCTAssertEqual(workspace.selectedNodes, [rows[0]], "nothing selected starts at the top")
+        shell.perform(.move(.down))
+        XCTAssertEqual(workspace.selectedNodes, [rows[1]])
+        shell.perform(.move(.down))
+        XCTAssertEqual(workspace.selectedNodes, [rows[2]])
+        shell.perform(.move(.up))
+        XCTAssertEqual(workspace.selectedNodes, [rows[1]])
+        shell.perform(.move(.left))
+        shell.perform(.move(.right))
+        XCTAssertEqual(workspace.selectedNodes, [rows[1]], "the list has one column")
+        workspace.select([rows[rows.count - 1]])
+        shell.perform(.move(.down))
+        XCTAssertEqual(workspace.selectedNodes, [rows[rows.count - 1]], "stops at the end")
+    }
+
+    /// The path copied in Review is the full path of the item on screen, and goes to the given pasteboard only.
+    @MainActor func testReviewPathCopies() async throws {
+        let scratch = NSPasteboard.withUniqueName()
+        defer { scratch.releaseGlobally() }
+        PathClipboard.copy("/Users/demo/a file.mov", to: scratch)
+        XCTAssertEqual(scratch.string(forType: .string), "/Users/demo/a file.mov")
     }
 
     func testSQLHighlighterFindsKeywordsFunctionsStringsNumbersAndComments() {

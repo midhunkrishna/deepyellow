@@ -27,8 +27,26 @@ extension Workspace {
                 self.finishScan(tree, fresh: true)
             }
         case .path(let root):
+            scanPhase = .scanning
             scanTask = Task { [weak self] in await self?.runScan(root: root, useCache: useCache) }
         }
+    }
+
+    /// Whether the open folder can be scanned again now.
+    public var canRescan: Bool {
+        guard case .path = source else { return false }
+        return scanPhase != .scanning && scanPhase != .loadingCache
+    }
+
+    /// Scans the open folder again, skipping the cached scan. The folder you are in, the selection and a SQL result carry over.
+    public func rescan() {
+        guard canRescan, case .path(let root)? = source else { return }
+        let (place, selected, primary, hadSQL) = (focusPath, selectionPaths, primarySelectionPath, sqlResult != nil)
+        open(.path(root), useCache: false)
+        focusPath = place
+        selectionPaths = selected
+        primarySelectionPath = primary
+        if hadSQL { sqlPhase = .running }
     }
 
     /// Stops a running scan. The partial tree is kept unless a cached scan is on screen.

@@ -46,27 +46,43 @@ struct DirectoryView: View {
                 }
             }
         }
+        .clipped()
         .padding(8)
     }
 }
 
-/// One tile: kind colour, a lazily loaded thumbnail, and a slim label.
+/// One tile: loads its thumbnail lazily and draws it through `TileFace`.
 struct ChildTile: View {
     let child: PreviewChild
     @State private var thumbnail: CGImage?
 
     var body: some View {
-        ZStack(alignment: .bottomLeading) {
-            Theme.color(Palette.kind(child.kind)).opacity(0.35)
-            if let thumbnail { Image(decorative: thumbnail, scale: 1).resizable().aspectRatio(contentMode: .fill) }
-            Text("\(child.name)  \(Format.bytes(child.size))")
-                .font(.system(size: 10).monospacedDigit()).lineLimit(1).padding(4)
-                .foregroundStyle(Theme.primary).shadow(radius: 2)
-        }
-        .clipShape(RoundedRectangle(cornerRadius: 4))
-        .task(id: child.url) {
-            guard !child.isDirectory, child.kind == .image || child.kind == .video else { return }
-            thumbnail = await ThumbnailCache.shared.image(for: child.url, side: 320)
-        }
+        TileFace(child: child, thumbnail: thumbnail)
+            .task(id: child.url) {
+                guard !child.isDirectory, child.kind == .image || child.kind == .video else { return }
+                thumbnail = await ThumbnailCache.shared.image(for: child.url, side: 320)
+            }
+    }
+}
+
+/// What a tile draws: kind colour, thumbnail and a slim label.
+///
+/// The colour sets the size. The thumbnail is an overlay, so a picture of any shape fills the tile and is cut to it,
+/// and never makes the tile bigger than the space it was given.
+struct TileFace: View {
+    let child: PreviewChild
+    let thumbnail: CGImage?
+
+    var body: some View {
+        Theme.color(Palette.kind(child.kind)).opacity(0.35)
+            .overlay {
+                if let thumbnail { Image(decorative: thumbnail, scale: 1).resizable().aspectRatio(contentMode: .fill) }
+            }
+            .overlay(alignment: .bottomLeading) {
+                Text("\(child.name)  \(Format.bytes(child.size))")
+                    .font(.system(size: 10).monospacedDigit()).lineLimit(1).padding(4)
+                    .foregroundStyle(Theme.primary).shadow(radius: 2)
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 4))
     }
 }

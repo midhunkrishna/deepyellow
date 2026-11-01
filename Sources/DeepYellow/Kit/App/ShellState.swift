@@ -1,5 +1,7 @@
 import AppKit
+import DYAnalysis
 import DYCore
+import DYLenses
 import DYPreview
 import DYRender
 import DYScan
@@ -87,7 +89,7 @@ public final class ShellState {
         case .toggleMetric: workspace.setMetric(workspace.metric == .bytes ? .files : .bytes)
         case .cycleColor: cycleColor()
         case .hide: if !workspace.selectedNodes.isEmpty { workspace.hide(.path, nodes: workspace.selectedNodes) }
-        case .zoomIn: zoomIntoSelection()
+        case .zoomIn: goIn()
         case .zoomOut: _ = workspace.zoomOut()
         case .undo: _ = workspace.undoDecision()
         case .redo: _ = workspace.redoDecision()
@@ -102,7 +104,8 @@ public final class ShellState {
         case .escape: backOut()
         case .chooseFolder: chooseFolder()
         case .openDemo: openDemo()
-        case .rescan: if case .path(let path)? = workspace.source { workspace.open(.path(path), useCache: false) }
+        case .rescan: workspace.rescan()
+        case .copyReviewPath: copyReviewPath()
         case .installCLI: InstallPrompt.run()
         case .toggleHints: hintsHeld.toggle()
         case .move(let direction): move(direction)
@@ -131,21 +134,97 @@ public final class ShellState {
         workspace.zoomIn(node)
     }
 
-    /// Backs out one level: panel, review, preview, selection, then zoom.
+    /// ⏎: on the Map, goes into the selected folder and selects its first item. Elsewhere, zooms into it.
+    private func goIn() {
+        guard sheet == nil, workspace.review == nil else { return }
+        guard workspace.lensKind == .map else { zoomIntoSelection(); return }
+        guard let lens = workspace.lens else { return }
+        if workspace.selectedNodes.isEmpty {
+            if let first = lens.visibleChildren(of: workspace.focus, metric: workspace.metric).first { workspace.select([first]) }
+            return
+        }
+        guard let folder = workspace.selectedNodes.first(where: { lens.tree.isDirectory($0) }),
+              let first = lens.visibleChildren(of: folder, metric: workspace.metric).first else { return }
+        workspace.zoomIn(folder)
+        workspace.select([first])
+    }
+
+    /// Backs out one level: panel, review, preview, then on the Map up a level, elsewhere selection and then zoom.
     private func backOut() {
         if sheet != nil { sheet = nil }
         else if workspace.review != nil { workspace.endReview() }
         else if previewOpen { previewOpen = false }
+        else if workspace.lensKind == .map { goUpOnMap() }
         else if workspace.selectionCount > 0 { workspace.clearSelection() }
         else { _ = workspace.zoomOut() }
     }
 
-    /// Moves the selection: left and right between siblings, up to the parent, down to the first child. In review, steps through the set.
+    /// Esc on the Map: selects the folder holding the selection, stepping the view out when that folder is the one on screen.
+    ///
+    /// Several selected items have no single level, so Esc clears them. Nothing selected steps out and selects the folder just left.
+    private func goUpOnMap() {
+        guard let tree = workspace.tree else { return }
+        let selected = workspace.selectedNodes
+        if selected.count > 1 { workspace.clearSelection(); return }
+        guard let current = selected.first else {
+            let left = workspace.focus
+            if workspace.zoomOut() { workspace.select([left]) }
+            return
+        }
+        let parent = current == 0 ? 0 : tree.parent(current)
+        guard parent != 0 else {
+            workspace.setFocus(0)
+            workspace.clearSelection()
+            return
+        }
+        if tree.ancestry(workspace.focus).contains(parent) { workspace.setFocus(tree.parent(parent)) }
+        workspace.select([parent])
+    }
+
+    /// An arrow key. In Review it steps through the set; otherwise each view moves in the way its layout reads.
     private func move(_ direction: MoveDirection) {
         if let review = workspace.review {
             workspace.reviewGo(to: review.index + (direction == .right || direction == .down ? 1 : -1))
             return
         }
+        guard sheet == nil else { return }
+        switch workspace.lensKind {
+        case .map: moveOnMap(direction)
+        case .things: moveInThings(direction)
+        default: moveThroughTree(direction)
+        }
+    }
+
+    /// Moves to the tile next to the selection in its own level. With no selection in view, selects the first item.
+    private func moveOnMap(_ direction: MoveDirection) {
+        guard let tree = workspace.tree, let lens = workspace.lens else { return }
+        guard let current = workspace.selectedNodes.last, current != workspace.focus, tree.ancestry(current).contains(workspace.focus) else {
+            if let first = lens.visibleChildren(of: workspace.focus, metric: workspace.metric).first { workspace.select([first]) }
+            return
+        }
+        let parent = tree.parent(current)
+        let rects = canvases.map.levelRects(parent: parent)
+        let target = rects[current] != nil
+            ? LevelNavigation.tile(from: current, direction, rects: rects)
+            : LevelNavigation.next(from: current, direction, in: lens.visibleChildren(of: parent, metric: workspace.metric))
+        if let target { workspace.select([target]) }
+    }
+
+    /// Moves up or down the Things list. It is one column, so left and right do nothing.
+    private func moveInThings(_ direction: MoveDirection) {
+        guard direction == .up || direction == .down, let items = workspace.things?.items else { return }
+        let rows = items.compactMap { thing -> NodeID? in
+            if case .node(let node) = thing.content { node } else { nil }
+        }
+        guard let current = workspace.selectedNodes.last, rows.contains(current) else {
+            if let first = rows.first { workspace.select([first]) }
+            return
+        }
+        if let target = LevelNavigation.next(from: current, direction, in: rows) { workspace.select([target]) }
+    }
+
+    /// Moves the selection: left and right between siblings, up to the parent, down to the first child.
+    private func moveThroughTree(_ direction: MoveDirection) {
         guard let tree = workspace.tree, let lens = workspace.lens else { return }
         guard let current = workspace.selectedNodes.last else {
             if let first = lens.visibleChildren(of: workspace.focus).first { workspace.select([first]) }
@@ -156,10 +235,15 @@ public final class ShellState {
         case .down: if let child = lens.visibleChildren(of: current).first { workspace.select([child]) }
         case .left, .right:
             let siblings = lens.visibleChildren(of: tree.parent(current))
-            guard let index = siblings.firstIndex(of: current) else { return }
-            let target = index + (direction == .right ? 1 : -1)
-            if siblings.indices.contains(target) { workspace.select([siblings[target]]) }
+            if let target = LevelNavigation.next(from: current, direction, in: siblings) { workspace.select([target]) }
         }
+    }
+
+    /// Copies the path of the item under review.
+    private func copyReviewPath() {
+        guard let item = workspace.review?.current else { return }
+        PathClipboard.copy(item.path)
+        workspace.announce("Copied the path.")
     }
 
     // MARK: Opening
