@@ -105,6 +105,8 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         guard let command = KeyMap.command(characters: event.charactersIgnoringModifiers, keyCode: event.keyCode, flags: event.modifierFlags) else { return event }
         // Browse moves its own selection with the arrow keys, so one press must not move it twice.
         if case .move = command, shell.workspace.lensKind == .browse, shell.workspace.review == nil { return event }
+        // Outside Review, ⌘C stays the ordinary Copy.
+        if command == .copyReviewPath, shell.workspace.review == nil { return event }
         switch KeyRouter.route(command, typing: typing, sqlEditorFocused: event.window?.firstResponder is SQLTextView) {
         case .passThrough: return event
         case .leaveTextField:

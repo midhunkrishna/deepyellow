@@ -168,6 +168,21 @@ public final class MapLayout {
         return rect
     }
 
+    /// The world rectangle of every visible child of `parent`, including those inside its dust tiles.
+    public func childRects(of parent: NodeID) -> [NodeID: WRect] {
+        guard let parentRect = rect(of: parent) else { return [:] }
+        var rects: [NodeID: WRect] = [:]
+        var area = contentRect(of: parentRect, slim: isChain(parent))
+        var start = 0
+        while true {
+            let container = layout(parent: parent, start: start, in: area)
+            for tile in container.tiles where !tile.isTail { rects[tile.node] = tile.rect }
+            guard let tail = container.tiles.first(where: { $0.isTail }), let info = tail.tail else { return rects }
+            area = tail.rect
+            start = info.start
+        }
+    }
+
     /// Finds `child`'s rectangle by walking `parent`'s chunk chain.
     private func locate(_ child: NodeID, inside parent: NodeID, rect: WRect) -> WRect? {
         var area = contentRect(of: rect, slim: isChain(parent))

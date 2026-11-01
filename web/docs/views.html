@@ -64,7 +64,8 @@
 </tbody></table>
 <p>The window is one thin line at the top (path, query, view tabs) and one at the bottom (the <a href="safety-and-accounting.html#the-ledger">Ledger</a>). Panels appear only when you ask. Hold <kbd>&#8997;</kbd> to overlay every shortcut on the screen.</p>
 <h2 id="map">Map <a class="anchor" href="#map" aria-label="Link to this section">#</a></h2>
-<p>A treemap: each rectangle is a file or folder, sized by its bytes. It zooms continuously. Scroll or pinch to zoom around the cursor, drag to pan, double-click or <kbd>&#9166;</kbd> to zoom in, <kbd>&#9003;</kbd> to zoom out. Layout is fixed in world space, so zooming never reflows tiles.</p>
+<p>A treemap: each rectangle is a file or folder, sized by its bytes. It zooms continuously. Scroll or pinch to zoom around the cursor, drag to pan, double-click to zoom in, <kbd>&#9003;</kbd> to zoom out. Layout is fixed in world space, so zooming never reflows tiles.</p>
+<p>On the keyboard, the Map works level by level. The arrow keys move to the tile next to the selection, up, down, left or right, within the same folder. <kbd>&#9166;</kbd> goes into the selected folder and selects its first item. <kbd>Esc</kbd> goes back up and selects the folder you were in. At the top level, <kbd>Esc</kbd> clears the selection.</p>
 <p><img src="../images/app-map.webp" alt="The Map in kind colours" loading="lazy" width="1600" height="1000"></p>
 <ul>
 <li>Folders large enough on screen get a header with name and size. Tiles get labels when they fit.</li>
@@ -120,7 +121,7 @@
 <p><img src="../images/app-worklists.webp" alt="Worklists" loading="lazy" width="1600" height="1000"></p>
 <p>Leftovers never raise a tier. They stay "look first".</p>
 <h2 id="review">Review <a class="anchor" href="#review" aria-label="Link to this section">#</a></h2>
-<p>Press <kbd>r</kbd> to take the current set (a selection, a query result or a Reclaim family) full screen: a large preview, a filmstrip, and a counter like "38 left, 214 GB decided". The next item is preloaded so advancing is instant. Keep is the default, and nothing is pre-marked.</p>
+<p>Press <kbd>r</kbd> to take the current set (a selection, a query result or a Reclaim family) full screen: a large preview, a filmstrip, and a counter like "38 left, 214 GB decided". The next item is preloaded so advancing is instant. The item's path can be selected, and <strong>Copy path</strong> or <kbd>&#8984;C</kbd> copies all of it. Keep is the default, and nothing is pre-marked.</p>
 <p><img src="../images/app-review.webp" alt="Review" loading="lazy" width="1600" height="1000"></p>
 <h2 id="preview">Preview <a class="anchor" href="#preview" aria-label="Link to this section">#</a></h2>
 <p><kbd>Space</kbd> opens a pane on the right from any view, and the arrow keys keep working underneath it. Video plays with a filmstrip and hover scrub; images decode to screen size with pan and zoom; audio shows a waveform; PDFs and text render natively; everything else uses QuickLook. A folder shows a composition of its largest children. iCloud placeholders are never downloaded by a preview: you get metadata and an explicit Download button.</p>
@@ -138,11 +139,12 @@
 <tbody>
 <tr><td><kbd>1</kbd> to <kbd>7</kbd></td><td>Switch view</td><td><kbd>k</kbd> <kbd>x</kbd> <kbd>l</kbd> <kbd>u</kbd></td><td>Keep, remove, later, clear</td></tr>
 <tr><td><kbd>Space</kbd></td><td>Toggle preview</td><td><kbd>r</kbd></td><td>Review the current set</td></tr>
-<tr><td><kbd>&#9166;</kbd> / <kbd>&#9003;</kbd></td><td>Zoom in / out</td><td><kbd>&#8984;&#9166;</kbd></td><td>Open the Plan</td></tr>
-<tr><td>arrow keys</td><td>Move selection</td><td><kbd>&#8984;Z</kbd> / <kbd>&#8679;&#8984;Z</kbd></td><td>Undo / redo</td></tr>
+<tr><td><kbd>&#9166;</kbd> / <kbd>&#9003;</kbd></td><td>Go into the selected folder / zoom out</td><td><kbd>&#8984;&#9166;</kbd></td><td>Open the Plan</td></tr>
+<tr><td>arrow keys</td><td>Move selection. Map: to the next tile in the level. Things: <kbd>&#8593;</kbd> <kbd>&#8595;</kbd> along the list</td><td><kbd>&#8984;Z</kbd> / <kbd>&#8679;&#8984;Z</kbd></td><td>Undo / redo</td></tr>
+<tr><td><kbd>&#8984;R</kbd></td><td>Rescan, staying where you are</td><td><kbd>&#8984;C</kbd></td><td>In Review, copy the item's path</td></tr>
 <tr><td><kbd>/</kbd></td><td>Focus the query</td><td><kbd>h</kbd></td><td>Hide the selection</td></tr>
 <tr><td><kbd>&#8984;K</kbd></td><td>Palette</td><td><kbd>m</kbd> / <kbd>c</kbd></td><td>Metric / colour mode</td></tr>
-<tr><td><kbd>&#8997;</kbd> (hold)</td><td>Show all shortcuts</td><td><kbd>Esc</kbd></td><td>Back out one level</td></tr>
+<tr><td><kbd>&#8997;</kbd> (hold)</td><td>Show all shortcuts</td><td><kbd>Esc</kbd></td><td>Back out one level. Map: select the folder above</td></tr>
 <tr><td><kbd>s</kbd></td><td>Toggle the <a href="sql.html">SQL</a> drawer</td><td></td><td></td></tr>
 </tbody></table>
 <h2 id="hiding">Hiding <a class="anchor" href="#hiding" aria-label="Link to this section">#</a></h2>

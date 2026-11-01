@@ -303,6 +303,43 @@ final class WorkspaceModelTests: XCTestCase {
         XCTAssertEqual(cached.filter { $0.hasSuffix(".dyscan") }.count, 1)
     }
 
+    func testRescanKeepsYourPlaceAndYourQuery() async throws {
+        let full = SyntheticTree.make(scale: 0.05)
+        let counter = ScanCounter()
+        let directory = makeTempDirectory(self)
+        let scan = finishedScan(full)
+        let workspace = Workspace(environment: plainEnvironment(directory: directory) { root in counter.add(); return scan(root) })
+        workspace.open(.path("/"))
+        await workspace.settle()
+        XCTAssertEqual(counter.value, 1)
+        XCTAssertTrue(workspace.canRescan)
+        let lens = try XCTUnwrap(workspace.lens)
+        let folder = try XCTUnwrap(lens.visibleChildren(of: 0).first { full.isDirectory($0) })
+        let file = try XCTUnwrap(lens.visibleChildren(of: folder).first)
+        workspace.zoomIn(folder)
+        workspace.select([file])
+        workspace.runSQL("SELECT id FROM files ORDER BY size DESC LIMIT 3")
+        await eventually("sql") { workspace.sqlPhase == .finished && workspace.sqlIsFiltering }
+
+        workspace.rescan()
+        XCTAssertFalse(workspace.canRescan, "no second scan while one runs")
+        await workspace.settle()
+        await eventually("sql again") { workspace.sqlPhase == .finished && workspace.sqlIsFiltering }
+
+        XCTAssertEqual(counter.value, 2, "it really scanned again")
+        XCTAssertEqual(workspace.focus, folder)
+        XCTAssertEqual(workspace.selectedNodes, [file])
+        XCTAssertTrue(workspace.canRescan)
+    }
+
+    func testRescanIsOnlyForAFolder() async throws {
+        let workspace = await openDemo(self)
+        XCTAssertFalse(workspace.canRescan)
+        let tree = workspace.tree
+        workspace.rescan()
+        XCTAssertTrue(workspace.tree === tree)
+    }
+
     func testCachedScanOpensBeforeTheRescanFinishes() async throws {
         let full = SyntheticTree.make(scale: 0.05)
         let directory = makeTempDirectory(self)
@@ -341,4 +378,12 @@ final class WorkspaceModelTests: XCTestCase {
             XCTAssertFalse(try String(contentsOf: file, encoding: .utf8).contains("SystemTrash"), file.lastPathComponent)
         }
     }
+}
+
+/// Counts scans started, from any thread.
+final class ScanCounter: @unchecked Sendable {
+    private let lock = NSLock()
+    private var count = 0
+    func add() { lock.withLock { count += 1 } }
+    var value: Int { lock.withLock { count } }
 }

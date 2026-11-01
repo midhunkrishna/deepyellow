@@ -70,14 +70,19 @@ public struct ThingsLens: View {
     private func list(_ result: ThingsResult) -> some View {
         let summary = ThingsSummary(result: result, metric: workspace.metric)
         let top = Double(max(result.items.first?.value ?? 1, 1))
-        return ScrollView {
-            LazyVStack(spacing: 1) {
-                ForEach(Array(result.items.enumerated()), id: \.element.id) { index, thing in
-                    ThingRow(workspace: workspace, thing: thing, total: result.total,
-                             barFraction: Double(thing.value) / top, cumulative: summary.cumulative[index])
+        return ScrollViewReader { proxy in
+            ScrollView {
+                LazyVStack(spacing: 1) {
+                    ForEach(Array(result.items.enumerated()), id: \.element.id) { index, thing in
+                        ThingRow(workspace: workspace, thing: thing, total: result.total,
+                                 barFraction: Double(thing.value) / top, cumulative: summary.cumulative[index])
+                    }
                 }
+                .padding(.horizontal, 8).padding(.top, 8).padding(.bottom, 24)
             }
-            .padding(.horizontal, 8).padding(.top, 8).padding(.bottom, 24)
+            .onChange(of: workspace.selectedNodes) { _, nodes in
+                if let node = nodes.last { proxy.scrollTo(Int(node)) }
+            }
         }
     }
 }

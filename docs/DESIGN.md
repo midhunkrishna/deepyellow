@@ -99,7 +99,7 @@ Every lens reads the same `TreeLens`, shares one selection and one query, and is
 |---|---|---|---|
 | `1`–`7` | Switch lens | `k` `x` `l` `u` | Keep, remove, later, clear |
 | `Space` | Toggle preview | `r` | Review current set |
-| `⏎` / `⌫` | Zoom in / out | `⌘⏎` | Open the Plan |
+| `⏎` / `⌫` | Go in / zoom out | `⌘⏎` | Open the Plan |
 | `←↑↓→` | Move selection | `⌘Z` / `⇧⌘Z` | Undo / redo |
 | `/` | Focus query | `h` | Hide selection |
 | `⌘K` | Palette | `m` / `c` | Metric / colour mode |

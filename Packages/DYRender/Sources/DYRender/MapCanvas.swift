@@ -52,6 +52,12 @@ public final class MapCanvas: MetalCanvasView, DiskCanvas {
         if animated, !model.reduceMotion { startAnimating() } else { setNeedsRender() }
     }
 
+    /// Where each visible child of `parent` sits on the map, for moving between tiles by what is next to them.
+    public func levelRects(parent: NodeID) -> [NodeID: CGRect] {
+        guard let layout = model.ensureLayout(viewPx: effectivePixels) else { return [:] }
+        return layout.childRects(of: parent).mapValues { CGRect(x: $0.x, y: $0.y, width: $0.w, height: $0.h) }
+    }
+
     public func snapshot(size: CGSize, scale: CGFloat) -> CGImage? {
         renderOffscreen(size: size, scale: scale).image
     }

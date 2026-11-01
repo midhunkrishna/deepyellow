@@ -17,7 +17,9 @@ The window is one thin line at the top (path, query, view tabs) and one at the b
 
 ## Map
 
-A treemap: each rectangle is a file or folder, sized by its bytes. It zooms continuously. Scroll or pinch to zoom around the cursor, drag to pan, double-click or <kbd>&#9166;</kbd> to zoom in, <kbd>&#9003;</kbd> to zoom out. Layout is fixed in world space, so zooming never reflows tiles.
+A treemap: each rectangle is a file or folder, sized by its bytes. It zooms continuously. Scroll or pinch to zoom around the cursor, drag to pan, double-click to zoom in, <kbd>&#9003;</kbd> to zoom out. Layout is fixed in world space, so zooming never reflows tiles.
+
+On the keyboard, the Map works level by level. The arrow keys move to the tile next to the selection, up, down, left or right, within the same folder. <kbd>&#9166;</kbd> goes into the selected folder and selects its first item. <kbd>Esc</kbd> goes back up and selects the folder you were in. At the top level, <kbd>Esc</kbd> clears the selection.
 
 ![The Map in kind colours](screens/app-map.png)
 
@@ -101,7 +103,7 @@ Leftovers never raise a tier. They stay "look first".
 
 ## Review
 
-Press <kbd>r</kbd> to take the current set (a selection, a query result or a Reclaim family) full screen: a large preview, a filmstrip, and a counter like "38 left, 214 GB decided". The next item is preloaded so advancing is instant. Keep is the default, and nothing is pre-marked.
+Press <kbd>r</kbd> to take the current set (a selection, a query result or a Reclaim family) full screen: a large preview, a filmstrip, and a counter like "38 left, 214 GB decided". The next item is preloaded so advancing is instant. The item's path can be selected, and **Copy path** or <kbd>&#8984;C</kbd> copies all of it. Keep is the default, and nothing is pre-marked.
 
 ![Review](screens/app-review.png)
 
@@ -131,11 +133,12 @@ Press <kbd>r</kbd> to take the current set (a selection, a query result or a Rec
 |---|---|---|---|
 | <kbd>1</kbd> to <kbd>7</kbd> | Switch view | <kbd>k</kbd> <kbd>x</kbd> <kbd>l</kbd> <kbd>u</kbd> | Keep, remove, later, clear |
 | <kbd>Space</kbd> | Toggle preview | <kbd>r</kbd> | Review the current set |
-| <kbd>&#9166;</kbd> / <kbd>&#9003;</kbd> | Zoom in / out | <kbd>&#8984;&#9166;</kbd> | Open the Plan |
-| arrow keys | Move selection | <kbd>&#8984;Z</kbd> / <kbd>&#8679;&#8984;Z</kbd> | Undo / redo |
+| <kbd>&#9166;</kbd> / <kbd>&#9003;</kbd> | Go into the selected folder / zoom out | <kbd>&#8984;&#9166;</kbd> | Open the Plan |
+| arrow keys | Move selection. Map: to the next tile in the level. Things: <kbd>&#8593;</kbd> <kbd>&#8595;</kbd> along the list | <kbd>&#8984;Z</kbd> / <kbd>&#8679;&#8984;Z</kbd> | Undo / redo |
+| <kbd>&#8984;R</kbd> | Rescan, staying where you are | <kbd>&#8984;C</kbd> | In Review, copy the item's path |
 | <kbd>/</kbd> | Focus the query | <kbd>h</kbd> | Hide the selection |
 | <kbd>&#8984;K</kbd> | Palette | <kbd>m</kbd> / <kbd>c</kbd> | Metric / colour mode |
-| <kbd>&#8997;</kbd> (hold) | Show all shortcuts | <kbd>Esc</kbd> | Back out one level |
+| <kbd>&#8997;</kbd> (hold) | Show all shortcuts | <kbd>Esc</kbd> | Back out one level. Map: select the folder above |
 | <kbd>s</kbd> | Toggle the [SQL](sql.md) drawer | | |
 
 ## Hiding

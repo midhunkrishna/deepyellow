@@ -11,7 +11,7 @@ public enum ShellCommand: Equatable {
     case mark(Decision)
     case review, openPlan, togglePreview, focusQuery, toggleMetric, cycleColor, hide
     case zoomIn, zoomOut, undo, redo, openPalette, openLedger, escape
-    case toggleSQL, runSQL
+    case toggleSQL, runSQL, copyReviewPath
     case chooseFolder, openDemo, rescan, installCLI, toggleHints
     case move(MoveDirection)
 
@@ -37,13 +37,14 @@ public enum ShellCommand: Equatable {
             Info(title: "Switch between size and file count", key: "m", command: .toggleMetric),
             Info(title: "Cycle colour mode", key: "c", command: .cycleColor),
             Info(title: "Hide selection", key: "h", command: .hide),
-            Info(title: "Zoom into selection", key: "⏎", command: .zoomIn),
+            Info(title: "Go into the selected folder", key: "⏎", command: .zoomIn),
             Info(title: "Zoom out", key: "⌫", command: .zoomOut),
             Info(title: "Undo", key: "⌘Z", command: .undo),
             Info(title: "Redo", key: "⇧⌘Z", command: .redo),
             Info(title: "Open the Ledger", key: "", command: .openLedger),
             Info(title: "Show or hide the SQL drawer", key: "s", command: .toggleSQL),
             Info(title: "Run the SQL query", key: "⌘⏎", command: .runSQL),
+            Info(title: "Copy the path shown in Review", key: "⌘C", command: .copyReviewPath),
             Info(title: "Choose a folder to scan…", key: "⌘O", command: .chooseFolder),
             Info(title: "Open the sample disk", key: "", command: .openDemo),
             Info(title: "Rescan", key: "⌘R", command: .rescan),
@@ -73,6 +74,7 @@ public enum KeyMap {
         let key = characters?.lowercased() ?? ""
         if mods.contains(.command) {
             if mods == .command, key == "k" { return .openPalette }
+            if mods == .command, key == "c" { return .copyReviewPath }
             if mods == .command, keyCode == 36 || keyCode == 76 { return .openPlan }
             return nil
         }

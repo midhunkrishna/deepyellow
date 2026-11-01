@@ -195,15 +195,18 @@ struct ToolsRow: View {
     }
 
     private var hint: some View {
-        Text("Click to select, double-click to zoom in, right-click for more.  Hold ⌥ for every shortcut.")
+        Text(workspace.lensKind == .map
+             ? "Arrows move within a level, ⏎ goes in, Esc goes up. Right-click for more.  Hold ⌥ for every shortcut."
+             : "Click to select, double-click to zoom in, right-click for more.  Hold ⌥ for every shortcut.")
             .font(.system(size: 11.5)).foregroundStyle(Theme.textMuted).lineLimit(1)
     }
 
     /// Count, size and the verdict buttons for the selection.
     private var selectionTools: some View {
         HStack(spacing: 6) {
-            Text("\(Format.count(workspace.selectionCount)) selected")
+            Text(selectionTitle)
                 .font(.system(size: 11.5, weight: .semibold)).foregroundStyle(Theme.textPrimary)
+                .lineLimit(1).truncationMode(.middle)
             Text(Format.bytes(workspace.selectionBytes)).font(Theme.number(size: 11.5)).foregroundStyle(Theme.textSecondary)
             ChipButton(title: "Keep", key: "k", tint: Theme.keep) { shell.perform(.mark(.keep)) }
             ChipButton(title: "Remove", key: "x", tint: Theme.remove) { shell.perform(.mark(.remove)) }
@@ -214,7 +217,13 @@ struct ToolsRow: View {
         }
     }
 
-    /// Metric, colour mode, field clock, preview and palette.
+    /// The selected item's name, or how many are selected.
+    private var selectionTitle: String {
+        if workspace.selectionCount == 1, let tree = workspace.tree, let node = workspace.selectedNodes.first { return tree.name(node) }
+        return "\(Format.count(workspace.selectionCount)) selected"
+    }
+
+    /// Rescan, metric, colour mode, field clock, preview and palette.
     private var viewOptions: some View {
         HStack(spacing: 6) {
             if [.map, .rings, .field].contains(workspace.lensKind) {
@@ -227,6 +236,9 @@ struct ToolsRow: View {
                 ChipButton(title: workspace.fieldClock == .modified ? "Age: modified" : "Age: opened") {
                     workspace.setFieldClock(workspace.fieldClock == .modified ? .accessed : .modified)
                 }
+            }
+            if case .path = workspace.source {
+                ChipButton(title: "Rescan", key: "⌘R", enabled: workspace.canRescan) { shell.perform(.rescan) }
             }
             ChipButton(title: workspace.metric == .bytes ? "Size" : "Files", key: "m") { shell.perform(.toggleMetric) }
             ChipButton(title: "Preview", key: "Space") { shell.perform(.togglePreview) }

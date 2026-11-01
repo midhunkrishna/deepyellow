@@ -18,6 +18,7 @@ public struct PreviewPane: View {
                 if let item { media(item) } else { Text("Nothing selected").foregroundStyle(Theme.muted) }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .clipped()
             if let item { MetadataBar(item: item) }
         }
         .background(Theme.background)

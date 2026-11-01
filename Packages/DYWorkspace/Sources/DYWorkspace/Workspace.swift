@@ -379,6 +379,9 @@ public final class Workspace {
         noticeUndo = undo
     }
 
+    /// Shows a short message from the shell, with no undo.
+    public func announce(_ message: String) { post(message) }
+
     /// Runs the shown message's undo, if it has one, and clears the message.
     public func undoNotice() {
         let action = noticeUndo

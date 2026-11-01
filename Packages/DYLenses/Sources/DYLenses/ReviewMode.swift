@@ -1,7 +1,17 @@
+import AppKit
 import DYCore
 import DYPreview
 import DYWorkspace
 import SwiftUI
+
+/// Puts a file path on the clipboard.
+public enum PathClipboard {
+    /// Replaces what `pasteboard` holds with `path`.
+    public static func copy(_ path: String, to pasteboard: NSPasteboard = .general) {
+        pasteboard.clearContents()
+        pasteboard.setString(path, forType: .string)
+    }
+}
 
 /// Full-window culling over the current review session.
 ///
@@ -91,7 +101,15 @@ struct ReviewSidePanel: View {
                 Text(item.name).font(.system(size: 18, weight: .semibold)).foregroundStyle(Theme.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                 Text(item.path).font(Theme.mono(size: 11)).foregroundStyle(Theme.textMuted)
-                    .lineLimit(3).truncationMode(.head)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .textSelection(.enabled)
+                Button {
+                    PathClipboard.copy(item.path)
+                    workspace.announce("Copied the path.")
+                } label: {
+                    HStack(spacing: 6) { Text("Copy path"); KeyCap(key: "⌘C") }
+                }
+                .buttonStyle(GhostButtonStyle())
                 Text(Format.bytes(item.bytes)).font(Theme.number(size: 34, weight: .semibold)).tracking(-0.6).foregroundStyle(Theme.textPrimary)
                 if let summary { Text(Self.meta(summary, now: workspace.environment.clock())).font(Theme.number(size: 13)).foregroundStyle(Theme.textSecondary) }
                 if let summary, summary.tier != .unknown {
