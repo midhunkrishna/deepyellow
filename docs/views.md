@@ -103,7 +103,21 @@ Leftovers never raise a tier. They stay "look first".
 
 ## Review
 
-Press <kbd>r</kbd> to take the current set (a selection, a query result or a Reclaim family) full screen: a large preview, a filmstrip, and a counter like "38 left, 214 GB decided". The next item is preloaded so advancing is instant. The item's path can be selected, and **Copy path** or <kbd>&#8984;C</kbd> copies all of it. Keep is the default, and nothing is pre-marked.
+Press <kbd>r</kbd> to take the current set (a selection, a query result or a Reclaim family) full screen: a large preview, a filmstrip, and a counter like "38 left, 214 GB decided". With one folder selected, Review opens on what's inside it. The next item is preloaded so moving along is instant.
+
+| Key | In Review |
+|---|---|
+| <kbd>&larr;</kbd> <kbd>&rarr;</kbd> | Previous or next item in this level |
+| <kbd>k</kbd> <kbd>x</kbd> <kbd>l</kbd> | Keep, mark for removal, or decide later. The mark stays on this item, and nothing moves on by itself |
+| <kbd>u</kbd> | Clear this item's mark |
+| <kbd>&#8984;Z</kbd> | Undo the last mark, wherever it was |
+| <kbd>&#9166;</kbd> | Go into the folder on screen, starting at its first item |
+| <kbd>Esc</kbd> | Go back up to the folder you came from. At the level Review opened on, close Review. Your marks stay |
+| <kbd>&#8984;&#9166;</kbd> | Open the Plan |
+
+A mark on a folder reaches everything inside it, and the deepest mark wins, so you can mark a folder for removal, go in, and keep one photo. A folder with marks inside it shows how many, such as "12 of 40 marked". Packages such as an `.app` stay one item. Items are sorted biggest first, by the current metric.
+
+The item's path can be selected, and **Copy path** or <kbd>&#8984;C</kbd> copies all of it. Keep is the default, and nothing is pre-marked.
 
 ![Review](screens/app-review.png)
 

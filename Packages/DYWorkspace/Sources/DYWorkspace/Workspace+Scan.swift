@@ -75,7 +75,9 @@ extension Workspace {
         lens = nil
         baseLens = nil
         resolved = nil
+        markedFiles = []
         plan = nil
+        lastExecution = nil
         dominantKinds = []
         scanProgress = nil
         scanPhase = .idle

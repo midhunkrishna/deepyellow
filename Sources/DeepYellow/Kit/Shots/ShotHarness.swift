@@ -22,7 +22,7 @@ public enum ShotHarness {
     public static let names = ["app-map", "app-map-safety", "app-map-files", "app-things", "app-spectrum", "app-field", "app-rings", "app-browse",
                                "app-reclaim", "app-worklists", "app-review", "app-plan", "app-ledger", "app-palette", "app-welcome",
                                "app-preview-video", "app-preview-image", "app-sql-map", "app-sql-groups", "app-sql-table", "app-sql-error",
-                               "app-sql-spectrum", "app-sql-field", "app-sql-rings", "app-sql-browse", "app-sql-reclaim", "app-review-folder", "app-map-keys", "app-things-keys"]
+                               "app-sql-spectrum", "app-sql-field", "app-sql-rings", "app-sql-browse", "app-sql-reclaim", "app-review-folder", "app-plan-failed", "app-review-levels", "app-map-keys", "app-things-keys"]
 
     /// Renders `name` to `outPath`. `openPath` is the real folder to scan for a read-only session. Returns the process exit code.
     public static func run(name: String, outPath: String?, shell: ShellState, openPath: String? = nil) async -> Int32 {
@@ -48,7 +48,7 @@ public enum ShotHarness {
             shell.recents = ["/Users/demo/Developer", "/Users/demo/Movies", "/Volumes/Backup"]
         } else {
             await prepare(shell, openPath: openPath)
-            if shell.isDemo || name == "app-plan" { await stage(shell.workspace) }
+            if shell.isDemo || name == "app-plan" || name == "app-plan-failed" { await stage(shell.workspace) }
         }
         await scenario(name, shell)
         await pause(name.hasPrefix("app-review") || name.hasPrefix("app-preview") ? 3000 : (name.hasPrefix("app-sql") ? 1600 : 900))
@@ -76,7 +76,7 @@ public enum ShotHarness {
     /// The canvas lens a scenario shows, if any.
     private static func canvasLens(_ name: String) -> LensKind? {
         switch name {
-        case "app-map", "app-map-safety", "app-map-files", "app-plan", "app-ledger", "app-palette", "app-preview-video", "app-preview-image",
+        case "app-map", "app-map-safety", "app-map-files", "app-plan", "app-plan-failed", "app-ledger", "app-palette", "app-preview-video", "app-preview-image",
              "app-sql-map", "app-sql-table", "app-map-keys": .map
         case "app-field", "app-sql-field": .field
         case "app-rings", "app-sql-rings": .rings
@@ -159,7 +159,9 @@ public enum ShotHarness {
             let videos = largestFiles(of: .video, in: workspace, limit: 9)
             if !videos.isEmpty, workspace.startReview(nodes: videos, title: "Footage to look through") {
                 _ = workspace.reviewVerdict(.keep)
+                workspace.reviewMove(by: 1)
                 _ = workspace.reviewVerdict(.remove)
+                workspace.reviewMove(by: 1)
             }
         case "app-review-folder":
             workspace.setLens(.map)
@@ -177,6 +179,30 @@ public enum ShotHarness {
             await workspace.settle()
             for _ in 0..<6 { shell.perform(.move(.down)) }
             shell.perform(.move(.up))
+        case "app-review-levels":
+            workspace.setLens(.map)
+            if let tree = workspace.tree, let home = tree.find(path: "/Users/demo") {
+                workspace.select([home])
+                _ = await workspace.startReview()
+                if let folder = workspace.review?.items.firstIndex(where: { $0.canGoIn && $0.name == "Pictures" }) {
+                    workspace.reviewGo(to: folder)
+                    workspace.reviewEnter()
+                    workspace.reviewEnter()
+                    _ = workspace.reviewVerdict(.remove)
+                    workspace.reviewMove(by: 1)
+                    await workspace.settle()
+                    workspace.reviewUp()
+                }
+            }
+        case "app-plan-failed":
+            // Only ever against the sample disk's simulated Trash.
+            if let trash = workspace.environment.mover as? DemoTrash, shell.isDemo, let items = workspace.plan?.items {
+                trash.refuseMoves(of: items.prefix(2).map(\.id))
+                await workspace.settle()
+                _ = await workspace.applyPlan()
+                await workspace.settle()
+            }
+            shell.sheet = .plan
         case "app-plan":
             workspace.setLens(.map)
             shell.sheet = .plan

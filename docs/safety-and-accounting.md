@@ -45,7 +45,7 @@ Marking works like `git add`. <kbd>x</kbd> stages an item for removal and change
 
 <kbd>&#8984;&#9166;</kbd> opens the Plan: the exact diff of what Apply will do. There are no per-item "are you sure" dialogs, because they teach blind clicking. The Plan shows:
 
-- **Items**: the minimal set of roots to move to the Trash, never a folder and something inside it.
+- **Items**: the minimal set of roots to move to the Trash, never a folder and something inside it. **Unstage** beside an item takes it out of the plan. An item staged through a marked folder is marked keep instead, so the rest of the folder stays staged.
 - **Protected**: what inside those roots is being kept.
 - **Blocked**: anything that cannot be removed, and the reason.
 - **Estimate**: "frees at least 41.2 GB" is only said when it is true. If the app could not measure how much space an item would actually free (for example, cloned data that is shared with something you keep), it says so instead.
@@ -56,7 +56,7 @@ These are always blocked, regardless of what was selected: the scan root, `/`, y
 
 ### Apply, Trash and undo
 
-Apply moves the roots to the Trash and re-checks each item's fingerprint immediately before moving it. If something changed, it is skipped and reported. The code that applies a plan has no path that deletes anything. **One step undoes the last apply** and puts everything back where it was.
+Apply moves the roots to the Trash and re-checks each item's fingerprint immediately before moving it. If something changed, it is skipped and reported. Anything that could not be moved stays staged and is listed first in the Plan with the reason, and you can unstage those items one at a time or all together. The code that applies a plan has no path that deletes anything. **One step undoes the last apply** and puts everything back where it was.
 
 The Trash frees nothing until it is emptied, and DeepYellow never empties it. Do that in Finder when you are ready.
 

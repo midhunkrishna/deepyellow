@@ -44,6 +44,7 @@ struct PlanSheet: View {
                 if shell.isDemo {
                     Text("Sample disk: the Trash here is simulated and no file is touched.").font(.system(size: 11.5)).foregroundStyle(Theme.textMuted)
                 }
+                problemBanner
                 itemList(plan)
                 if !plan.protected.isEmpty { section("Protected inside these items", "\(Format.count(plan.protected.count)) kept items stay where they are.", plan.protected.map { ($0, "kept") }) }
                 if !plan.blocked.isEmpty { section("Blocked", "These will not be moved.", plan.blocked.map { ($0.path, $0.reason) }) }
@@ -60,16 +61,39 @@ struct PlanSheet: View {
         .foregroundStyle(Theme.textPrimary)
     }
 
-    /// One row per plan item, biggest first.
+    /// Says how many items the last Apply couldn't move, and offers to take them all out of the plan.
+    @ViewBuilder private var problemBanner: some View {
+        let problems = workspace.planProblems
+        if !problems.isEmpty {
+            HStack(spacing: 10) {
+                Text(problems.count == 1 ? "1 item couldn't be moved. It stays staged until you unstage it or try again."
+                     : "\(Format.count(problems.count)) items couldn't be moved. They stay staged until you unstage them or try again.")
+                    .font(.system(size: 12, weight: .medium)).foregroundStyle(Theme.remove).fixedSize(horizontal: false, vertical: true)
+                Spacer()
+                ChipButton(title: problems.count == 1 ? "Unstage it" : "Unstage these \(Format.count(problems.count))", enabled: !workspace.isApplying) {
+                    workspace.unstage(paths: Array(problems.keys))
+                }
+            }
+        }
+    }
+
+    /// One row per plan item: any that couldn't be moved first, then biggest first.
     private func itemList(_ plan: RemovalPlan) -> some View {
-        ScrollView {
+        let problems = workspace.planProblems
+        return ScrollView {
             LazyVStack(spacing: 0) {
-                ForEach(plan.items.sorted { $0.bytes > $1.bytes }) { item in
+                ForEach(plan.items.sorted { a, b in
+                    let (failedA, failedB) = (problems[a.id] != nil, problems[b.id] != nil)
+                    return failedA != failedB ? failedA : a.bytes > b.bytes
+                }) { item in
                     HStack(spacing: 8) {
                         Image(systemName: "line.3.horizontal.decrease").font(.system(size: 9)).foregroundStyle(Theme.remove)
                         VStack(alignment: .leading, spacing: 1) {
                             Text((item.id as NSString).lastPathComponent).font(.system(size: 12, weight: .medium)).lineLimit(1)
                             Text((item.id as NSString).deletingLastPathComponent).font(Theme.mono(size: 10)).foregroundStyle(Theme.textMuted).lineLimit(1).truncationMode(.head)
+                            if let problem = problems[item.id] {
+                                Text(problem).font(.system(size: 11)).foregroundStyle(Theme.remove).lineLimit(2).fixedSize(horizontal: false, vertical: true)
+                            }
                         }
                         Spacer()
                         VStack(alignment: .trailing, spacing: 1) {
@@ -77,6 +101,8 @@ struct PlanSheet: View {
                             Text((item.reclaimIsLowerBound ? "frees at least " : "frees ") + Format.bytes(item.reclaimable))
                                 .font(.system(size: 10)).foregroundStyle(Theme.textMuted)
                         }
+                        ChipButton(title: "Unstage", enabled: !workspace.isApplying) { workspace.unstage(paths: [item.id]) }
+                            .accessibilityLabel("Unstage \((item.id as NSString).lastPathComponent)")
                     }
                     .padding(.vertical, 5)
                     Divider().overlay(Theme.hairline)
@@ -101,6 +127,12 @@ struct PlanSheet: View {
         }
     }
 
+    /// "Move 3 items to Trash".
+    private var moveTitle: String {
+        let count = workspace.plan?.items.count ?? 0
+        return "Move \(Format.count(count)) \(count == 1 ? "item" : "items") to Trash"
+    }
+
     /// Cancel, undo and the explicit Apply button.
     private var footer: some View {
         HStack {
@@ -111,7 +143,7 @@ struct PlanSheet: View {
                 Text("Waiting for safety advice").font(.system(size: 11)).foregroundStyle(Theme.textMuted)
             }
             if !shell.isReadOnly {
-                ChipButton(title: "Move \(Format.count(workspace.plan?.items.count ?? 0)) items to Trash", prominent: true,
+                ChipButton(title: moveTitle, prominent: true,
                            enabled: workspace.canApply && !workspace.isApplying && !(workspace.plan?.items.isEmpty ?? true)) {
                     Task {
                         _ = await workspace.applyPlan()

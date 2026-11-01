@@ -12,7 +12,8 @@
 *{box-sizing:border-box}
 html{scroll-behavior:smooth;scroll-padding-top:76px}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
-body{margin:0;background:var(--bg);color:var(--text);font:16px/1.6 var(--sans);font-variant-numeric:tabular-nums;padding-bottom:56px;-webkit-text-size-adjust:100%}
+/* visibility and animation undo the first-paint guard in each page's head: unstyled content never shows, and a stylesheet that fails to load still reveals the page after 3 s. */
+body{visibility:visible;animation:none;margin:0;background:var(--bg);color:var(--text);font:16px/1.6 var(--sans);font-variant-numeric:tabular-nums;padding-bottom:56px;-webkit-text-size-adjust:100%}
 a{color:var(--gold);text-decoration:underline;text-decoration-color:rgba(255,184,0,.4);text-underline-offset:3px}
 a:hover{text-decoration-color:var(--gold)}
 :focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:3px}

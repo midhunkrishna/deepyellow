@@ -1,0 +1,9 @@
+# Lets the browser reuse these between pages instead of asking Cloudflare again on every click.
+/style.css
+  Cache-Control: public, max-age=300, stale-while-revalidate=604800
+/site.js
+  Cache-Control: public, max-age=300, stale-while-revalidate=604800
+/demo.js
+  Cache-Control: public, max-age=300, stale-while-revalidate=604800
+/images/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800

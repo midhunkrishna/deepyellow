@@ -8,6 +8,8 @@
 <meta name="theme-color" content="#0E0D0B">
 <link rel="icon" href="../favicon.png">
 <link rel="apple-touch-icon" href="../images/icon.png">
+<meta name="color-scheme" content="dark">
+<style>html{background:#0E0D0B}body{visibility:hidden;animation:reveal 0s 3s forwards}@keyframes reveal{to{visibility:visible}}</style>
 <link rel="stylesheet" href="../style.css">
 </head>
 <body>
@@ -86,7 +88,7 @@
 <h2 id="the-plan">The Plan <a class="anchor" href="#the-plan" aria-label="Link to this section">#</a></h2>
 <p><kbd>&#8984;&#9166;</kbd> opens the Plan: the exact diff of what Apply will do. There are no per-item "are you sure" dialogs, because they teach blind clicking. The Plan shows:</p>
 <ul>
-<li><strong>Items</strong>: the minimal set of roots to move to the Trash, never a folder and something inside it.</li>
+<li><strong>Items</strong>: the minimal set of roots to move to the Trash, never a folder and something inside it. <strong>Unstage</strong> beside an item takes it out of the plan. An item staged through a marked folder is marked keep instead, so the rest of the folder stays staged.</li>
 <li><strong>Protected</strong>: what inside those roots is being kept.</li>
 <li><strong>Blocked</strong>: anything that cannot be removed, and the reason.</li>
 <li><strong>Estimate</strong>: "frees at least 41.2 GB" is only said when it is true. If the app could not measure how much space an item would actually free (for example, cloned data that is shared with something you keep), it says so instead.</li>
@@ -94,7 +96,7 @@
 <p><img src="../images/app-plan.webp" alt="The Plan" loading="lazy" width="1600" height="1000"></p>
 <p>These are always blocked, regardless of what was selected: the scan root, <code>/</code>, your home folder and its ancestors, <code>/System</code>, <code>/Applications</code>, <code>/Library</code>, <code>/Users</code>, <code>/usr</code>, <code>/bin</code>, <code>/sbin</code>, <code>/private</code>, <code>/Volumes</code>, direct children of <code>/</code>, <code>~/Library</code> itself, <code>~/Documents</code>, <code>~/Desktop</code>, <code>~/Pictures</code>, <code>~/Movies</code>, <code>~/Music</code> and <code>~/Downloads</code> themselves (their contents can be planned), unreadable or restricted items, mount boundaries, anything in tier <code>never</code>, anything inside a <code>.photoslibrary</code>, and anything whose fingerprint no longer matches.</p>
 <h3 id="apply-trash-and-undo">Apply, Trash and undo <a class="anchor" href="#apply-trash-and-undo" aria-label="Link to this section">#</a></h3>
-<p>Apply moves the roots to the Trash and re-checks each item's fingerprint immediately before moving it. If something changed, it is skipped and reported. The code that applies a plan has no path that deletes anything. <strong>One step undoes the last apply</strong> and puts everything back where it was.</p>
+<p>Apply moves the roots to the Trash and re-checks each item's fingerprint immediately before moving it. If something changed, it is skipped and reported. Anything that could not be moved stays staged and is listed first in the Plan with the reason, and you can unstage those items one at a time or all together. The code that applies a plan has no path that deletes anything. <strong>One step undoes the last apply</strong> and puts everything back where it was.</p>
 <p>The Trash frees nothing until it is emptied, and DeepYellow never empties it. Do that in Finder when you are ready.</p>
 <h2 id="the-ledger">The Ledger <a class="anchor" href="#the-ledger" aria-label="Link to this section">#</a></h2>
 <p>The bar along the bottom is a single account of the whole volume: visible, hidden, unreadable or unaccounted, and free. Staged removal is hatched over the top.</p>

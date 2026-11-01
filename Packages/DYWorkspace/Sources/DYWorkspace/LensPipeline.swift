@@ -39,6 +39,8 @@ struct LensBundle: @unchecked Sendable {
     /// Rules, Trash and query applied.
     var lens: TreeLens
     var dominantKinds: [UInt8]
+    /// Per node, how many visible files at or under it have a mark.
+    var markedFiles: [UInt32]
     var plan: RemovalPlan
     /// Topmost nodes of the SQL set, for the filter summary.
 }
@@ -75,7 +77,19 @@ enum LensPipeline {
         let dominant = input.wantsDominantKinds ? lens.dominantKinds() : []
         let plan = livePlan(tree: tree, resolved: resolved, nodeTier: padded(input.nodeTier, count: tree.count), home: input.home, lens: baseLens)
         return LensBundle(tree: tree, ignore: ignore, rulesRevision: input.rulesRevision, resolved: resolved, baseLens: baseLens,
-                          lens: lens, dominantKinds: dominant, plan: plan)
+                          lens: lens, dominantKinds: dominant, markedFiles: markedFiles(lens: lens, effective: resolved.effective), plan: plan)
+    }
+
+    /// Counts, per node, the visible files at or under it that have any mark. One pass from the leaves up.
+    static func markedFiles(lens: TreeLens, effective: [UInt8]) -> [UInt32] {
+        let tree = lens.tree
+        var counts = [UInt32](repeating: 0, count: tree.count)
+        guard effective.count == tree.count else { return counts }
+        for index in stride(from: tree.count - 1, through: 0, by: -1) {
+            if effective[index] != 0, lens.included[index], !tree.isDirectory(NodeID(index)) { counts[index] += 1 }
+            if index > 0 { counts[Int(tree.columns.parent[index])] &+= counts[index] }
+        }
+        return counts
     }
 
     /// A per-node mask that is true for `nodes` and everything beneath them, with the number of topmost nodes.

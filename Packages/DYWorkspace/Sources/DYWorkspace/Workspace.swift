@@ -85,6 +85,8 @@ public final class Workspace {
     public internal(set) var baseLens: TreeLens?
     public internal(set) var ignoreResult: IgnoreResult?
     public internal(set) var resolved: ResolvedDecisions?
+    /// Per node, how many visible files at or under it have a mark.
+    public internal(set) var markedFiles: [UInt32] = []
     public internal(set) var dominantKinds: [UInt8] = []
     /// True while a newer lens is being computed. Views keep drawing the previous one.
     public internal(set) var isRecomputing = false
@@ -320,6 +322,7 @@ public final class Workspace {
         baseLens = bundle.baseLens
         ignoreResult = bundle.ignore
         resolved = bundle.resolved
+        markedFiles = bundle.markedFiles
         dominantKinds = bundle.dominantKinds
         plan = bundle.plan
         planIsRefined = false

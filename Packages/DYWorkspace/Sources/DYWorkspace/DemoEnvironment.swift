@@ -19,6 +19,7 @@ public final class DemoTrash: TrashMoving, @unchecked Sendable {
     /// Trashed location by original path, for items currently in the pretend Trash.
     private var trashed: [String: String] = [:]
     private var counter = 0
+    private var refused: Set<String> = []
     private let fingerprint: @Sendable (String) -> Fingerprint?
 
     /// Creates a mover that looks fingerprints up with `fingerprint`.
@@ -27,9 +28,15 @@ public final class DemoTrash: TrashMoving, @unchecked Sendable {
     /// Every request so far, in order.
     public var calls: [Call] { lock.withLock { recorded } }
 
+    /// Makes later moves of `paths` fail with a permission error, to show what a failed Apply looks like.
+    public func refuseMoves(of paths: [String]) {
+        lock.withLock { refused.formUnion(paths) }
+    }
+
     /// Records the request and pretends the item is in the Trash.
     public func moveToTrash(path: String) throws -> String {
         try lock.withLock {
+            guard !refused.contains(path) else { throw POSIXError(.EPERM) }
             guard trashed[path] == nil, fingerprint(path) != nil else { throw POSIXError(.ENOENT) }
             counter += 1
             let location = "/.DeepYellowDemoTrash/\(counter)/\((path as NSString).lastPathComponent)"

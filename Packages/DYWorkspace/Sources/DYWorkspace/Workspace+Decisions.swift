@@ -38,23 +38,30 @@ extension Workspace {
         return true
     }
 
-    /// Undoes the last mark. While reviewing, the review steps back to that item too.
+    /// Undoes the last mark. While reviewing, the review moves back to that item too.
     @discardableResult
     public func undoDecision() -> Bool {
         guard decisionStore.undo() else { return false }
         decisionVersion = decisionStore.version
-        if var session = review, session.stepBack() != nil { review = session }
+        if var session = review, let path = session.stepBack() { showReviewStep(session, path: path, verb: "Undid") }
         scheduleLens()
         return true
     }
 
-    /// Redoes the last undone mark.
+    /// Redoes the last undone mark. While reviewing, the review moves to that item too.
     @discardableResult
     public func redoDecision() -> Bool {
         guard decisionStore.redo() else { return false }
         decisionVersion = decisionStore.version
+        if var session = review, let path = session.stepForward() { showReviewStep(session, path: path, verb: "Redid") }
         scheduleLens()
         return true
+    }
+
+    /// Publishes a session after undo or redo, and says which item changed when it is in another level.
+    private func showReviewStep(_ session: ReviewSession, path: String, verb: String) {
+        review = session
+        if session.current?.path != path { post("\(verb) the mark on \((path as NSString).lastPathComponent).") }
     }
 
     // MARK: - Ignore rules
@@ -129,14 +136,13 @@ extension Workspace {
 
     // MARK: - Review
 
-    /// Starts reviewing nodes. Returns false when there is nothing to review.
+    /// Starts reviewing nodes. A single folder opens on what's inside it. Returns false when there is nothing to review.
     @discardableResult
     public func startReview(nodes: [NodeID], title: String) -> Bool {
         guard let tree else { return false }
-        let items: [ReviewItem] = nodes.filter { $0 >= 0 && Int($0) < tree.count }.map { node in
-            ReviewItem(path: tree.path(node), name: tree.name(node), bytes: lens?.size[Int(node)] ?? tree.allocated(node),
-                       kind: tree.kind(node), isDirectory: tree.isDirectory(node))
-        }
+        let valid = nodes.filter { $0 >= 0 && Int($0) < tree.count }
+        let inside = valid.count == 1 ? reviewChildren(of: valid[0]) : []
+        let items = inside.isEmpty ? valid.map { reviewItem($0, tree: tree) } : inside
         guard !items.isEmpty else {
             post("Nothing to review here.")
             return false
@@ -148,6 +154,7 @@ extension Workspace {
     /// Reviews the selection, or the largest undecided files under the focus when nothing is selected.
     @discardableResult
     public func startReview() async -> Bool {
+        if selectedNodes.count == 1, let tree { return startReview(nodes: selectedNodes, title: tree.name(selectedNodes[0])) }
         if !selectedNodes.isEmpty { return startReview(nodes: selectedNodes, title: "Selected items") }
         guard let lens, let resolved, let tiers = reclaimReport?.nodeTier else {
             return startReview(nodes: [], title: "")
@@ -165,12 +172,17 @@ extension Workspace {
     @discardableResult
     public func startReview(worklist: Worklist) -> Bool { startReview(nodes: worklist.nodes, title: worklist.title) }
 
-    /// Gives the current review item a verdict and moves to the next. The verdict is staged like any other mark.
+    /// Gives the current review item a verdict and stays on it. The verdict is staged like any other mark.
     @discardableResult
     public func reviewVerdict(_ decision: Decision) -> Bool {
-        guard var session = review, let path = session.record(decision) else { return false }
+        guard var session = review, let item = session.current else { return false }
+        let before = decisionStore.version
+        guard record(decision, paths: [item.path]) else { return false }
+        guard decisionStore.version != before else { return true }
+        session.record(decision)
         review = session
-        return record(decision, paths: [path])
+        if decision == .none, parentDecision(of: item) != .none { post("Still marked, because its folder is. Press k to keep this one.") }
+        return true
     }
 
     /// Jumps to an item in the strip without giving a verdict.
@@ -180,8 +192,89 @@ extension Workspace {
         review = session
     }
 
+    /// Moves `offset` items along the level. At the last item it stays put and says so.
+    public func reviewMove(by offset: Int) {
+        guard let session = review else { return }
+        if offset > 0, session.isAtEnd {
+            post(session.depth > 0 ? "That's the last item in this folder. Esc goes back up." : "That's the last item.")
+            return
+        }
+        reviewGo(to: session.index + offset)
+    }
+
+    /// Goes into the current item when it's a folder, starting at its first item. Returns whether it went in.
+    @discardableResult
+    public func reviewEnter() -> Bool {
+        guard var session = review, let item = session.current, item.isDirectory else { return false }
+        guard !item.isPackage else {
+            post("\(item.name) is a package, so it stays one item.")
+            return false
+        }
+        let inside = reviewChildren(of: item.node)
+        guard !inside.isEmpty else {
+            post("Nothing to show inside \(item.name).")
+            return false
+        }
+        session.enter(title: item.name, items: inside)
+        review = session
+        return true
+    }
+
+    /// Goes back up one level to the item it was left on. Returns false at the level the review started on.
+    @discardableResult
+    public func reviewUp() -> Bool {
+        guard var session = review, session.leave() else { return false }
+        review = session
+        return true
+    }
+
     /// Leaves the review. Verdicts already given stay staged.
     public func endReview() { review = nil }
+
+    /// The decision shown for a review item: the one given just now, otherwise the one it has, inherited or not.
+    public func reviewDecision(of item: ReviewItem) -> Decision {
+        if let given = review?.verdicts[item.path] { return given == .none ? parentDecision(of: item) : given }
+        return effectiveDecision(item.node)
+    }
+
+    /// Whether a review item's mark comes from the folder it's in.
+    public func reviewMarkIsInherited(_ item: ReviewItem) -> Bool {
+        let given = review?.verdicts[item.path] ?? Decision.none
+        return given == .none && reviewDecision(of: item) != .none && parentDecision(of: item) == reviewDecision(of: item)
+    }
+
+    /// The tally of the review level on screen.
+    public var reviewTally: ReviewTally { review?.tally { reviewDecision(of: $0) } ?? ReviewTally() }
+
+    /// How many of the files inside a folder item have a mark, and how many files it holds. Nil for a file.
+    public func reviewMarkedFiles(of item: ReviewItem) -> (marked: Int, files: Int)? {
+        guard item.isDirectory, let lens, markedFiles.indices.contains(Int(item.node)) else { return nil }
+        return (Int(markedFiles[Int(item.node)]), Int(lens.files[Int(item.node)]))
+    }
+
+    /// A node's decision after inheritance, as last resolved.
+    private func effectiveDecision(_ node: NodeID) -> Decision {
+        guard let effective = resolved?.effective, effective.indices.contains(Int(node)) else { return .none }
+        return Decision(rawValue: effective[Int(node)]) ?? .none
+    }
+
+    /// The decision of the folder holding a review item.
+    private func parentDecision(of item: ReviewItem) -> Decision {
+        guard let tree, item.node > 0, Int(item.node) < tree.count else { return .none }
+        return effectiveDecision(tree.parent(item.node))
+    }
+
+    /// The items inside a folder, largest first by the current metric. Empty for a file, a package or an empty folder.
+    private func reviewChildren(of node: NodeID) -> [ReviewItem] {
+        guard let tree, let lens, tree.isDirectory(node), !tree.flags(node).contains(.package) else { return [] }
+        return lens.visibleChildren(of: node, metric: metric).map { reviewItem($0, tree: tree) }
+    }
+
+    /// The review item for a node.
+    private func reviewItem(_ node: NodeID, tree: FileTree) -> ReviewItem {
+        ReviewItem(path: tree.path(node), name: tree.name(node), bytes: lens?.size[Int(node)] ?? tree.allocated(node), kind: tree.kind(node),
+                   isDirectory: tree.isDirectory(node), isPackage: tree.flags(node).contains(.package), node: node)
+    }
 
     /// The biggest files under `under` that have no decision and are not `never`, largest first.
     nonisolated static func largestUndecided(lens: TreeLens, under: NodeID, effective: [UInt8], tiers: [UInt8], limit: Int) -> [NodeID] {
@@ -222,6 +315,34 @@ extension Workspace {
         guard let plan, !plan.items.isEmpty else { return "Nothing staged" }
         let verb = plan.estimateIsLowerBound ? "frees at least" : "frees"
         return "\(verb) \(Format.bytes(plan.totalReclaimable)) once the Trash is emptied"
+    }
+
+    /// Why the last Apply left each item still in the plan, by path. Empty when nothing went wrong.
+    public var planProblems: [String: String] {
+        guard let report = lastExecution, let plan else { return [:] }
+        let staged = Set(plan.items.map(\.id))
+        var problems: [String: String] = [:]
+        for failure in report.failed where staged.contains(failure.path) { problems[failure.path] = failure.error }
+        for path in report.skippedChanged where staged.contains(path) { problems[path] = "It changed since the scan." }
+        return problems
+    }
+
+    /// Takes items out of the plan as one undo step. Nothing on disk changes.
+    ///
+    /// An item marked directly just loses its mark. One that is staged through a marked folder has to be kept instead, or it would still inherit the mark.
+    public func unstage(paths: [String]) {
+        guard let tree, !paths.isEmpty else { return }
+        var decisions: [String: Decision] = [:]
+        for path in paths {
+            let node = tree.find(path: path) ?? 0
+            let insideMarkedFolder = node > 0 && effectiveDecision(tree.parent(node)) == .remove
+            decisions[path] = insideMarkedFolder ? Decision.keep : Decision.none
+        }
+        decisionStore.set(decisions, tree: tree)
+        decisionVersion = decisionStore.version
+        scheduleLens()
+        let what = paths.count == 1 ? (paths[0] as NSString).lastPathComponent : "\(Format.count(paths.count)) items"
+        post("Unstaged \(what). Nothing was moved.") { [weak self] in self?.undoDecision() }
     }
 
     /// Refines the plan's figures with measured private bytes on a background task.

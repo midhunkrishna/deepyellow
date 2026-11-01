@@ -320,6 +320,52 @@ final class ShellTests: XCTestCase {
         XCTAssertEqual(workspace.selectedNodes, [rows[rows.count - 1]], "stops at the end")
     }
 
+    /// The whole walk through the shell's commands: open a folder, mark, move, go in, mark, come back up, close.
+    @MainActor func testReviewWalksThroughAFolderWithTheKeys() async throws {
+        let shell = await demoShell()
+        let workspace = shell.workspace
+        let lens = try XCTUnwrap(workspace.lens)
+        let tree = lens.tree
+        var start: NodeID = 0
+        while let child = lens.visibleChildren(of: start).first(where: { tree.isDirectory($0) }),
+              lens.visibleChildren(of: start).filter({ tree.isDirectory($0) }).count < 2 { start = child }
+        workspace.select([start])
+        let focus = workspace.focus
+        let started = await workspace.startReview()
+        XCTAssertTrue(started)
+        XCTAssertEqual(workspace.review?.depth, 0)
+
+        let first = try XCTUnwrap(workspace.review?.current)
+        shell.perform(.mark(.remove))
+        XCTAssertEqual(workspace.review?.current?.path, first.path, "x stays on the item")
+        shell.perform(.move(.right))
+        XCTAssertEqual(workspace.review?.index, 1, "the arrow goes to the very next item")
+        shell.perform(.move(.left))
+        shell.perform(.mark(.none))
+        XCTAssertEqual(workspace.reviewDecision(of: first), .none, "u clears the item on screen")
+
+        workspace.reviewGo(to: try XCTUnwrap(workspace.review?.items.firstIndex(where: \.canGoIn)))
+        let folder = try XCTUnwrap(workspace.review?.current)
+        shell.perform(.zoomIn)
+        XCTAssertEqual(workspace.review?.depth, 1)
+        XCTAssertEqual(workspace.review?.index, 0)
+        shell.perform(.mark(.remove))
+
+        shell.perform(.zoomOut)
+        XCTAssertEqual(workspace.review?.current?.path, folder.path, "⌫ comes back up too")
+        shell.perform(.zoomIn)
+        shell.perform(.escape)
+        XCTAssertEqual(workspace.review?.depth, 0, "Esc goes up first")
+        XCTAssertEqual(workspace.review?.current?.path, folder.path)
+
+        shell.perform(.escape)
+        XCTAssertNil(workspace.review, "Esc at the top closes Review")
+        XCTAssertEqual(workspace.selectedNodes, [start], "back on the same highlight")
+        XCTAssertEqual(workspace.focus, focus, "the view underneath didn't move")
+        await workspace.settle()
+        XCTAssertEqual(workspace.markedFiles[Int(start)] > 0, true, "marks stay after closing")
+    }
+
     /// The path copied in Review is the full path of the item on screen, and goes to the given pasteboard only.
     @MainActor func testReviewPathCopies() async throws {
         let scratch = NSPasteboard.withUniqueName()
