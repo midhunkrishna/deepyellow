@@ -51,12 +51,12 @@
   </nav>
   <main id="main" class="prose">
 <h1 id="building-from-source">Building from source</h1>
-<p><strong>Can anyone build it?</strong> Yes. Clone the repository and run <code>make app</code>. You need macOS 15 or later and the Swift 6 toolchain (Xcode 16 or the matching command line tools). Nothing else is installed and no network access is needed beyond the clone, because the project has no third-party dependencies.</p>
-<p>This is the route that needs no trust in a binary: you read the code, you build it, and macOS has no quarantine flag to complain about, because nothing was downloaded.</p>
+<p><strong>Can anyone build it?</strong> Yes. Clone the repository and run <code>make app</code>. You need macOS 15 or later and the Swift 6 toolchain (Xcode 16 or the matching command line tools). Nothing else is installed, and no network access is needed beyond the clone, since the project has no third-party dependencies.</p>
+<p>This is the route that needs no trust in a binary. You read the code and build it yourself, and macOS has no quarantine flag to complain about because nothing was downloaded.</p>
 <pre><code>git clone https://github.com/midhunkrishna/deepyellow
 cd deepyellow
 make app</code></pre>
-<p>The app is written to <code>dist/DeepYellow.app</code>. To run it on the sample disk, which never touches your files:</p>
+<p>The app is written to <code>dist/DeepYellow.app</code>. To run it on the sample disk, which doesn't touch your files, use:</p>
 <pre><code>dist/DeepYellow.app/Contents/MacOS/DeepYellow --demo</code></pre>
 <h2 id="make-targets">Make targets <a class="anchor" href="#make-targets" aria-label="Link to this section">#</a></h2>
 <table>
@@ -70,20 +70,20 @@ make app</code></pre>
 <tr><td><code>make clean</code></td><td>Removes <code>dist/</code></td></tr>
 </tbody></table>
 <p>Release packaging uses the stable names <code>DeepYellow.dmg</code>, <code>DeepYellow.zip</code> and <code>SHA256SUMS</code>. The version is taken from the <code>VERSION</code> environment variable, else from <code>git describe</code>, else it is <code>0.0.0-dev</code>.</p>
-<p>The scripts live in <a href="https://github.com/midhunkrishna/deepyellow/tree/master/scripts"><code>scripts/</code></a> and the <a href="https://github.com/midhunkrishna/deepyellow/blob/master/Makefile"><code>Makefile</code></a> only wraps them.</p>
+<p>The scripts live in <a href="https://github.com/midhunkrishna/deepyellow/tree/master/scripts"><code>scripts/</code></a>, and the <a href="https://github.com/midhunkrishna/deepyellow/blob/master/Makefile"><code>Makefile</code></a> only wraps them.</p>
 <h2 id="tests">Tests <a class="anchor" href="#tests" aria-label="Link to this section">#</a></h2>
 <p>Each module is its own Swift package under <code>Packages/</code> and has its own tests:</p>
 <pre><code>swift test --package-path Packages/DYAnalysis</code></pre>
-<p>or all of them with <code>make test</code>. Tests use a synthetic disk or temporary directories. They never use the real Trash, and tests that need a GPU skip themselves when no Metal device exists.</p>
+<p>To run all of them, use <code>make test</code>. The tests use a synthetic disk or temporary directories. They never use the real Trash, and tests that need a GPU skip themselves when no Metal device exists.</p>
 <h2 id="gatekeeper-and-your-own-build">Gatekeeper and your own build <a class="anchor" href="#gatekeeper-and-your-own-build" aria-label="Link to this section">#</a></h2>
-<p>A binary you build locally is signed ad hoc and is not quarantined, so it opens without the dialog described in <a href="install.html#if-macos-blocks-it">Install</a>. If you copy it to another Mac through the internet or AirDrop, that Mac will treat it like any unnotarized download.</p>
+<p>A binary you build locally is signed ad hoc and is not quarantined, so it opens without the dialog described in <a href="install.html#if-macos-blocks-it">Install</a>. If you copy it to another Mac through the internet or AirDrop, that Mac treats it like any unnotarized download.</p>
 <h2 id="contributing">Contributing <a class="anchor" href="#contributing" aria-label="Link to this section">#</a></h2>
 <p>Releases are versioned from conventional commit messages: a <code>feat</code> makes a minor release, a <code>fix</code> or anything else a patch, and <code>!</code> or <code>BREAKING CHANGE</code> a major one. Documentation-only changes make no release. The <a href="architecture.html">architecture</a> page explains where things live.</p>
 <nav class="pager" aria-label="Pages"><a href="cli.html">&larr; Command line</a><a href="architecture.html">Architecture &rarr;</a></nav>
   </main>
 </div>
 <footer class="foot"><div class="wrap">
-  <p>DeepYellow is a native macOS disk analyzer, MIT licence. <a href="../index.html">Home</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow">Source</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/releases">Releases</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/edit/master/docs/building-from-source.md">Edit this page</a></p>
+  <p>DeepYellow is a native macOS disk analyzer, MIT license. <a href="../index.html">Home</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow">Source</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/releases">Releases</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/edit/master/docs/building-from-source.md">Edit this page</a></p>
 </div></footer>
 <div class="ledger" role="complementary" aria-label="Page ledger"><div class="wrap">
   <span class="lab">LEDGER</span>

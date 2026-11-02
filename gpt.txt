@@ -1,0 +1,1400 @@
+Im building an app that helps users reclaim disk space.
+I want a system within it that recommend safe deletion based on file metadata
+Like location, type, meta data, and what not. 
+Is there some kind of mechanism that can help predict file relevance? 
+If not how can I build one? Im thinking of generating a database with file type characteristics, a small sqlite, that can be shipped wuth the app
+
+Yes. And I think your idea of shipping a small SQLite database containing file characteristics is a very good starting point.
+
+What you're describing is essentially a file relevance and deletion-risk prediction engine. It would analyze files using their metadata, context, and relationships to other files, then recommend what users can remove to reclaim storage.
+
+The key is that I wouldn't start with machine learning. I'd build a hybrid system combining a curated knowledge base, heuristic scoring, and eventually a lightweight learned model.
+1. The fundamental distinction
+
+There are three different questions your application needs to answer:
+
+    Is this file safe to delete? Will deleting it damage the OS, an application, or the user's work?
+
+    Is this file relevant to the user? Is the user likely to want it again?
+
+    How much space will deleting it actually reclaim?
+
+These are independent dimensions.
+
+For example:
+
+File
+	
+
+Safe to delete?
+	
+
+Likely relevant?
+
+Browser thumbnail cache
+	
+
+Usually, with proper handling
+	
+
+Low
+
+Old tax return PDF
+	
+
+OS-safe, but user data would be lost
+	
+
+Potentially very high
+
+3-year-old downloaded installer
+	
+
+Usually
+	
+
+Possibly low
+
+node_modules directory
+	
+
+Usually regenerable
+	
+
+Depends on project
+
+Application SQLite database
+	
+
+Potentially destructive
+	
+
+Potentially very high
+
+Duplicate vacation photograph
+	
+
+Depends on whether another valid copy exists
+	
+
+Potentially very high
+
+Notice something important: file extensions alone cannot tell you whether a file is safe to delete.
+
+A .sqlite file might be a disposable cache or the only database containing years of user information.
+
+You need to understand the file's role, not just its type.
+2. There is already an established approach
+
+One particularly relevant project is BleachBit's CleanerML.
+
+BleachBit uses declarative cleanup definitions that describe file locations, patterns, operating systems, associated applications, and cleanup operations. Its rules can even prevent cleanup while an application is running. 
+BleachBit Documentation+1
+
+This is close to your SQLite idea, although it's oriented more toward identifying known disposable artifacts than predicting user relevance.
+
+Other useful references are Czkawka, for duplicate detection, and Windows Cleanup Recommendations, which separates temporary files from large and unused files. 
+GitHub+1
+
+I'd borrow the declarative-rule concept from BleachBit and extend it with your own relevance-scoring layer.
+3. Architecture I would build
+Classification
+Safety gate
+Recommendation
+
+The safety layer should be a hard gate. A high relevance score or large potential savings should never override a protection rule.
+4. Your SQLite knowledge base
+
+I'd ship a read-only database with four primary concepts.
+
+Table
+	
+
+What it represents
+
+file_types
+	
+
+General characteristics of file types
+
+artifact_patterns
+	
+
+Known application and OS-generated artifacts
+
+cleanup_rules
+	
+
+Conditions under which an artifact can be removed
+
+protected_paths
+	
+
+Files and directories your engine must not touch
+
+For example, your file_types table might look like this:
+
+Extension
+	
+
+Category
+	
+
+Default assumption
+
+.pdf
+	
+
+Document
+	
+
+Potentially irreplaceable
+
+.jpg
+	
+
+Image
+	
+
+Potentially irreplaceable
+
+.dmg
+	
+
+Installer
+	
+
+Often replaceable
+
+.log
+	
+
+Log
+	
+
+Context-dependent
+
+.cache
+	
+
+Cache-like
+	
+
+Context-dependent
+
+.sqlite
+	
+
+Database
+	
+
+Potentially critical
+
+.tmp
+	
+
+Temporary-like
+	
+
+Context-dependent
+
+.zip
+	
+
+Archive
+	
+
+Unknown
+
+These values are classification hints, not deletion permissions.
+
+More interesting is the artifact_patterns table.
+
+For a macOS-focused implementation, you might have a rule such as:
+
+{
+  "id": "macos_browser_thumbnail_cache",
+  "platform": "macos",
+  "owner": "known_browser",
+  "path_pattern": "{app_cache}/thumbnails/**",
+  "category": "regenerable_cache",
+  "default_risk": "low",
+  "preconditions": [
+    "recognized_application",
+    "verified_cache_location",
+    "application_not_running"
+  ],
+  "recommended_action": "trash",
+  "explanation": "Thumbnails can be regenerated."
+}
+
+This is a conceptual rule, not a verified path for a particular browser. Each application-specific rule needs testing.
+
+Your knowledge base can eventually cover hundreds of known artifact families without requiring hundreds of hardcoded branches in application logic.
+5. Predicting relevance with a scoring model
+
+For files that pass your protection checks, you can calculate a relevance score between 0 and 100.
+
+I'd start with these signals:
+
+Signal
+	
+
+Example
+	
+
+Interpretation
+
+File location
+	
+
+Downloads vs Documents
+	
+
+Downloads may have lower relevance
+
+Age
+	
+
+2 years old
+	
+
+Weak evidence of lower relevance
+
+Last observed usage
+	
+
+Opened recently
+	
+
+Strong evidence of relevance
+
+Type
+	
+
+Installer vs personal photo
+	
+
+Different baseline relevance
+
+Duplicate status
+	
+
+Exact verified duplicate
+	
+
+May offer a deletion opportunity
+
+Regenerability
+	
+
+Build output
+	
+
+Lower cost of replacement
+
+User behavior
+	
+
+Previously chose Keep
+	
+
+Strong evidence of relevance
+
+Folder context
+	
+
+Active project directory
+	
+
+Potentially higher relevance
+
+A first version could use a weighted score:
+R(f)=clamp⁡(B+∑iwixi, 0, 100)
+R(f)=clamp(B+i∑​wi​xi​,0,100)
+
+Where B
+B is a category-specific baseline, xi
+xi​ are normalized features, and wi
+wi​ are tunable weights.
+
+But I'd keep a separate deletion risk classification. The relevance score should never be treated as a probability that a file is safe to delete.
+
+A rough example:
+
+Example: old-installer.dmg
+Review candidate
+
+Downloads · 3.2 GB · Last modified 22 months ago
+
+Estimated relevance
+24/100
+
+Illustrative score, not a calibrated prediction.
+
+Why it's recommended
+
+Downloaded installer, generally replaceable
+
+Has not been modified in almost two years
+
+Original download availability has not been verified
+
+Potential savings: 3.2 GB, subject to filesystem allocation
+
+One complication: last-access timestamps are not reliable across operating systems and filesystems. For usage signals, treat missing timestamps as unknown, not evidence of disuse. You can improve this over time by tracking observed usage where the OS permits it.
+6. Recommendation categories
+
+I'd avoid automatically deleting anything until your app has demonstrated high precision.
+
+Regenerable cleanup
+
+Verified caches, temporary build artifacts and other disposable data, subject to application-specific safety checks. Potentially eligible for one-click cleanup.
+
+Recommended review
+
+Old installers, downloaded archives and verified duplicate files. User confirmation required.
+
+Inspect manually
+
+Old documents, large media collections and inactive project folders. Show size and context, but don't presume they are disposable.
+
+Protected
+
+OS files, application state, unknown databases, active projects, cloud-managed data and anything with unresolved dependency or permission concerns.
+
+For macOS specifically, Apple's file resource APIs expose useful information such as allocated size, whether a file is purgeable, and whether files may share content. These can help classification and storage estimation, but don't establish a general license to delete user data. 
+Apple Developer Documentation+1
+
+Use the OS Trash mechanism where practical, rather than permanently removing files. macOS exposes FileManager.trashItem(at:resultingItemURL:) for this. 
+Apple Developer Documentation
+7. What about machine learning?
+
+Once your rule-based system is working, this becomes an interesting supervised-learning problem.
+
+You can collect feedback such as:
+
+    User accepted a deletion recommendation.
+
+    User dismissed it.
+
+    User marked a directory as important.
+
+    User repeatedly retained certain file categories.
+
+    User restored a trashed file.
+
+Store this in a separate local SQLite database, along with inventory and recommendation history. Keep the shipped knowledge base independently versioned and updatable.
+
+Eventually, you can train a small model such as gradient-boosted trees or logistic regression to predict whether a user will accept a cleanup recommendation.
+
+That is a much more measurable target than trying to train a model to predict whether a file is objectively important.
+
+You could train offline and ship the model for local inference, without uploading private filenames or file contents. Importantly, deletion actions should remain subject to deterministic safety policies regardless of what the model predicts.
+8. How I would scope the MVP
+
+I'd implement it in this order:
+
+    Build a filesystem scanner collecting file type, path, logical and allocated size, timestamps, and filesystem attributes.
+
+    Ship a curated SQLite catalog of 30–50 well-understood artifact patterns for your target OS.
+
+    Implement a deterministic protection layer with explicit allowlists and denylists.
+
+    Add relevance scoring for user-review candidates.
+
+    Build duplicate detection using size grouping followed by cryptographic hashing, with care for hard links and filesystem clones.
+
+    Add an explainable recommendation interface and collect user feedback.
+
+One design detail I'd emphasize: build high precision before broad coverage. Failing to recommend 10 GB of removable files is frustrating. Recommending the deletion of one irreplaceable database could destroy trust in the entire application.
+
+Also, a file's logical size isn't necessarily the storage you'll recover. Hard links, copy-on-write clones, sparse files and snapshots can make estimated savings inaccurate.
+My recommendation
+
+I would create two engines, not one:
+
+Engine A — Known Artifact Classifier: Powered by your versioned SQLite knowledge base. Its job is to recognize known, regenerable or disposable files with strong evidence.
+
+Engine B — Personal Relevance Estimator: Powered initially by metadata heuristics and eventually by learned user preferences. Its job is to rank files for manual review, never to authorize deletion independently.
+
+This separation makes the system safer, testable, and extensible.
+
+One important question: Are you building this primarily for macOS, Windows, or both? The architecture remains similar, but the available metadata, OS protection mechanisms, and knowledge-base rules differ substantially.
+Is there an existing database / project that already implements what we want to build?
+
+Yes. There are several existing open-source projects that implement substantial parts of what you want. You probably don't need to build your cleanup knowledge base from scratch.
+
+The strongest matches are Winapp2.ini, BleachBit CleanerML, and Mole. They already encode knowledge about which files applications create, where those files live, and which ones are candidates for cleanup.
+Best existing projects
+
+Project
+	
+
+Platform
+	
+
+What you can reuse
+	
+
+Fit
+
+Winapp2.ini
+	
+
+Windows
+	
+
+Large database of application-specific cleanup rules
+	
+
+Excellent
+
+BleachBit CleanerML
+	
+
+Windows, Linux
+	
+
+Declarative cleanup definitions and rule structure
+	
+
+Excellent
+
+Mole
+	
+
+Primarily macOS
+	
+
+Cleanup heuristics, protective checks, developer artifacts
+	
+
+Excellent
+
+mac-cleanup-py
+	
+
+macOS
+	
+
+Application-specific cache and log cleanup modules
+	
+
+Very good
+
+Czkawka
+	
+
+Cross-platform
+	
+
+Duplicate detection, similarity, temporary files
+	
+
+Good
+
+Shared MIME database
+	
+
+Cross-platform concepts
+	
+
+File type identification using names and content signatures
+	
+
+Supporting data
+GitHub+5
+1. Winapp2.ini — closest to the database you're imagining
+
+This is particularly interesting.
+
+Winapp2.ini is an extensive, community-maintained collection of declarative cleanup rules for Windows applications.
+
+Its rules describe things like which application owns an artifact, where its temporary files or caches are located, and how to detect the application before offering cleanup.
+
+It is already consumed by multiple cleaners, including BleachBit and CCleaner. 
+GitHub+1
+
+In other words, it is essentially an existing file-cleanup knowledge base.
+2. BleachBit CleanerML — best reference for your rule engine
+
+BleachBit uses XML definitions rather than SQLite.
+
+Its rule format supports filesystem globbing, regular expressions, OS conditions, and specialized cleanup actions. Its community repository distinguishes released rules from rules still awaiting safety verification. 
+BleachBit Documentation+1
+
+I'd study both the definitions and the evaluation mechanism. This is a good foundation for designing your own SQLite schema.
+3. Mole — especially interesting for macOS
+
+Mole implements a broader set of cleanup decisions:
+
+    Identifying caches, logs, and orphaned application files.
+
+    Detecting regenerable developer artifacts such as node_modules and target.
+
+    Using file activity to avoid selecting recently used build artifacts.
+
+    Protecting paths and refusing operations when safety conditions cannot be verified.
+
+It also has dry-run support. 
+GitHub
+
+If you're targeting macOS, this is probably the first codebase I'd read.
+
+The open-source CLI is GPL-3.0; the separately distributed native Mac application is proprietary.
+What none of these fully solves
+
+These projects are good at identifying known disposable artifacts, but I haven't found a mature, general-purpose database that predicts the personal relevance of arbitrary user files.
+
+For example, they won't reliably tell you that Downloads/report-final.pdf is unimportant just because it hasn't been modified in three years.
+
+That prediction still requires your own relevance model and user feedback.
+How I'd use these projects
+
+Rather than choosing one, I'd build a unified SQLite catalog.
+Existing knowledge sources
+    |
+    +-- Winapp2.ini
+    +-- BleachBit CleanerML
+    +-- Mole cleanup rules
+    +-- mac-cleanup-py modules
+    +-- MIME type definitions
+    |
+    v
+Import + normalization pipeline
+    |
+    v
+Rule verification and safety tests
+    |
+    v
+cleanup-knowledge.sqlite
+    |
+    v
+Your recommendation engine
+    |
+    +-- Deterministic safety checks
+    +-- Metadata-based relevance scoring
+    +-- User-specific preferences
+
+Each normalized rule should retain its original source, license, supported OS/application versions, safety preconditions, and verification status. Don't assume upstream cleanup rules are automatically safe for your app to execute.
+Important licensing consideration
+
+This matters if you're distributing a commercial app:
+
+Project
+	
+
+License
+
+Winapp2.ini
+	
+
+CC BY-SA 4.0
+
+BleachBit CleanerML
+	
+
+GPL-3.0-or-later
+
+Mole CLI
+	
+
+GPL-3.0
+
+mac-cleanup-py
+	
+
+Apache-2.0
+
+Czkawka core
+	
+
+MIT
+GitHub+4
+
+Importing and redistributing these datasets or incorporating their code may trigger different attribution, sharing, or licensing obligations. Review those before bundling them into a proprietary SQLite database.
+Where I'd start
+
+If you're targeting macOS, I'd study Mole and mac-cleanup-py first. For Windows, Winapp2.ini is the clearest starting point. I'd use CleanerML as inspiration for the rule format on either platform.
+
+The interesting product opportunity isn't building another database of disposable file paths. Much of that already exists.
+
+It's building the intelligence on top of those rules: estimating relevance, explaining cleanup recommendations, respecting user preferences, and making decisions that don't accidentally destroy important data.
+
+That is where I'd concentrate the engineering effort.
+But im building for macos
+
+Then I'd narrow the search considerably. For macOS, I'd start with Mole and mac-cleanup-py. Both already contain knowledge about disposable files, caches, and application-generated artifacts.
+
+I would not start with Winapp2.ini, since that's predominantly Windows-specific.
+The three projects worth investigating
+Tw93 Mole | MAGI//ARCHIVE
+
+1. Mole — best technical reference
+
+Contains macOS cleanup logic for application caches, logs, developer build artifacts, orphaned application data, and protected paths. Its CLI includes dry-run and safety checks.
+
+GPL-3.0 · Rules implemented in shell code, not a standalone database
+mac-cleanup-py: el “limpiador” de macOS que apuesta por Python, módulos y transparencia (sin pagar por una app) - Appleismo
+
+2. mac-cleanup-py — best starting point for extraction
+
+Has separate cleanup modules for Chrome, Arc, Homebrew, Xcode, Docker, Gradle, npm, JetBrains, and many other tools. It's a practical source for your initial rules.
+
+Apache-2.0 · Python modules · More permissive licensing
+File:Bleachbit logo.svg - Wikimedia Commons
+
+3. BleachBit CleanerML — best declarative rule format
+
+Uses XML cleanup definitions. Importantly, macOS support has expanded significantly in October 2026, including Safari and third-party application cleaners.
+
+GPL-licensed project · XML rules · Emerging macOS support
+GitHub+3
+What I'd actually build
+
+You can normalize the applicable rules into your own SQLite knowledge base:
+cleanup_rules
+──────────────────────────────────
+id
+platform
+application_bundle_id
+path_pattern
+artifact_category
+regenerable
+minimum_age_days
+requires_app_closed
+risk_level
+rule_source
+verified_macos_version
+
+For example, the database could represent:
+
+Artifact
+	
+
+Suggested classification
+
+Xcode DerivedData
+	
+
+Regenerable build artifact
+
+Homebrew downloads cache
+	
+
+Regenerable cache
+
+Browser cache
+	
+
+Regenerable, app-specific
+
+Old .dmg in Downloads
+	
+
+Manual review
+
+iPhone local backup
+	
+
+Important user data
+
+Application Support SQLite DB
+	
+
+Protected by default
+
+These are starting classifications, not blanket permissions to delete.
+
+I'd use mac-cleanup-py as the initial source of candidate rules, investigate Mole's safety logic, then manually validate each rule before shipping it.
+
+One important macOS-specific issue: your app may need user-granted folder access or Full Disk Access for comprehensive scanning. A sandboxed app cannot assume access to other applications' data. 
+Apple Developer Documentation
+One gap remains
+
+None of these is a general file relevance database that can predict the importance of arbitrary user files.
+
+They primarily know what's technically disposable, whereas your product also wants to know what's unlikely to be needed again.
+
+I think there's a meaningful opportunity to combine an existing macOS cleanup-rule database with an independent relevance model.
+
+My recommendation: Start with a curated knowledge base extracted from mac-cleanup-py, and add your own metadata-based relevance predictions. Avoid GPL-derived rule copying unless you're comfortable with the licensing obligations.
+
+That gives you a practical foundation without spending months rediscovering macOS cache locations.
+I see. What do you mean by relevance model?
+
+By relevance model, I mean a system that predicts how likely a user is to need or care about a file in the future, based on its metadata and context.
+
+It's different from a cleanup-rule database.
+
+    Cleanup rules: Is this file technically safe to remove?
+
+    Relevance model: Is this file important enough that the user would want to keep it?
+
+For your macOS app, I'd use both.
+1. Example: Five files on someone's Mac
+
+Imagine your app discovers these files:
+
+File
+	
+
+Metadata
+	
+
+Estimated relevance
+
+Downloads/Chrome.dmg
+	
+
+2 years old, installer
+	
+
+Low
+
+Documents/Tax-2023.pdf
+	
+
+3 years old, document
+	
+
+High
+
+Downloads/video.mp4
+	
+
+8 months old, 4 GB
+	
+
+Unknown
+
+Projects/app/node_modules
+	
+
+Dependency directory
+	
+
+Low personal relevance
+
+Pictures/wedding.jpg
+	
+
+5 years old
+	
+
+High
+
+The key insight is that age alone doesn't determine relevance.
+
+A five-year-old wedding photograph could be irreplaceable. A two-day-old installer might be completely disposable.
+
+The model attempts to capture those differences.
+2. How the relevance model works
+
+Think of it as a function:
+R(f)=RelevanceScore(f,context)
+R(f)=RelevanceScore(f,context)
+
+It takes features about a file and produces a score.
+File metadata
+
+Location · extension · timestamps · size · duplicates · folder context
+
+Relevance model
+
+Weighted rules initially, learned model later
+15
+Low relevance
+55
+Uncertain
+95
+High relevance
+Illustrative scores on a 0–100 scale, not calibrated probabilities.
+3. You don't need machine learning initially
+
+I'd start with a simple weighted scoring function. Here's an illustrative set of factors:
+
+Feature
+	
+
+Possible score adjustment
+
+Located in Downloads
+	
+
+−10
+
+Known downloaded installer
+	
+
+−25
+
+Not modified for 12 months
+	
+
+−5
+
+Located in Documents
+	
+
++15
+
+Unique personal photograph
+	
+
++30
+
+Recently observed as opened
+	
+
++20
+
+Previously marked important by user
+	
+
++40
+
+Exact duplicate with verified retained copy
+	
+
+−15
+
+The values are examples, not empirically validated weights.
+
+You can also make the baseline depend on file category and avoid applying every rule to every file.
+
+For macOS, note that file modification time isn't the same as last-used time, and last-access timestamps can be unreliable. Missing access information should not lower relevance.
+4. Where machine learning becomes useful
+
+The interesting next step is personalization.
+
+Imagine two users:
+
+User A: Software engineer. Regularly downloads installers, generates build artifacts, and accumulates temporary project files.
+
+User B: Photographer. Downloads large images, edits them infrequently, and keeps old originals.
+
+The same file metadata may have very different meanings to these users.
+
+You could learn from explicit user feedback:
+
+    User approves a suggested cleanup.
+
+    User chooses Keep.
+
+    User marks an entire folder as important.
+
+    User restores something from Trash.
+
+After accumulating enough feedback, you could train a lightweight model (such as logistic regression or gradient-boosted trees) to estimate the likelihood that a user would accept a recommendation.
+
+This could run entirely on-device.
+5. An important distinction: relevance is not deletion safety
+
+Consider:
+
+~/Projects/my-app/node_modules
+
+Its personal relevance might be low because it can usually be regenerated.
+
+But deleting it could interrupt the user's active development workflow.
+
+So I would maintain three independent outputs:
+
+Dimension
+	
+
+Example
+
+Relevance
+	
+
+15/100
+
+Deletion risk
+	
+
+Medium
+
+Recoverability
+	
+
+High, if dependencies remain available
+
+Your recommendation engine combines these, but your safety checks determine whether deletion is even permitted.
+6. What I'd recommend for your MVP
+
+I would not build a predictive ML model yet.
+
+Instead, implement:
+
+    A SQLite knowledge base describing macOS file categories and known disposable artifacts.
+
+    A deterministic relevance scorer using location, type, age, and context.
+
+    A protection engine that blocks dangerous recommendations.
+
+    A feedback mechanism that records what users keep or remove.
+
+The most interesting longer-term question is whether the system can learn personal relevance without examining file contents.
+
+That's a valuable differentiator for a privacy-first Mac cleanup app.
+
+One thing I'd challenge, though: rather than immediately trying to predict relevance for every file on the disk, start by ranking large files in user-controlled locations such as Downloads, Documents, Movies, and Desktop. You'll get useful recommendations much sooner, with substantially less risk of harming the system.
+If we were to go with a machine learning model, what would I need to build one?
+
+For your macOS disk-cleanup app, I'd build a small supervised machine learning model trained on file metadata and user decisions.
+
+You don't need an LLM, embeddings, or a neural network. This is a classic tabular machine learning problem, and models like logistic regression or gradient-boosted trees are well suited to it.
+
+The biggest challenge is not building the model. It's obtaining the training data.
+
+Here's how I'd approach it as an actual engineering project.
+1. First, define what the model predicts
+
+I would avoid predicting something abstract like "file importance."
+
+Instead, define a measurable target:
+
+    Given a file and its metadata, what is the probability that the user would agree to remove it when presented with a cleanup recommendation?
+
+For example:
+
+File: Downloads/installer.dmg
+Example prediction
+Model output
+0.92
+
+Predicted acceptance probability
+Risk classification
+Low
+
+Determined separately by safety rules
+
+Illustrative output. The 0.92 would only represent a meaningful probability after calibration against real decisions.
+
+Crucially, this model doesn't determine whether deletion is technically safe. Your existing cleanup-rule database handles that.
+2. Decide which features to collect
+
+Every file becomes one row in a dataset.
+
+For your first model, I would use these features:
+
+Feature
+	
+
+Example
+	
+
+Why it matters
+
+Extension / UTType
+	
+
+.dmg, .pdf
+	
+
+Identifies file category
+
+Parent directory category
+	
+
+Downloads, Documents
+	
+
+Indicates intent
+
+File size
+	
+
+1.8 GB
+	
+
+Determines cleanup value
+
+Age since creation
+	
+
+420 days
+	
+
+Possible indicator of stale files
+
+Age since modification
+	
+
+300 days
+	
+
+Possible indicator of inactivity
+
+Last-used information
+	
+
+180 days
+	
+
+Evidence of usage
+
+Known artifact category
+	
+
+Installer, cache, archive
+	
+
+Indicates regenerability
+
+Duplicate status
+	
+
+Verified duplicate
+	
+
+Provides cleanup context
+
+Parent folder activity
+	
+
+Recently modified
+	
+
+Indicates potentially active work
+
+File origin
+	
+
+Browser download
+	
+
+Helps distinguish acquired vs created data
+
+On macOS, you can use Foundation filesystem resource keys and Spotlight metadata. For example, kMDItemLastUsedDate tracks some LaunchServices file-opening events, but it does not capture all possible access methods. 
+Apple Developer Documentation
+
+I'd represent unavailable last-used dates explicitly rather than treating them as very old.
+
+Avoid feeding raw absolute paths into the model. Instead of:
+
+/Users/alex/Work/clients/acme/2024/report.pdf
+
+extract categorical features such as:
+
+location=Documents, category=PDF, project_folder=true.
+
+This also helps preserve user privacy.
+3. The most difficult part: getting training labels
+
+A supervised model needs examples of what users actually choose.
+
+Your training data might look like this:
+
+Type
+	
+
+Location
+	
+
+Age
+	
+
+Size
+	
+
+User decision
+
+DMG
+	
+
+Downloads
+	
+
+800 days
+	
+
+1.2 GB
+	
+
+Delete
+
+PDF
+	
+
+Documents
+	
+
+700 days
+	
+
+4 MB
+	
+
+Keep
+
+ZIP
+	
+
+Downloads
+	
+
+500 days
+	
+
+2 GB
+	
+
+Delete
+
+MOV
+	
+
+Movies
+	
+
+400 days
+	
+
+8 GB
+	
+
+Keep
+
+PKG
+	
+
+Downloads
+	
+
+350 days
+	
+
+600 MB
+	
+
+Delete
+
+These labels are illustrative.
+
+You can encode explicit decisions as:
+
+    1 = User approved deletion.
+
+    0 = User explicitly chose to keep the file.
+
+    unknown = User skipped or never reviewed the file.
+
+Do not interpret an ignored recommendation as a negative label.
+
+There are three ways to bootstrap this.
+
+Approach A: Manually labeled dataset. Scan your own machine and a few test machines, have their owners label cleanup candidates, and train a proof-of-concept model. A few hundred examples can validate the pipeline, but won't establish broad accuracy.
+
+Approach B: Heuristic pretraining. Use the macOS cleanup rules from Mole and mac-cleanup-py to generate initial category labels. This can teach a classifier to approximate established rules, but not genuine personal relevance. Don't mistake these synthetic labels for user behavior.
+
+Approach C: Collect actual user feedback. Once your app is usable, capture decisions from its recommendation interface. This is where your most valuable data will come from.
+
+I'd combine A and C, using B primarily for deterministic classification.
+4. Which ML algorithm should you choose?
+
+These are the three I'd evaluate.
+
+Model
+	
+
+Advantages
+	
+
+Disadvantages
+
+Logistic regression
+	
+
+Fast, small, interpretable
+	
+
+Limited nonlinear interactions
+
+Random forest
+	
+
+Handles nonlinear relationships
+	
+
+Larger, potentially less well calibrated
+
+Gradient-boosted trees
+	
+
+Strong for tabular data and feature interactions
+	
+
+More complex to tune and deploy
+
+I'd start with logistic regression as a baseline, then experiment with CatBoost or another gradient-boosted tree model.
+
+Your features involve interactions. A year-old DMG in Downloads is very different from a year-old PDF in Documents. Tree-based models often capture these interactions effectively.
+
+You can train these models with Python using scikit-learn or CatBoost. CatBoost also provides direct Core ML export for models trained on numerical features; models with native categorical features have export limitations, so plan your preprocessing accordingly. 
+CatBoost+1
+5. Training and deployment architecture
+
+MODEL DEVELOPMENT
+
+Labeled dataset
+Metadata + explicit user decisions
+
+Python training pipeline
+Feature processing + model + evaluation
+
+Export model to Core ML
+Small model bundled with the macOS app
+
+ON USER'S MAC
+
+Filesystem scanner
+
+SQLite knowledge base
+
+Core ML relevance predictor
+
+Safety filter + ranked recommendations
+
+Apple supports local model inference with Core ML. You can also train tabular classifiers with Apple's Create ML rather than Python if you prefer staying within the Swift ecosystem. 
+Apple Developer Documentation+1
+
+An important advantage: the user's file inventory doesn't have to leave their Mac.
+
+For personalization, you could store local decisions and eventually train a lightweight user-specific model. A global model trained using opt-in data from multiple users would improve cold-start recommendations, but isn't necessary for your first release.
+6. How much data do you need?
+
+There isn't a universal minimum. I'd use these as planning estimates, not accuracy guarantees.
+
+Stage
+	
+
+Suggested data
+	
+
+Purpose
+
+Prototype
+	
+
+200–500 labeled decisions
+	
+
+Verify end-to-end pipeline
+
+Initial experiments
+	
+
+2,000–5,000 decisions
+	
+
+Compare features and models
+
+Broader validation
+	
+
+10,000+ decisions across users
+	
+
+Evaluate generalization
+
+Diversity matters more than raw record count. Ten thousand decisions from one developer's Mac would be a poor representation of the general Mac population.
+
+And because users will often approve obvious cleanup candidates, the dataset could be highly imbalanced.
+
+I'd evaluate using precision and recall, plus ranking metrics such as precision@10, rather than accuracy alone. Use time-separated and user-separated test sets so the model isn't merely memorizing one person's cleanup habits.
+
+The most important product metrics would be:
+
+    How often users accept the top recommendations.
+
+    How often users explicitly reject them.
+
+    Whether users restore anything after deletion.
+
+    How much actual storage is recovered.
+
+    Whether recommendations remain useful for new users.
+
+Restoration is a valuable warning signal, but neither restoration nor approval alone proves a recommendation was safe.
+7. How I would structure your SQLite databases
+
+I'd maintain two separate SQLite databases.
+
+cleanup_knowledge.sqlite — shipped with the app, containing curated cleanup rules, file categories, and protective rules.
+
+user_relevance.sqlite — stored locally on each Mac, containing file observations, recommendations, and explicit feedback.
+
+The key feedback table could be:
+
+CREATE TABLE file_decisions (
+    id INTEGER PRIMARY KEY,
+    file_observation_id TEXT NOT NULL,
+    decision TEXT NOT NULL,
+    model_version TEXT,
+    presented_at TEXT NOT NULL,
+    decided_at TEXT,
+    CHECK (decision IN (
+        'keep',
+        'delete',
+        'skip',
+        'restored'
+    ))
+);
+
+You'd also persist a snapshot of the file's features at the time of recommendation. Otherwise, retraining could accidentally use metadata collected after the user's decision.
+8. What I would build first
+
+If this were my project, I'd use the following development sequence:
+
+1
+
+Build metadata extraction
+
+Create a consistent feature vector for every scanned file.
+
+2
+
+Collect real labels
+
+Build a review interface with Keep, Delete, and Skip actions.
+
+3
+
+Train a baseline
+
+Start with logistic regression and compare against your heuristic scorer.
+
+4
+
+Evaluate conservatively
+
+Test on held-out users and time periods, then calibrate probabilities.
+
+5
+
+Deploy on-device
+
+Export a Core ML model and combine predictions with mandatory safety checks.
+One more idea: build a ranking model, not just a classifier
+
+Your actual product goal is not necessarily to identify every irrelevant file.
+
+It's to present the user with the best cleanup opportunities first.
+
+You could eventually rank candidates according to:
+U(f)=P(approval∣f)×RecoverableBytes(f)
+U(f)=P(approval∣f)×RecoverableBytes(f)
+
+That's a simplified expected-value formulation. You'd still account for deletion risk and the inconvenience of restoring or regenerating files, with hard safety exclusions applied first.
+
+For example, a 4 GB installer with 80% predicted approval might be more valuable to recommend than 100 tiny temporary files with 99% approval.
+
+This changes the ML problem from just classification to a practical recommendation and ranking system.
+
+My recommendation: Build a small Core ML classifier using metadata and explicit user-feedback labels, and keep your SQLite rule database as the independent safety and artifact-classification layer. Your first milestone should be proving that a trained model ranks cleanup candidates better than a simple weighted heuristic.
+
+The question I would investigate next is how to bootstrap a useful model before you've acquired users. That's likely the hardest and most consequential part of the entire design.

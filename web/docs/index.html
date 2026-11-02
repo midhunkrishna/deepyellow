@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>DeepYellow documentation | DeepYellow docs</title>
-<meta name="description" content="DeepYellow is a native macOS disk analyzer. It shows where your space went, tells you what each thing is and what removing it would cost, and moves only what you choose to the Tras">
+<meta name="description" content="DeepYellow is a native macOS disk analyzer. It shows where your space went and tells you what each thing is and what removing it would cost. The only things it moves to the Trash a">
 <meta name="theme-color" content="#0E0D0B">
 <link rel="icon" href="../favicon.png">
 <link rel="apple-touch-icon" href="../images/icon.png">
@@ -51,7 +51,7 @@
   </nav>
   <main id="main" class="prose">
 <h1 id="deepyellow-documentation">DeepYellow documentation</h1>
-<p>DeepYellow is a native macOS disk analyzer. It shows where your space went, tells you what each thing is and what removing it would cost, and moves only what you choose to the Trash. These pages are the full manual.</p>
+<p>DeepYellow is a native macOS disk analyzer. It shows where your space went and tells you what each thing is and what removing it would cost. The only things it moves to the Trash are the ones you choose. These pages are the full manual.</p>
 <h2 id="start-here">Start here <a class="anchor" href="#start-here" aria-label="Link to this section">#</a></h2>
 <table>
 <thead><tr><th>Page</th><th>What it covers</th></tr></thead>
@@ -66,10 +66,10 @@
 <tbody>
 <tr><td><a href="views.html">Views</a></td><td>Map, Things, Spectrum, Field, Rings, Browse, Reclaim, Review, colour modes, keyboard</td></tr>
 <tr><td><a href="query-language.html">Query language</a></td><td><code>size&gt;100mb age&gt;1y kind:video</code> and every other term</td></tr>
-<tr><td><a href="sql.html">SQL</a></td><td>Ask your disk a question in SQL; the answer becomes what every view shows</td></tr>
+<tr><td><a href="sql.html">SQL</a></td><td>Ask your disk a question in SQL, and the answer becomes what every view shows</td></tr>
 <tr><td><a href="safety-and-accounting.html">Safety and accounting</a></td><td>Tiers, staged decisions, the Plan, Trash and undo, the Ledger, Full Disk Access</td></tr>
 <tr><td><a href="reclaim-rules.html">Reclaim rules</a></td><td>Every built-in rule: pattern, tier, consequence, side condition, command</td></tr>
-<tr><td><a href="cli.html">Command line</a></td><td><code>deepyellow things</code>, <code>reclaim</code>, <code>spectrum</code>, <code>dupes</code>, <code>sql</code>; read-only by design</td></tr>
+<tr><td><a href="cli.html">Command line</a></td><td><code>deepyellow things</code>, <code>reclaim</code>, <code>spectrum</code>, <code>dupes</code>, <code>sql</code>, read-only by design</td></tr>
 </tbody></table>
 <h2 id="building-and-maintaining">Building and maintaining <a class="anchor" href="#building-and-maintaining" aria-label="Link to this section">#</a></h2>
 <table>
@@ -81,16 +81,16 @@
 </tbody></table>
 <h2 id="the-short-version">The short version <a class="anchor" href="#the-short-version" aria-label="Link to this section">#</a></h2>
 <ul>
-<li><strong>Gold means reclaimable.</strong> Deep yellow is used for one meaning: space you could get back.</li>
+<li><strong>Gold means reclaimable.</strong> Deep yellow is used for a single meaning, which is space you could get back.</li>
 <li><strong>Nothing is removed without a Plan.</strong> Apply only ever moves items to the Trash, and one step undoes it.</li>
-<li><strong>No network code, no telemetry, no AI.</strong> Advice comes from a rule table and measured facts. You decide.</li>
+<li><strong>No network code, no telemetry, no AI.</strong> Advice comes from a rule table and measured facts, and the decision stays with you.</li>
 <li><strong>Open source, MIT.</strong> Source: <a href="https://github.com/midhunkrishna/deepyellow">github.com/midhunkrishna/deepyellow</a>.</li>
 </ul>
 <nav class="pager" aria-label="Pages"><span></span><a href="getting-started.html">Getting started &rarr;</a></nav>
   </main>
 </div>
 <footer class="foot"><div class="wrap">
-  <p>DeepYellow is a native macOS disk analyzer, MIT licence. <a href="../index.html">Home</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow">Source</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/releases">Releases</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/edit/master/docs/README.md">Edit this page</a></p>
+  <p>DeepYellow is a native macOS disk analyzer, MIT license. <a href="../index.html">Home</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow">Source</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/releases">Releases</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/edit/master/docs/README.md">Edit this page</a></p>
 </div></footer>
 <div class="ledger" role="complementary" aria-label="Page ledger"><div class="wrap">
   <span class="lab">LEDGER</span>

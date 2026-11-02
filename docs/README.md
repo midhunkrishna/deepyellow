@@ -1,6 +1,6 @@
 # DeepYellow documentation
 
-DeepYellow is a native macOS disk analyzer. It shows where your space went, tells you what each thing is and what removing it would cost, and moves only what you choose to the Trash. These pages are the full manual.
+DeepYellow is a native macOS disk analyzer. It shows where your space went and tells you what each thing is and what removing it would cost. The only things it moves to the Trash are the ones you choose. These pages are the full manual.
 
 ## Start here
 
@@ -16,10 +16,10 @@ DeepYellow is a native macOS disk analyzer. It shows where your space went, tell
 |---|---|
 | [Views](views.md) | Map, Things, Spectrum, Field, Rings, Browse, Reclaim, Review, colour modes, keyboard |
 | [Query language](query-language.md) | `size>100mb age>1y kind:video` and every other term |
-| [SQL](sql.md) | Ask your disk a question in SQL; the answer becomes what every view shows |
+| [SQL](sql.md) | Ask your disk a question in SQL, and the answer becomes what every view shows |
 | [Safety and accounting](safety-and-accounting.md) | Tiers, staged decisions, the Plan, Trash and undo, the Ledger, Full Disk Access |
 | [Reclaim rules](reclaim-rules.md) | Every built-in rule: pattern, tier, consequence, side condition, command |
-| [Command line](cli.md) | `deepyellow things`, `reclaim`, `spectrum`, `dupes`, `sql`; read-only by design |
+| [Command line](cli.md) | `deepyellow things`, `reclaim`, `spectrum`, `dupes`, `sql`, read-only by design |
 
 ## Building and maintaining
 
@@ -31,7 +31,7 @@ DeepYellow is a native macOS disk analyzer. It shows where your space went, tell
 
 ## The short version
 
-- **Gold means reclaimable.** Deep yellow is used for one meaning: space you could get back.
+- **Gold means reclaimable.** Deep yellow is used for a single meaning, which is space you could get back.
 - **Nothing is removed without a Plan.** Apply only ever moves items to the Trash, and one step undoes it.
-- **No network code, no telemetry, no AI.** Advice comes from a rule table and measured facts. You decide.
+- **No network code, no telemetry, no AI.** Advice comes from a rule table and measured facts, and the decision stays with you.
 - **Open source, MIT.** Source: [github.com/midhunkrishna/deepyellow](https://github.com/midhunkrishna/deepyellow).

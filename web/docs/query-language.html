@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Query language | DeepYellow docs</title>
-<meta name="description" content="One small language, used everywhere. Press &lt;kbd&gt;/&lt;/kbd&gt; to type a query. It filters every view live, and brushing in Spectrum or Field writes into it, so the filter is always visib">
+<meta name="description" content="There is one small language, and it is used everywhere. Press &lt;kbd&gt;/&lt;/kbd&gt; to type a query. It filters every view live, and brushing in Spectrum or Field writes into it, so the fil">
 <meta name="theme-color" content="#0E0D0B">
 <link rel="icon" href="../favicon.png">
 <link rel="apple-touch-icon" href="../images/icon.png">
@@ -51,11 +51,11 @@
   </nav>
   <main id="main" class="prose">
 <h1 id="query-language">Query language</h1>
-<p>One small language, used everywhere. Press <kbd>/</kbd> to type a query. It filters every view live, and brushing in <a href="views.html#spectrum">Spectrum</a> or <a href="views.html#field">Field</a> writes into it, so the filter is always visible and editable.</p>
+<p>There is one small language, and it is used everywhere. Press <kbd>/</kbd> to type a query. It filters every view live, and brushing in <a href="views.html#spectrum">Spectrum</a> or <a href="views.html#field">Field</a> writes into it, so the filter is always visible and editable.</p>
 <pre><code>size&gt;100mb age&gt;1y kind:video -path:Photos ext:mov,mp4 is:clone mark:remove safe:safe</code></pre>
-<p>A query is a list of terms separated by spaces. A file must match <strong>all</strong> of them. Put a <code>-</code> in front of a term to negate it. Wrap text that contains spaces in double quotes: <code>path:"Application Support"</code>. At most 24 terms are used.</p>
+<p>A query is a list of terms separated by spaces, and a file must match <strong>all</strong> of them. Put a <code>-</code> in front of a term to negate it. Wrap text that contains spaces in double quotes, for example <code>path:"Application Support"</code>. At most 24 terms are used.</p>
 <h2 id="query-or-sql">Query or SQL <a class="anchor" href="#query-or-sql" aria-label="Link to this section">#</a></h2>
-<p>The query is the quick filter that works in every view as you type. For joins, grouping, sums and calculations, use <a href="sql.html">SQL</a>: a SQL result with an <code>id</code> column becomes the set every view shows. They combine, and a node must match both.</p>
+<p>The query is the quick filter that works in every view as you type. For joins, grouping, sums and calculations we use <a href="sql.html">SQL</a>, where a result with an <code>id</code> column becomes the set every view shows. The two combine, and a node must match both.</p>
 <h2 id="terms">Terms <a class="anchor" href="#terms" aria-label="Link to this section">#</a></h2>
 <table>
 <thead><tr><th>Term</th><th>Matches</th></tr></thead>
@@ -84,7 +84,7 @@
 <tbody>
 <tr><td><code>b</code>, <code>kb</code>, <code>mb</code>, <code>gb</code>, <code>tb</code> (decimal, 1 kb = 1,000 bytes)</td><td><code>s</code> seconds, <code>h</code> hours, <code>d</code> days, <code>w</code> weeks, <code>m</code> months (30 days), <code>y</code> years (365 days)</td></tr>
 </tbody></table>
-<p>A bare number for a size is bytes. A bare number for an age is days. Decimals work: <code>size&gt;1.5gb</code>.</p>
+<p>A bare number for a size is bytes, and a bare number for an age is days. Decimals work, for example <code>size&gt;1.5gb</code>.</p>
 <h2 id="kinds">Kinds <a class="anchor" href="#kinds" aria-label="Link to this section">#</a></h2>
 <table>
 <thead><tr><th>Name</th><th>Also accepted</th></tr></thead>
@@ -98,7 +98,7 @@
 <tr><td><code>archive</code></td><td><code>archives</code>, <code>disk</code>, <code>disks</code></td></tr>
 <tr><td><code>other</code></td><td></td></tr>
 </tbody></table>
-<p>Kinds come from the file extension, from macOS type information, and, for files that would otherwise be <code>other</code>, from a look at the first bytes of the file. See <a href="architecture.html#kinds-without-guessing">Architecture</a>.</p>
+<p>Kinds come from the file extension and from macOS type information. For files that would otherwise be <code>other</code>, they come from a look at the first bytes of the file. See <a href="architecture.html#kinds-without-guessing">Architecture</a>.</p>
 <h2 id="examples">Examples <a class="anchor" href="#examples" aria-label="Link to this section">#</a></h2>
 <table>
 <thead><tr><th>Goal</th><th>Query</th></tr></thead>
@@ -111,12 +111,12 @@
 <tr><td>Large files I have not opened in half a year</td><td><code>size&gt;500mb opened&gt;6m</code></td></tr>
 </tbody></table>
 <h2 id="mistakes">Mistakes <a class="anchor" href="#mistakes" aria-label="Link to this section">#</a></h2>
-<p>A term that cannot be understood is ignored and listed under the query bar, for example "unknown kind" or "bad size unit". The rest of the query still applies.</p>
+<p>If a term cannot be understood, it is ignored and listed under the query bar, for example "unknown kind" or "bad size unit". The rest of the query still applies.</p>
 <nav class="pager" aria-label="Pages"><a href="views.html">&larr; Views</a><a href="safety-and-accounting.html">Safety and accounting &rarr;</a></nav>
   </main>
 </div>
 <footer class="foot"><div class="wrap">
-  <p>DeepYellow is a native macOS disk analyzer, MIT licence. <a href="../index.html">Home</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow">Source</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/releases">Releases</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/edit/master/docs/query-language.md">Edit this page</a></p>
+  <p>DeepYellow is a native macOS disk analyzer, MIT license. <a href="../index.html">Home</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow">Source</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/releases">Releases</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/edit/master/docs/query-language.md">Edit this page</a></p>
 </div></footer>
 <div class="ledger" role="complementary" aria-label="Page ledger"><div class="wrap">
   <span class="lab">LEDGER</span>

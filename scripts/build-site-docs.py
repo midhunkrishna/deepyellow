@@ -264,7 +264,7 @@ PAGE = """<!DOCTYPE html>
   </main>
 </div>
 <footer class="foot"><div class="wrap">
-  <p>DeepYellow is a native macOS disk analyzer, MIT licence. <a href="../index.html">Home</a> &middot; <a href="{repo}">Source</a> &middot; <a href="{repo}/releases">Releases</a> &middot; <a href="{repo}/edit/master/docs/{source}">Edit this page</a></p>
+  <p>DeepYellow is a native macOS disk analyzer, MIT license. <a href="../index.html">Home</a> &middot; <a href="{repo}">Source</a> &middot; <a href="{repo}/releases">Releases</a> &middot; <a href="{repo}/edit/master/docs/{source}">Edit this page</a></p>
 </div></footer>
 <div class="ledger" role="complementary" aria-label="Page ledger"><div class="wrap">
   <span class="lab">LEDGER</span>

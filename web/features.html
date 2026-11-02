@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Features: DeepYellow</title>
-<meta name="description" content="Seven lenses, a Ledger that reconciles every byte, tiered safety advice, and a Plan that only moves to the Trash.">
+<meta name="description" content="Seven ways to look at your disk, a Ledger that reconciles every byte, tiered safety advice, and a Plan that only moves things to the Trash.">
 <meta name="theme-color" content="#0E0D0B">
 <link rel="icon" href="favicon.png">
 <link rel="apple-touch-icon" href="images/icon.png">
@@ -28,8 +28,8 @@
 <main id="main">
 <div class="wrap hero" style="padding-bottom:8px">
   <div class="eyebrow">Features</div>
-  <h1 style="max-width:20ch">An instrument for your disk.</h1>
-  <p class="lede">Seven lenses read the same data and share one selection and one query. Dark only, GPU-drawn on demand, native Swift. Screenshots are the real app on a built-in demo disk.</p>
+  <h1 style="max-width:20ch">What is in the app.</h1>
+  <p class="lede">There are seven lenses, which is what I call the different ways of looking at your disk. They all read the same data and share one selection and one query. The app is dark only and native Swift, and it draws on the GPU only when something changes. All the screenshots are of the real app on a built-in demo disk.</p>
   <div class="cta-row"><a class="btn primary" href="https://github.com/midhunkrishna/deepyellow/releases/latest/download/DeepYellow.dmg">Download for macOS</a><a class="btn" href="docs/getting-started.html">Getting started</a></div>
 </div>
 <section id="map">
@@ -37,19 +37,19 @@
     <div>
       <div class="eyebrow">1 &middot; Map</div>
       <h2>Where did it all go?</h2>
-      <p class="sub">A continuously zoomable treemap with labels on tiles and nested folder headers. Layout is fixed in world space, so zooming never reflows and you keep your bearings. Tiles too small to see merge into a stippled <b>dust</b> tile per folder, labelled with its count and size, and zooming into dust keeps going.</p><p class="sub">Press <kbd>m</kbd> to switch between bytes and file count: swarms that are invisible by bytes become giants by count.</p>
+      <p class="sub">This is a treemap you can keep zooming into, with labels on the tiles and nested folder headers. The layout is fixed in world space, so zooming doesn't reflow anything and you don't lose your bearings. Tiles too small to see merge into a stippled <b>dust</b> tile for each folder, labeled with its count and size, and if you zoom into the dust it keeps going.</p><p class="sub">Press <kbd>m</kbd> to switch between bytes and file count. A swarm of small files that you can't see by bytes turns into a giant by count.</p>
     </div>
-    <figure><img src="images/app-map.webp" alt="The Map lens on the demo disk" width="1600" height="1000" loading="lazy"><figcaption>Map, coloured by kind.</figcaption></figure>
+    <figure><img src="images/app-map.webp" alt="The Map lens on the demo disk" width="1600" height="1000" loading="lazy"><figcaption>The Map, colored by kind.</figcaption></figure>
   </div>
 </section>
 <section id="files" class="alt">
   <div class="wrap split flip">
     <div>
-      <div class="eyebrow">Honest dust</div>
-      <h2>Small files are never dropped.</h2>
-      <p class="sub">Most tools drop or grey out small files, which makes the picture quietly wrong. Here they are counted, shown, and resolve into tiles as you zoom. The metric switch makes the point: the same folder by bytes and by file count.</p>
+      <div class="eyebrow">Small files</div>
+      <h2>What about all the small files?</h2>
+      <p class="sub">Now this is tricky, because there could be a massive number of them. Most tools drop small files or gray them out, which makes the picture wrong without telling you. Here they are counted and shown, and they resolve into tiles as you zoom in. To see the difference, look at the same folder by bytes and then by file count.</p>
     </div>
-    <figure><img src="images/app-map-files.webp" alt="The Map lens in file-count metric" width="1600" height="1000" loading="lazy"><figcaption>Map in file-count metric: where the swarms are.</figcaption></figure>
+    <figure><img src="images/app-map-files.webp" alt="The Map lens in file-count metric" width="1600" height="1000" loading="lazy"><figcaption>The Map by file count, which shows where the swarms are.</figcaption></figure>
   </div>
 </section>
 <section id="things-lens">
@@ -57,9 +57,9 @@
     <div>
       <div class="eyebrow">2 &middot; Things</div>
       <h2>What are the biggest things?</h2>
-      <p class="sub">A ranked list cut at a size threshold rather than a depth, with a granularity slider and a cumulative-share rail. Files and folders are peers, the list is disjoint, and it adds up to the total. <a href="docs/views.html#things">Details</a></p>
+      <p class="sub">This is a ranked list that is cut at a size threshold rather than a depth, with a slider for the level of detail and a rail showing the cumulative share. Files and folders sit next to each other, nothing appears twice, and it all adds up to the total. <a href="docs/views.html#things">Details</a></p>
     </div>
-    <figure><img src="images/app-things.webp" alt="The Things lens: ranked list with a granularity slider" width="1600" height="1000" loading="lazy"><figcaption>Things: one slider from a dozen things to thousands.</figcaption></figure>
+    <figure><img src="images/app-things.webp" alt="The Things lens: ranked list with a granularity slider" width="1600" height="1000" loading="lazy"><figcaption>One slider, from a dozen things to thousands.</figcaption></figure>
   </div>
 </section>
 <section id="spectrum" class="alt">
@@ -67,9 +67,9 @@
     <div>
       <div class="eyebrow">3 &middot; Spectrum and 4 &middot; Field</div>
       <h2>What shape is my disk? What is old, big and forgotten?</h2>
-      <p class="sub"><b>Spectrum</b> shows count and bytes per size range as separate small multiples, plus a cumulative curve that answers "how many items hold 80% of my disk". <b>Field</b> plots every file as a point of light, age against size. Brush either one and the query updates, so it stays visible and editable.</p>
+      <p class="sub"><b>Spectrum</b> shows count and bytes per size range as separate small multiples, along with a cumulative curve that answers "how many items hold 80% of my disk?". <b>Field</b> plots every file as a point of light, age against size. If you brush either one the query updates, so what you selected stays visible and you can edit it.</p>
     </div>
-    <figure><img src="images/app-field.webp" alt="The Field lens: age against size" width="1600" height="1000" loading="lazy"><figcaption>Field: the old and big corner is where the gold is.</figcaption></figure>
+    <figure><img src="images/app-field.webp" alt="The Field lens: age against size" width="1600" height="1000" loading="lazy"><figcaption>The Field. The old and big corner is where the gold is.</figcaption></figure>
   </div>
 </section>
 <section id="rings">
@@ -77,7 +77,7 @@
     <div>
       <div class="eyebrow">5 &middot; Rings and 6 &middot; Browse</div>
       <h2>How is it nested? Where is that thing I know?</h2>
-      <p class="sub"><b>Rings</b> is a sunburst for structure; read sizes from labels and the hover card. <b>Browse</b> is Miller columns with inline size bars, fully keyboard-driven, for people who think in Finder.</p>
+      <p class="sub"><b>Rings</b> is a sunburst that is there for the structure, so read the sizes from the labels and the hover card. <b>Browse</b> is Miller columns with inline size bars, fully keyboard-driven, for those of us who think in Finder.</p>
     </div>
     <figure><img src="images/app-rings.webp" alt="The Rings lens: a sunburst" width="1600" height="1000" loading="lazy"><figcaption>Rings. Browse is one key away: <kbd>6</kbd>.</figcaption></figure>
   </div>
@@ -87,17 +87,17 @@
     <div>
       <div class="eyebrow">7 &middot; Reclaim</div>
       <h2>What can I remove safely?</h2>
-      <p class="sub">Rule families grouped by tier. Each shows what the place is, what removing it costs, any condition such as "close Xcode first", and the official cleanup command where one exists. Commands are shown, never run. One decision can cover hundreds of items. Duplicates and leftovers of apps that are gone live here too.</p><p class="sub">Tiers are <b>safe</b>, <b>rebuild</b>, <b>review</b> and <b>never offered</b>, and uncertain always means review. <a href="docs/reclaim-rules.html">Every rule, with its source</a></p>
+      <p class="sub">Rules are grouped into families by tier. Each family tells you what the place is, what removing it costs, any condition such as "close Xcode first", and the official cleanup command where one exists. The commands are only shown, and the app never runs them. One decision can cover hundreds of items, and duplicates and leftovers of apps that are gone live here too.</p><p class="sub">The tiers are <b>safe</b>, <b>rebuild</b>, <b>review</b> and <b>never offered</b>, and if there is any uncertainty the answer is always review. <a href="docs/reclaim-rules.html">Every rule, with its source</a></p>
     </div>
-    <figure><img src="images/app-reclaim.webp" alt="The Reclaim lens: rule families grouped by tier" width="1600" height="1000" loading="lazy"><figcaption>Reclaim: consequence first.</figcaption></figure>
+    <figure><img src="images/app-reclaim.webp" alt="The Reclaim lens: rule families grouped by tier" width="1600" height="1000" loading="lazy"><figcaption>Reclaim, with the consequence up front.</figcaption></figure>
   </div>
 </section>
 <section id="review">
   <div class="wrap split">
     <div>
       <div class="eyebrow">Review and Plan</div>
-      <h2>Decide like a photo editor. Apply is a diff.</h2>
-      <p class="sub"><kbd>k</kbd> keep, <kbd>x</kbd> remove, <kbd>l</kbd> later, from any view. Review takes the current set full screen with a preview and a backlog that shrinks to zero. Decisions persist across scans, and an item changed after you judged it is flagged and skipped.</p><p class="sub">Apply opens the Plan: the exact roots to move to the Trash, what is protected inside them, what is blocked and why, and an honest estimate. One step undoes it. The scan root, your home folder, system folders and protected items can never be planned for removal.</p>
+      <h2>Going through files the way you go through photos.</h2>
+      <p class="sub"><kbd>k</kbd> keeps, <kbd>x</kbd> removes and <kbd>l</kbd> leaves it for later, from any view. Review takes the current set full screen, with a preview and a backlog that shrinks to zero. Decisions carry across scans, and if an item changes after you judged it, it gets flagged and skipped.</p><p class="sub">When you apply, you get the Plan and not a stack of "Are you sure?" dialogs. It lists the exact roots to move to the Trash, what is protected inside them, what is blocked and why, and an estimate of what you get back. One step undoes it. The scan root, your home folder, system folders and protected items can never be planned for removal.</p>
     </div>
     <figure><img src="images/app-plan.webp" alt="The Plan sheet" width="1600" height="1000" loading="lazy"><figcaption>The Plan lists everything before anything moves.</figcaption></figure>
   </div>
@@ -107,7 +107,7 @@
     <div>
       <div class="eyebrow">The Ledger</div>
       <h2>Every byte accounted for.</h2>
-      <p class="sub">One bar for the whole volume: visible, hidden, unreadable, free. Hidden never means gone: ignore rules hide things from views but not from accounting, and the Ledger shows what each rule hides. Click it for the reconciliation: logical against allocated, hard-link and clone savings, snapshots and purgeable space, and a labelled remainder, including why the total differs from Finder.</p>
+      <p class="sub">This is one bar for the whole volume: visible, hidden, unreadable and free. Hidden doesn't mean gone, since ignore rules hide things from the views but not from the accounting, and the Ledger shows what each rule hides. If you click it you get the reconciliation, which covers logical against allocated size, hard-link and clone savings, snapshots and purgeable space, and a labeled remainder. It also tells you why the total differs from Finder.</p>
     </div>
     <figure><img src="images/app-ledger.webp" alt="The Ledger reconciliation" width="1600" height="1000" loading="lazy"><figcaption>The Ledger.</figcaption></figure>
   </div>
@@ -116,20 +116,20 @@
   <div class="wrap split flip">
     <div>
       <div class="eyebrow">SQL</div>
-      <h2>Ask a question. Every view answers.</h2>
-      <p class="sub">Press <kbd>s</kbd> for the SQL drawer. A result with an <code>id</code> column becomes the set that Map, Things, Spectrum, Field and Rings all show: <code>SELECT id ... LIMIT 20</code> turns each of them into just those 20 files. Add <code>ids(id)</code> to a <code>GROUP BY</code> and you can click a group to narrow to it. Without an <code>id</code> the result is a table and the views stay as they are.</p>
-      <p class="sub">It is SQLite's <code>SELECT</code> dialect and it is read-only: writes are refused, and SQL never marks or removes anything. Marks still go through selection and <kbd>k</kbd> <kbd>x</kbd> <kbd>l</kbd> <kbd>u</kbd>. Folders bring their whole subtree, and results combine with the <kbd>/</kbd> query. <a href="docs/sql.html">SQL in the docs</a></p>
+      <h2>Asking a question in SQL.</h2>
+      <p class="sub">Press <kbd>s</kbd> for the SQL drawer. A result with an <code>id</code> column becomes the set that Map, Things, Spectrum, Field and Rings all show, so <code>SELECT id ... LIMIT 20</code> turns each of them into just those 20 files. If you add <code>ids(id)</code> to a <code>GROUP BY</code>, you can click a group to narrow down to it. Without an <code>id</code> the result is a table and the views stay as they are.</p>
+      <p class="sub">It is SQLite's <code>SELECT</code> dialect and it is read-only, so writes are refused and SQL never marks or removes anything. Marks still go through selection and <kbd>k</kbd> <kbd>x</kbd> <kbd>l</kbd> <kbd>u</kbd>. Folders bring their whole subtree along, and results combine with the <kbd>/</kbd> query. <a href="docs/sql.html">SQL in the docs</a></p>
     </div>
     <figure><img src="images/app-sql-map.webp" alt="The Map narrowed to the biggest files by a SQL result" width="1600" height="1000" loading="lazy"><figcaption>The Map, narrowed by a SQL result.</figcaption></figure>
   </div>
 </section>
 <section id="sql-groups" class="alt">
   <div class="wrap split">
-    <figure><img src="images/app-sql-groups.webp" alt="A GROUP BY result with one group drilled into Things" width="1600" height="1000" loading="lazy"><figcaption>Groups by kind: click one and Things shows just that group.</figcaption></figure>
+    <figure><img src="images/app-sql-groups.webp" alt="A GROUP BY result with one group drilled into Things" width="1600" height="1000" loading="lazy"><figcaption>Groups by kind. If you click one, Things shows just that group.</figcaption></figure>
     <div>
       <div class="eyebrow">Groups and tables</div>
-      <h2>A group is a click away from a view.</h2>
-      <p class="sub">Measured in a release build on a synthetic disk of 4,856,132 items, on one machine: a group by kind with a sum and a count took 729 ms, a filter and sort for the top 100 took 173 ms, and a group by extension with <code>ids</code> took 1,282 ms. Sixteen write attempts are refused in the tests. <a href="docs/sql.html#speed">All five figures</a></p>
+      <h2>From a group to a view in one click.</h2>
+      <p class="sub">To give an idea of the speed, these were measured in a release build on a synthetic disk of 4,856,132 items, on one machine. A group by kind with a sum and a count took 729 ms, a filter and sort for the top 100 took 173 ms, and a group by extension with <code>ids</code> took 1,282 ms. The tests also make sixteen write attempts, and all of them get refused. <a href="docs/sql.html#speed">All five figures</a></p>
       <figure style="margin-top:16px"><img src="images/app-sql-table.webp" alt="A table-only SQL result" width="1600" height="1000" loading="lazy"></figure>
     </div>
   </div>
@@ -138,8 +138,8 @@
   <div class="wrap split">
     <div>
       <div class="eyebrow">Query and palette</div>
-      <h2>One language everywhere.</h2>
-      <p class="sub"><kbd>/</kbd> opens the query. <code>size&gt;100mb age&gt;1y kind:video -path:Photos safe:safe</code> filters every lens live. <kbd>&#8984;K</kbd> runs any command and jumps to an exact path. <a href="docs/query-language.html">Query language</a></p>
+      <h2>One query language in every lens.</h2>
+      <p class="sub"><kbd>/</kbd> opens the query, and something like <code>size&gt;100mb age&gt;1y kind:video -path:Photos safe:safe</code> filters every lens live. <kbd>&#8984;K</kbd> runs any command and jumps to an exact path. <a href="docs/query-language.html">Query language</a></p>
     </div>
     <figure><img src="images/app-palette.webp" alt="The command palette" width="1600" height="1000" loading="lazy"><figcaption>The palette.</figcaption></figure>
   </div>
@@ -147,8 +147,8 @@
 <section id="preview" class="alt">
   <div class="wrap">
     <div class="eyebrow">Preview</div>
-    <h2>Look before you decide.</h2>
-    <p class="sub"><kbd>Space</kbd> opens a pane from any lens: video with a filmstrip scrubber, images decoded to screen size, audio waveforms, PDFs, text, and QuickLook for the rest. iCloud placeholders are never downloaded by accident; you get metadata and a Download button. Reading a file never changes it.</p>
+    <h2>Viewing a file before you decide.</h2>
+    <p class="sub"><kbd>Space</kbd> opens a pane from any lens, with video and a filmstrip scrubber, images decoded to screen size, audio waveforms, PDFs, text, and QuickLook for the rest. An iCloud placeholder is never downloaded by accident, so you get its metadata and a Download button instead. Reading a file never changes it.</p>
     <div class="cols" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr));margin:0 0 22px"><figure><img src="images/app-preview-video.webp" alt="Previewing a video with its filmstrip scrubber" width="1600" height="1000" loading="lazy"><figcaption>Video, with a filmstrip.</figcaption></figure><figure><img src="images/app-preview-image.webp" alt="Previewing an image" width="1600" height="1000" loading="lazy"><figcaption>Images, decoded to screen size.</figcaption></figure></div>
     <p><a class="btn" href="docs/views.html">All views</a> <a class="btn" href="docs/safety-and-accounting.html">Safety and accounting</a></p>
   </div>
@@ -157,7 +157,7 @@
 
 <footer class="foot"><div class="wrap">
   <div class="cols">
-    <div><h4>DeepYellow</h4><p>A native macOS disk analyzer. MIT licence, Midhun Krishna.</p></div>
+    <div><h4>DeepYellow</h4><p>A native macOS disk analyzer. MIT license, by Midhun Krishna.</p></div>
     <div><h4>Use it</h4><ul><li><a href="https://github.com/midhunkrishna/deepyellow/releases/latest/download/DeepYellow.dmg">Download</a></li><li><a href="docs/install.html">Install</a></li><li><a href="docs/getting-started.html">Getting started</a></li><li><a href="docs/faq.html">FAQ</a></li></ul></div>
     <div><h4>Learn</h4><ul><li><a href="features.html">Features</a></li><li><a href="docs/index.html">Documentation</a></li><li><a href="docs/safety-and-accounting.html">Safety and accounting</a></li><li><a href="docs/cli.html">Command line</a></li></ul></div>
     <div><h4>Project</h4><ul><li><a href="https://github.com/midhunkrishna/deepyellow">Source on GitHub</a></li><li><a href="https://github.com/midhunkrishna/deepyellow/releases">Releases</a></li><li><a href="docs/uninstall.html">Uninstall</a></li></ul></div>

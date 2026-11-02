@@ -111,7 +111,7 @@
         : '<span style="--c:#FFB800">safe</span><span style="--c:#B97F12">rebuild</span><span style="--c:#4A463F">review</span><span style="--c:#1F1D1A;outline:1px solid #2E2B26">never offered</span>';
       if (scanned) status.innerHTML = mode === "safety"
         ? "<b>" + gb(reclaim) + "</b> of " + gb(totalGB) + " is gold (safe or rebuildable)."
-        : "Sample disk, " + gb(totalGB) + ". Switch to Safety to see what is reclaimable.";
+        : "This is a sample disk of " + gb(totalGB) + ". Switch to Safety to see what you could get back.";
     }
 
     /** Switches colour mode. */
@@ -237,8 +237,8 @@
         li.appendChild(nm); li.appendChild(sz); li.appendChild(bar); list.appendChild(li);
       });
       note.textContent = both
-        ? "A 400 MB file and a 410 MB folder, ranked as neighbours. A tree makes you pick a depth; a file list never shows the folder."
-        : "Lower the threshold and folders open into their parts. Raise it and parts roll up into their parent.";
+        ? "Here is a 400 MB file next to a 410 MB folder. A tree would make you pick a depth, and a file list wouldn't show the folder at all."
+        : "If you lower the threshold, folders open into their parts. If you raise it, the parts roll up into their parent.";
     }
     slider.addEventListener("input", render);
     render();

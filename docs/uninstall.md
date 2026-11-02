@@ -1,6 +1,6 @@
 # Uninstall
 
-DeepYellow is one app bundle plus a few small folders in your Library. Removing it is deleting these paths. Nothing here is a system location, and nothing in your own files was ever changed by the app.
+DeepYellow is one app bundle plus a few small folders in your Library, so removing it means deleting the paths below. None of them is a system location, and the app never changed anything in your own files.
 
 | What | Path | Notes |
 |---|---|---|
@@ -15,7 +15,7 @@ Full Disk Access is stored by macOS. Remove the DeepYellow entry in **System Set
 
 1. Quit DeepYellow.
 2. Move the app to the Trash from Finder.
-3. If you linked the command, remove the link, which does not touch the app:
+3. If you linked the command, remove the link. This doesn't touch the app:
 
    ```
    rm ~/.local/bin/deepyellow
@@ -27,8 +27,8 @@ Full Disk Access is stored by macOS. Remove the DeepYellow entry in **System Set
 
 ## If you used the installer
 
-The [installer](install.md#route-2-the-one-line-installer) prints exactly which paths it wrote when it finishes. They are the app (in `~/Applications` unless you passed `--dir`) and the command link (in `~/.local/bin` unless you passed `--bin`), and nothing else.
+The [installer](install.md#route-2-the-one-line-installer) prints the paths it wrote when it finishes. These are the app (in `~/Applications` unless you passed `--dir`) and the command link (in `~/.local/bin` unless you passed `--bin`), and nothing else.
 
 ## Things DeepYellow moved to the Trash
 
-Items you applied through a Plan are in the Trash like anything else you trashed, until you empty it. Uninstalling DeepYellow does not restore or remove them. The undo step lives in the app and its journal, so undo anything you want back **before** you delete `~/Library/Application Support/DeepYellow`, or move the items out of the Trash by hand.
+Items you applied through a Plan sit in the Trash like anything else you trashed, until you empty it. Uninstalling DeepYellow does not restore or remove them. Since the undo step lives in the app and its journal, undo anything you want back **before** you delete `~/Library/Application Support/DeepYellow`, or move the items out of the Trash by hand.
