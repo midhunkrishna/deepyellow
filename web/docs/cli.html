@@ -53,8 +53,8 @@
 <h1 id="command-line">Command line</h1>
 <p>The <code>deepyellow</code> command reads a folder and prints what the app would show. <strong>It is read-only and has no delete command, by design.</strong> Nothing you can type to a subcommand changes a file, and the commands that suggest cleanups only print them.</p>
 <h2 id="setting-it-up">Setting it up <a class="anchor" href="#setting-it-up" aria-label="Link to this section">#</a></h2>
-<p>The command and the app are one binary: <code>DeepYellow.app/Contents/MacOS/DeepYellow</code> serves both. <code>Contents/Resources/bin/deepyellow</code> is a small script that follows its own symlink and runs the binary in command mode. The name <code>deepyellow</code> is a symlink because <code>DeepYellow</code> and <code>deepyellow</code> would collide on a case-insensitive disk.</p>
-<p>Link it with <strong>DeepYellow &gt; Install Command Line Tool...</strong> (it asks first, and offers <code>~/.local/bin</code>, which needs no administrator rights) or with the <a href="install.html#route-2-the-one-line-installer">one-line installer</a>. Check it works:</p>
+<p>The command and the app are one binary: <code>DeepYellow.app/Contents/MacOS/DeepYellow</code> serves both. <code>Contents/Resources/bin/deepyellow</code> is a small script that follows its own symlink and runs the binary in command mode. The name <code>deepyellow</code> is a symlink since <code>DeepYellow</code> and <code>deepyellow</code> would collide on a case-insensitive disk.</p>
+<p>Link it with <strong>DeepYellow &gt; Install Command Line Tool...</strong> (it asks first, and offers <code>~/.local/bin</code>, which needs no administrator rights) or with the <a href="install.html#route-2-the-one-line-installer">one-line installer</a>. To check that it works, run this:</p>
 <pre><code>deepyellow --version</code></pre>
 <h2 id="commands">Commands <a class="anchor" href="#commands" aria-label="Link to this section">#</a></h2>
 <pre><code>deepyellow &lt;path&gt;                        open the app on a folder (works when already running)
@@ -68,11 +68,11 @@ deepyellow sql &lt;path|--demo&gt; "&lt;query&gt;" [--json | --csv] [--top N]
 deepyellow --version | --help</code></pre>
 <h3 id="open-the-app">Open the app <a class="anchor" href="#open-the-app" aria-label="Link to this section">#</a></h3>
 <p><code>deepyellow &lt;path&gt;</code> opens DeepYellow on the folder, and uses the running app if there is one. The same thing works from Finder, because folders are registered as documents: <code>open -a DeepYellow &lt;path&gt;</code>, dropping a folder on the Dock icon, and Open With all work.</p>
-<p><code>deepyellow --demo</code> opens the built-in sample disk, which is made up and never touches your files. A demo always starts a new instance, so it does not take over a window that is already scanning something real.</p>
-<p><strong><code>--read-only</code> is the natural way to try the app on a real disk with zero risk.</strong> Both <code>deepyellow &lt;path&gt; --read-only</code> and <code>deepyellow --read-only &lt;path&gt;</code> do a real scan, so the sizes, the map and the advice are real, and in that mode nothing can be moved to the Trash.</p>
+<p><code>deepyellow --demo</code> opens the built-in sample disk, which is made up and doesn't touch your files. A demo always starts a new instance, so it does not take over a window that is already scanning something real.</p>
+<p><strong><code>--read-only</code> is the natural way to try the app on a real disk without risking anything.</strong> Both <code>deepyellow &lt;path&gt; --read-only</code> and <code>deepyellow --read-only &lt;path&gt;</code> do a real scan, so the sizes, the map and the advice are real, and in that mode nothing can be moved to the Trash.</p>
 <p><code>deepyellow --print-open-args &lt;path&gt;</code> (it can be combined with the other open flags) prints what would be launched, which app, which folder, which arguments and whether a new instance would be used, and launches nothing. It is meant for scripts and tests.</p>
 <h3 id="things"><code>things</code> <a class="anchor" href="#things" aria-label="Link to this section">#</a></h3>
-<p>Ranked list of the biggest <a href="views.html#things">Things</a> under a path: files and folders as peers, cut at a size threshold so the list is disjoint and adds up to the total.</p>
+<p>This prints a ranked list of the biggest <a href="views.html#things">Things</a> under a path. Files and folders are peers, and the list is cut at a size threshold so that it is disjoint and adds up to the total.</p>
 <table>
 <thead><tr><th>Option</th><th>Meaning</th></tr></thead>
 <tbody>
@@ -91,7 +91,7 @@ Things under ~/Downloads  ·  47.2 MB total  ·  cut at 1.00 MB  ·  5 rows
   █████████▎              6.29 MB     13%  design-handoff/Ubuntu-copy.iso</code></pre>
 <p>*The output above is real, from a small made-up folder with names like the demo disk.* The header gives the total, the threshold used, and the number of rows shown. Each row has a bar, the size, the share of the total, and the path relative to the folder.</p>
 <h3 id="reclaim"><code>reclaim</code> <a class="anchor" href="#reclaim" aria-label="Link to this section">#</a></h3>
-<p>Groups what it finds by <a href="safety-and-accounting.html#tiers">safety tier</a> using the <a href="reclaim-rules.html">built-in rules</a>, then prints the worklists: forgotten large things, leftovers of apps that look gone, and the largest things you have not decided about. Where a rule has an official cleanup command, it is printed, never run. Duplicates are not read here; use <code>dupes</code>.</p>
+<p>This groups what it finds by <a href="safety-and-accounting.html#tiers">safety tier</a> using the <a href="reclaim-rules.html">built-in rules</a>, and then prints the worklists: forgotten large things, leftovers of apps that look gone, and the largest things you have not decided about. Where a rule has an official cleanup command, it is printed and never run. Duplicates are not read here, so use <code>dupes</code> for those.</p>
 <pre><code>$ deepyellow reclaim ~/Downloads
 Reclaim under ~/Downloads  ·  47.2 MB scanned
 
@@ -109,7 +109,7 @@ Worklists
   Duplicates: not read here. Run `deepyellow dupes &lt;path&gt;`.</code></pre>
 <p>(The sample folder is not under a place any rule knows about, so no safety group matches. On a real home folder the groups appear first.)</p>
 <h3 id="spectrum"><code>spectrum</code> <a class="anchor" href="#spectrum" aria-label="Link to this section">#</a></h3>
-<p>Prints the <a href="views.html#spectrum">Spectrum</a>: how many files and how many bytes fall in each size range, three ranges per decade.</p>
+<p>This prints the <a href="views.html#spectrum">Spectrum</a>, which shows how many files and how many bytes fall in each size range, with three ranges per decade.</p>
 <pre><code>$ deepyellow spectrum ~/Downloads
 Spectrum of ~/Downloads  ·  8 files  ·  47.2 MB
 
@@ -121,7 +121,7 @@ Spectrum of ~/Downloads  ·  8 files  ·  47.2 MB
 
 The 5 largest files hold 80% of the bytes.</code></pre>
 <h3 id="dupes"><code>dupes</code> <a class="anchor" href="#dupes" aria-label="Link to this section">#</a></h3>
-<p>Lists exact duplicates: the same size, the same head and tail, and the same SHA-256. Hard links and clones of the same data are not duplicates, and iCloud placeholders are skipped, never downloaded. Files are read, never changed. <code>--min</code> sets the smallest file considered and defaults to <code>1mb</code>.</p>
+<p>This lists exact duplicates, which means the same size, the same head and tail, and the same SHA-256. Hard links and clones of the same data are not duplicates, and iCloud placeholders are skipped and never downloaded. Files are read and never changed. <code>--min</code> sets the smallest file considered and defaults to <code>1mb</code>.</p>
 <pre><code>$ deepyellow dupes ~/Downloads --min 1mb
 Duplicates under ~/Downloads  ·  6.29 MB wasted in 1 sets  ·  13.0 MB read
 
@@ -129,7 +129,7 @@ Duplicates under ~/Downloads  ·  6.29 MB wasted in 1 sets  ·  13.0 MB read
       Ubuntu-24.04.iso
       design-handoff/Ubuntu-copy.iso</code></pre>
 <h3 id="sql"><code>sql</code> <a class="anchor" href="#sql" aria-label="Link to this section">#</a></h3>
-<p>Runs one <a href="sql.html">SQL</a> statement against a scan of the path, or against the sample disk with <code>--demo</code>, so examples never need a real path. Read-only, like everything here: statements that write are refused.</p>
+<p>This runs one <a href="sql.html">SQL</a> statement against a scan of the path, or against the sample disk with <code>--demo</code>, so the examples don't need a real path. It is read-only like everything else here, and statements that write are refused.</p>
 <pre><code>deepyellow sql --demo "SELECT kind, human(SUM(size)) AS total, COUNT(*) AS files FROM files GROUP BY kind"</code></pre>
 <table>
 <thead><tr><th>Option</th><th>Meaning</th></tr></thead>
@@ -140,7 +140,7 @@ Duplicates under ~/Downloads  ·  6.29 MB wasted in 1 sets  ·  13.0 MB read
 <tr><td><code>--schema</code></td><td>Print the <code>nodes</code> columns, the functions and the examples, then stop</td></tr>
 </tbody></table>
 <ul>
-<li>The same <code>nodes</code> table, <code>files</code> and <code>dirs</code> views and functions as in the app. There are no views to drive on the command line, so <code>id</code> and <code>ids(id)</code> columns are just columns.</li>
+<li>The <code>nodes</code> table, the <code>files</code> and <code>dirs</code> views and the functions are the same as in the app. There are no views to drive on the command line, so <code>id</code> and <code>ids(id)</code> columns are just columns.</li>
 <li><strong><code>mark</code> is always NULL</strong>, because the command line has no decisions. <strong><code>safety</code> is computed only when the query text mentions it</strong>, so queries that do not use it do not pay for the safety scan.</li>
 <li>A refused or invalid statement prints a message on standard error and exits 65.</li>
 </ul>
@@ -151,7 +151,7 @@ Duplicates under ~/Downloads  ·  6.29 MB wasted in 1 sets  ·  13.0 MB read
 <li><code>--json</code> prints one JSON document on standard output.</li>
 </ul>
 <h2 id="json">JSON <a class="anchor" href="#json" aria-label="Link to this section">#</a></h2>
-<p>Every subcommand takes <code>--json</code>. Keys are written in a stable order and sizes are integer bytes. The shape of each is given by its own <code>--help</code>:</p>
+<p>Every subcommand takes <code>--json</code>. Keys are written in a stable order and sizes are integer bytes. Each subcommand's own <code>--help</code> gives its shape:</p>
 <pre><code>things    {"path", "total", "thresholdBytes", "things": [{"path", "name", "bytes", "files",
           "kind": "item" | "rest", "items"?}]}
           A "rest" row stands for the smaller items inside "path".
@@ -162,7 +162,7 @@ spectrum  {"path", "totalFiles", "totalBytes", "filesHolding80PercentOfBytes",
           "bins": [{"lower", "upper", "files", "bytes"}]}
 dupes     {"path", "bytesHashed", "wastedBytes", "sets": [{"size", "copies", "wastedBytes",
           "paths": [...]}]}</code></pre>
-<p>Real output of <code>things --json --top 2</code> on the same folder:</p>
+<p>Here is the real output of <code>things --json --top 2</code> on the same folder:</p>
 <pre><code>{
   "path" : "~/Downloads",
   "things" : [
@@ -194,17 +194,17 @@ dupes     {"path", "bytesHashed", "wastedBytes", "sets": [{"size", "copies", "wa
 <tr><td><code>65</code></td><td><code>sql</code> only: the query is invalid or was refused (for example a <code>DELETE</code>). A message goes to standard error.</td></tr>
 </tbody></table>
 <h2 id="examples">Examples <a class="anchor" href="#examples" aria-label="Link to this section">#</a></h2>
-<p>Anything over 1 GB, as JSON, into <code>jq</code>:</p>
+<p>To list everything over 1 GB as JSON and pass it to <code>jq</code>:</p>
 <pre><code>deepyellow things ~ --min 1gb --json | jq '.things[].path'</code></pre>
-<p>A report with no colour:</p>
+<p>To write a report with no colour:</p>
 <pre><code>NO_COLOR=1 deepyellow reclaim ~ &gt; reclaim-report.txt</code></pre>
 <h2 id="permissions">Permissions <a class="anchor" href="#permissions" aria-label="Link to this section">#</a></h2>
-<p>A scan from a terminal can only read what macOS allows that terminal to read. macOS usually applies the permission of the terminal application, so if protected folders such as parts of <code>~/Library</code> are reported as unreadable, grant Full Disk Access to your terminal app. Unreadable folders are counted and reported, not hidden. See <a href="install.html#full-disk-access">Full Disk Access</a>.</p>
+<p>A scan from a terminal can only read what macOS allows that terminal to read. macOS usually applies the permission of the terminal application, so if protected folders such as parts of <code>~/Library</code> are reported as unreadable, grant Full Disk Access to your terminal app. Unreadable folders are counted and reported, and they aren't hidden. See <a href="install.html#full-disk-access">Full Disk Access</a>.</p>
 <nav class="pager" aria-label="Pages"><a href="reclaim-rules.html">&larr; Reclaim rules</a><a href="building-from-source.html">Building from source &rarr;</a></nav>
   </main>
 </div>
 <footer class="foot"><div class="wrap">
-  <p>DeepYellow is a native macOS disk analyzer, MIT licence. <a href="../index.html">Home</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow">Source</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/releases">Releases</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/edit/master/docs/cli.md">Edit this page</a></p>
+  <p>DeepYellow is a native macOS disk analyzer, MIT license. <a href="../index.html">Home</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow">Source</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/releases">Releases</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/edit/master/docs/cli.md">Edit this page</a></p>
 </div></footer>
 <div class="ledger" role="complementary" aria-label="Page ledger"><div class="wrap">
   <span class="lab">LEDGER</span>

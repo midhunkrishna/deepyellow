@@ -1,6 +1,6 @@
 # Safety and accounting
 
-How DeepYellow keeps you from removing the wrong thing, and how it keeps its numbers honest.
+This page covers how DeepYellow keeps you from removing the wrong thing, and how it keeps its numbers true to the disk.
 
 ## The rules it holds itself to
 
@@ -14,7 +14,7 @@ How DeepYellow keeps you from removing the wrong thing, and how it keeps its num
 
 ## Tiers
 
-Every item carries a tier with its consequence in plain words.
+Every item carries a tier, and each tier says what the consequence is in plain words.
 
 | Tier | Meaning | Example |
 |---|---|---|
@@ -24,13 +24,13 @@ Every item carries a tier with its consequence in plain words.
 | **Never offered** | Must not be planned for removal | Your Photos library, Mail data, system update areas |
 | (no advice) | Nothing is known | Most documents, photos, videos and downloads |
 
-**Uncertain is review, never rounded up to safe.** A `never` item always wins over anything above it, and the most specific rule wins otherwise. The rules, with each one's source and consequence, are in [Reclaim rules](reclaim-rules.md).
+When an item is uncertain it is review, and it is never rounded up to safe. A `never` item always wins over anything above it, and otherwise the most specific rule wins. The rules, with each one's source and consequence, are in [Reclaim rules](reclaim-rules.md).
 
-Most of your disk will have **no advice**, and that is the honest answer. DeepYellow does not use AI to guess. It has a rule table and facts it can measure (size, age, kind, which app owns a folder, exact duplicates), and the decision is yours. The [worklists](views.md#worklists) exist to turn "no advice" into factual lists such as "large, and untouched for over a year". On one measured home folder (188 GB, 2.18 million files), about 65% of the bytes had no safety advice, and the worklists covered 68 GB of that.
+Most of your disk will have **no advice**. DeepYellow does not use AI to guess, since the app wouldn't have that kind of intelligence. It has a rule table and facts it can measure (size, age, kind, which app owns a folder, exact duplicates), and the decision is yours. The [worklists](views.md#worklists) turn "no advice" into factual lists such as "large, and untouched for over a year". To give an idea of the scale, on one measured home folder (188 GB, 2.18 million files), about 65% of the bytes had no safety advice, and the worklists covered 68 GB of that.
 
 ## SQL is read-only
 
-You can query your scan with [SQL](sql.md). It can not write: `DELETE`, `UPDATE`, `INSERT`, `DROP`, `CREATE`, `ATTACH`, `DETACH`, `VACUUM INTO`, `PRAGMA` and `load_extension` are refused, and a SQL result never marks anything and never reaches the Plan. Marks still come only from selection and <kbd>k</kbd> <kbd>x</kbd> <kbd>l</kbd> <kbd>u</kbd>.
+You can query your scan with [SQL](sql.md), but it can't write. `DELETE`, `UPDATE`, `INSERT`, `DROP`, `CREATE`, `ATTACH`, `DETACH`, `VACUUM INTO`, `PRAGMA` and `load_extension` are refused. A SQL result never marks anything and never reaches the Plan. Marks still come only from selection and <kbd>k</kbd> <kbd>x</kbd> <kbd>l</kbd> <kbd>u</kbd>.
 
 ## Staged decisions
 
@@ -43,7 +43,7 @@ Marking works like `git add`. <kbd>x</kbd> stages an item for removal and change
 
 ## The Plan
 
-<kbd>&#8984;&#9166;</kbd> opens the Plan: the exact diff of what Apply will do. There are no per-item "are you sure" dialogs, because they teach blind clicking. The Plan shows:
+<kbd>&#8984;&#9166;</kbd> opens the Plan, which is the exact diff of what Apply will do. There are no per-item "are you sure" dialogs, because they teach blind clicking. The Plan shows the following:
 
 - **Items**: the minimal set of roots to move to the Trash, never a folder and something inside it. **Unstage** beside an item takes it out of the plan. An item staged through a marked folder is marked keep instead, so the rest of the folder stays staged.
 - **Protected**: what inside those roots is being kept.
@@ -58,11 +58,11 @@ These are always blocked, regardless of what was selected: the scan root, `/`, y
 
 Apply moves the roots to the Trash and re-checks each item's fingerprint immediately before moving it. If something changed, it is skipped and reported. Anything that could not be moved stays staged and is listed first in the Plan with the reason, and you can unstage those items one at a time or all together. The code that applies a plan has no path that deletes anything. **One step undoes the last apply** and puts everything back where it was.
 
-The Trash frees nothing until it is emptied, and DeepYellow never empties it. Do that in Finder when you are ready.
+The Trash frees nothing until it is emptied, and DeepYellow never empties it. I decided against an Empty Trash command, so that part is done in Finder when you are ready.
 
 ## The Ledger
 
-The bar along the bottom is a single account of the whole volume: visible, hidden, unreadable or unaccounted, and free. Staged removal is hatched over the top.
+The bar along the bottom is a single account of the whole volume, split into visible, hidden, unreadable or unaccounted, and free. Staged removal is hatched over the top.
 
 ![The Ledger](screens/app-ledger.png)
 
@@ -71,7 +71,7 @@ Click it for the reconciliation, which explains why DeepYellow's numbers can dif
 - **Logical against allocated size.** A file's size and the space it occupies differ. DeepYellow measures allocated space by default.
 - **Hard links and clones.** Space shared by hard links or APFS clones is counted once.
 - **Snapshots and purgeable space** that macOS reports separately.
-- **A labelled remainder.** Whatever cannot be attributed is shown as such, not hidden.
+- **A labeled remainder.** Whatever cannot be attributed is shown as such, not hidden.
 
 ### Hidden is never gone
 

@@ -1,8 +1,8 @@
 # Building from source
 
-**Can anyone build it?** Yes. Clone the repository and run `make app`. You need macOS 15 or later and the Swift 6 toolchain (Xcode 16 or the matching command line tools). Nothing else is installed and no network access is needed beyond the clone, because the project has no third-party dependencies.
+**Can anyone build it?** Yes. Clone the repository and run `make app`. You need macOS 15 or later and the Swift 6 toolchain (Xcode 16 or the matching command line tools). Nothing else is installed, and no network access is needed beyond the clone, since the project has no third-party dependencies.
 
-This is the route that needs no trust in a binary: you read the code, you build it, and macOS has no quarantine flag to complain about, because nothing was downloaded.
+This is the route that needs no trust in a binary. You read the code and build it yourself, and macOS has no quarantine flag to complain about because nothing was downloaded.
 
 ```
 git clone https://github.com/midhunkrishna/deepyellow
@@ -10,7 +10,7 @@ cd deepyellow
 make app
 ```
 
-The app is written to `dist/DeepYellow.app`. To run it on the sample disk, which never touches your files:
+The app is written to `dist/DeepYellow.app`. To run it on the sample disk, which doesn't touch your files, use:
 
 ```
 dist/DeepYellow.app/Contents/MacOS/DeepYellow --demo
@@ -29,7 +29,7 @@ dist/DeepYellow.app/Contents/MacOS/DeepYellow --demo
 
 Release packaging uses the stable names `DeepYellow.dmg`, `DeepYellow.zip` and `SHA256SUMS`. The version is taken from the `VERSION` environment variable, else from `git describe`, else it is `0.0.0-dev`.
 
-The scripts live in [`scripts/`](https://github.com/midhunkrishna/deepyellow/tree/master/scripts) and the [`Makefile`](https://github.com/midhunkrishna/deepyellow/blob/master/Makefile) only wraps them.
+The scripts live in [`scripts/`](https://github.com/midhunkrishna/deepyellow/tree/master/scripts), and the [`Makefile`](https://github.com/midhunkrishna/deepyellow/blob/master/Makefile) only wraps them.
 
 ## Tests
 
@@ -39,11 +39,11 @@ Each module is its own Swift package under `Packages/` and has its own tests:
 swift test --package-path Packages/DYAnalysis
 ```
 
-or all of them with `make test`. Tests use a synthetic disk or temporary directories. They never use the real Trash, and tests that need a GPU skip themselves when no Metal device exists.
+To run all of them, use `make test`. The tests use a synthetic disk or temporary directories. They never use the real Trash, and tests that need a GPU skip themselves when no Metal device exists.
 
 ## Gatekeeper and your own build
 
-A binary you build locally is signed ad hoc and is not quarantined, so it opens without the dialog described in [Install](install.md#if-macos-blocks-it). If you copy it to another Mac through the internet or AirDrop, that Mac will treat it like any unnotarized download.
+A binary you build locally is signed ad hoc and is not quarantined, so it opens without the dialog described in [Install](install.md#if-macos-blocks-it). If you copy it to another Mac through the internet or AirDrop, that Mac treats it like any unnotarized download.
 
 ## Contributing
 

@@ -1,22 +1,22 @@
 # SQL
 
-Ask your disk a question in SQL, and the answer is not just a table. **A result becomes the set that every view shows.** Run `SELECT id FROM files ORDER BY size DESC LIMIT 20` and the Map, Things, Spectrum, Field and Rings all narrow to those 20 files. Click a row and the preview, the selection and your marks work as they do everywhere else.
+You can ask your disk a question in SQL, and the answer is more than a table. **A result becomes the set that every view shows.** Say we run `SELECT id FROM files ORDER BY size DESC LIMIT 20`. The Map, Things, Spectrum, Field and Rings all narrow to those 20 files, and if we click a row, the preview, the selection and our marks work as they do everywhere else.
 
 ![The Map narrowed to the biggest files by a SQL result](screens/app-sql-map.png)
 
 ## What it is, and what it is not
 
-- It is SQLite's `SELECT` dialect: joins, subqueries, CTEs including recursive ones, window functions, aggregates, `CASE`, and the rest of what SQLite's `SELECT` supports. It is not a different or larger SQL, and it is not called "full SQL" because that would promise more than it is.
-- It is **read-only**. Every statement that writes is refused (see [Refusals](#refusals)), and the app can not be made to change a file, a mark, or the Trash from SQL.
-- It runs on the scan you have already made. The tree is not copied into a database: the `nodes` table reads the scan directly.
+- It is SQLite's `SELECT` dialect: joins, subqueries, CTEs including recursive ones, window functions, aggregates, `CASE`, and the rest of what SQLite's `SELECT` supports. It is not a different or larger SQL, and we don't call it "full SQL" since that would promise more than it is.
+- It is **read-only**. Every statement that writes is refused (see [Refusals](#refusals)), and the app can't be made to change a file, a mark, or the Trash from SQL.
+- It runs on the scan you have already made. The tree is not copied into a database, because the `nodes` table reads the scan directly.
 - It is available once the scan has finished. Before that, running a query says "SQL is available when the scan finishes."
-- It uses no AI. You write the question.
+- It uses no AI, so you write the question yourself.
 
-SQL never marks or removes anything. **Marks still go through selection and the keys <kbd>k</kbd> <kbd>x</kbd> <kbd>l</kbd> <kbd>u</kbd>**, and removal still goes through the [Plan](safety-and-accounting.md#the-plan). SQL can find the files; you decide.
+SQL never marks or removes anything. **Marks still go through selection and the keys <kbd>k</kbd> <kbd>x</kbd> <kbd>l</kbd> <kbd>u</kbd>**, and removal still goes through the [Plan](safety-and-accounting.md#the-plan). SQL can find the files and you decide what happens to them.
 
 ## Open it
 
-Press <kbd>s</kbd>, or choose View > SQL, or use the palette. SQL is a drawer that docks at the bottom, not an eighth view, so the view above keeps responding while you type. Drag its top edge to resize it.
+Press <kbd>s</kbd>, or choose View > SQL, or use the palette. SQL is a drawer that docks at the bottom rather than an eighth view, so the view above keeps responding while you type. Drag its top edge to resize it.
 
 - <kbd>&#8984;&#9166;</kbd> runs the query while the editor has focus. Outside the editor, <kbd>&#8984;&#9166;</kbd> still opens the Plan.
 - Single-key shortcuts do not fire while you type. <kbd>Esc</kbd> leaves the editor.
@@ -26,7 +26,7 @@ Press <kbd>s</kbd>, or choose View > SQL, or use the palette. SQL is a drawer th
 
 ## How a result drives the views
 
-What the result contains decides what happens.
+So what happens to the views? That depends on what the result contains.
 
 | Your `SELECT` has | The result is | What the views do |
 |---|---|---|
@@ -34,22 +34,22 @@ What the result contains decides what happens.
 | A `GROUP BY` and a column `ids(id) AS ids` | Groups | Every view shows all the groups together. **Click a group row** to narrow to that group, and click "All groups" to go back |
 | Neither | A table only | The views stay as they are, and any earlier SQL filter is cleared. The drawer says: "This result has no id column, so the views stay as they are. Add id to the SELECT, or ids(id) to a GROUP BY." |
 
-Rules that apply to sets and groups:
+A few rules apply to sets and groups:
 
 - **Folders bring their whole subtree.** If `id` is a folder, everything inside it is in the set. The chip counts the items the result names, as the table does, and counts each byte once even when a folder and its contents are both rows.
 - **Reclaim narrows too.** Its cards show what's in the result, such as "12.6 GB in this result, of 18.0 GB". Staging a card acts on whole folders, and the Plan lists exactly what is staged.
 - **Results AND with the `/` query.** If you also have a [query](query-language.md) typed in the query field, a node must satisfy both.
 - **A result stays true.** When the scan, a hide rule, a decision, the Trash or a safety tier changes, the query runs again by itself, and an old result is never applied to a new scan. If you had drilled into a group, that stays only when the number of groups is unchanged.
 - **The Ledger still reconciles.** Hidden space stays accounted for. What a SQL result filters out is counted as filtered, as with the query.
-- Ids that are not in the tree are ignored, not errors.
+- Ids that are not in the tree are ignored and don't raise errors.
 
 ![Groups by kind, with one group drilled into Things](screens/app-sql-groups.png)
 
-A result that is only a table is still useful:
+A result that is only a table is still useful, as this one shows:
 
 ![A table-only result](screens/app-sql-table.png)
 
-The table shows up to 5,000 rows, and says, for example, "showing 5,000 of 1,204,311 rows" when there are more. The views are not limited to 5,000: they show the whole set.
+The table shows up to 5,000 rows, and says, for example, "showing 5,000 of 1,204,311 rows" when there are more. The views aren't limited to 5,000 and show the whole set.
 
 ## Schema
 
@@ -79,7 +79,7 @@ One virtual table, `nodes`, with one row per file or folder, and two views over 
 | `mark` | TEXT | keep, remove or later; NULL for none |
 | `safety` | TEXT | safe, rebuild, review or never; NULL for no advice |
 
-`visible`, `mark` and `safety` are the same values the app shows. A `NULL` safety means no advice, which is the honest answer for most personal files. `size` and `file_count` follow the current view settings, so what you sum here matches what you see on screen.
+`visible`, `mark` and `safety` are the same values the app shows. A `NULL` safety means no advice, which is what most personal files get. `size` and `file_count` follow the current view settings, so what you sum here matches what you see on screen.
 
 ## Functions
 
@@ -97,7 +97,7 @@ Units are decimal, the same as the [query language](query-language.md#units).
 
 ## Examples
 
-The **Examples** menu in the drawer has these. Each one runs on the sample disk. All of them drive the views except the last, which is a table.
+The **Examples** menu in the drawer has the following queries. Each one runs on the sample disk, and all of them drive the views except the last, which is a table.
 
 **Biggest files**
 
@@ -188,13 +188,13 @@ FROM (SELECT id, name, size FROM files ORDER BY size DESC, id LIMIT 20)
 
 SQL here cannot change anything. A statement that writes is refused, and the message says why: "DeepYellow's SQL is read-only, so DELETE isn't allowed. To remove something, select it and press x."
 
-Refused: `DELETE`, `UPDATE`, `INSERT`, `DROP`, `CREATE`, `ATTACH`, `DETACH`, `VACUUM INTO`, `PRAGMA` and `load_extension`. The tests make sixteen such attempts and check that each one is refused and that none of them creates a file.
+These are refused: `DELETE`, `UPDATE`, `INSERT`, `DROP`, `CREATE`, `ATTACH`, `DETACH`, `VACUUM INTO`, `PRAGMA` and `load_extension`. The tests make sixteen such attempts and check that each one is refused and that none of them creates a file.
 
-This is enforced in several layers rather than by a text check: the table has no write path, the connection only allows reading, and a statement SQLite does not consider read-only is rejected. Each query runs on a fresh in-memory connection, with sorts kept in memory, and a query that would use more than 2 GB of memory is stopped and reported as too large. A running query can be cancelled.
+How is this enforced? Not by a text check, but in several layers. The table has no write path, the connection only allows reading, and a statement SQLite does not consider read-only is rejected. Each query runs on a fresh in-memory connection, with sorts kept in memory, and a query that would use more than 2 GB of memory is stopped and reported as too large. A running query can be cancelled.
 
 ## Speed
 
-Measured in a release build on a synthetic disk of 4,856,132 items, on one machine. Your disk and Mac will differ.
+These numbers come from a release build on a synthetic disk of 4,856,132 items, on one machine. Your disk and Mac will differ.
 
 | Query | Time |
 |---|---|
@@ -206,7 +206,7 @@ Measured in a release build on a synthetic disk of 4,856,132 items, on one machi
 
 ## On the command line
 
-`deepyellow sql` runs the same engine in the terminal. See [Command line](cli.md#sql).
+`deepyellow sql` runs the same engine in the terminal, and [Command line](cli.md#sql) has the details.
 
 ```
 deepyellow sql --demo "SELECT kind, human(SUM(size)) AS total FROM files GROUP BY kind"
@@ -214,4 +214,4 @@ deepyellow sql --demo "SELECT kind, human(SUM(size)) AS total FROM files GROUP B
 
 ## Which to use: query or SQL
 
-The `/` [query](query-language.md) is the quick filter: one line, in every view, live as you type. SQL is for questions the query language can not say: joins, grouping, sums, "the five biggest folders and what is in them", or anything that needs a calculation. The two combine: a SQL result and the query both apply.
+The `/` [query](query-language.md) is the quick filter. It is one line, it works in every view, and it updates as you type. SQL is for questions the query language can't say, such as joins, grouping, sums, "the five biggest folders and what is in them", or anything that needs a calculation. The two combine, so a SQL result and the query both apply.

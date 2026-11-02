@@ -1,16 +1,16 @@
 # Query language
 
-One small language, used everywhere. Press <kbd>/</kbd> to type a query. It filters every view live, and brushing in [Spectrum](views.md#spectrum) or [Field](views.md#field) writes into it, so the filter is always visible and editable.
+There is one small language, and it is used everywhere. Press <kbd>/</kbd> to type a query. It filters every view live, and brushing in [Spectrum](views.md#spectrum) or [Field](views.md#field) writes into it, so the filter is always visible and editable.
 
 ```
 size>100mb age>1y kind:video -path:Photos ext:mov,mp4 is:clone mark:remove safe:safe
 ```
 
-A query is a list of terms separated by spaces. A file must match **all** of them. Put a `-` in front of a term to negate it. Wrap text that contains spaces in double quotes: `path:"Application Support"`. At most 24 terms are used.
+A query is a list of terms separated by spaces, and a file must match **all** of them. Put a `-` in front of a term to negate it. Wrap text that contains spaces in double quotes, for example `path:"Application Support"`. At most 24 terms are used.
 
 ## Query or SQL
 
-The query is the quick filter that works in every view as you type. For joins, grouping, sums and calculations, use [SQL](sql.md): a SQL result with an `id` column becomes the set every view shows. They combine, and a node must match both.
+The query is the quick filter that works in every view as you type. For joins, grouping, sums and calculations we use [SQL](sql.md), where a result with an `id` column becomes the set every view shows. The two combine, and a node must match both.
 
 ## Terms
 
@@ -41,7 +41,7 @@ Matching is case-insensitive.
 |---|---|
 | `b`, `kb`, `mb`, `gb`, `tb` (decimal, 1 kb = 1,000 bytes) | `s` seconds, `h` hours, `d` days, `w` weeks, `m` months (30 days), `y` years (365 days) |
 
-A bare number for a size is bytes. A bare number for an age is days. Decimals work: `size>1.5gb`.
+A bare number for a size is bytes, and a bare number for an age is days. Decimals work, for example `size>1.5gb`.
 
 ## Kinds
 
@@ -56,7 +56,7 @@ A bare number for a size is bytes. A bare number for an age is days. Decimals wo
 | `archive` | `archives`, `disk`, `disks` |
 | `other` | |
 
-Kinds come from the file extension, from macOS type information, and, for files that would otherwise be `other`, from a look at the first bytes of the file. See [Architecture](architecture.md#kinds-without-guessing).
+Kinds come from the file extension and from macOS type information. For files that would otherwise be `other`, they come from a look at the first bytes of the file. See [Architecture](architecture.md#kinds-without-guessing).
 
 ## Examples
 
@@ -71,4 +71,4 @@ Kinds come from the file extension, from macOS type information, and, for files 
 
 ## Mistakes
 
-A term that cannot be understood is ignored and listed under the query bar, for example "unknown kind" or "bad size unit". The rest of the query still applies.
+If a term cannot be understood, it is ignored and listed under the query bar, for example "unknown kind" or "bad size unit". The rest of the query still applies.

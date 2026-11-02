@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Safety and accounting | DeepYellow docs</title>
-<meta name="description" content="How DeepYellow keeps you from removing the wrong thing, and how it keeps its numbers honest.">
+<meta name="description" content="This page covers how DeepYellow keeps you from removing the wrong thing, and how it keeps its numbers true to the disk.">
 <meta name="theme-color" content="#0E0D0B">
 <link rel="icon" href="../favicon.png">
 <link rel="apple-touch-icon" href="../images/icon.png">
@@ -51,7 +51,7 @@
   </nav>
   <main id="main" class="prose">
 <h1 id="safety-and-accounting">Safety and accounting</h1>
-<p>How DeepYellow keeps you from removing the wrong thing, and how it keeps its numbers honest.</p>
+<p>This page covers how DeepYellow keeps you from removing the wrong thing, and how it keeps its numbers true to the disk.</p>
 <h2 id="the-rules-it-holds-itself-to">The rules it holds itself to <a class="anchor" href="#the-rules-it-holds-itself-to" aria-label="Link to this section">#</a></h2>
 <ol>
 <li>No network code, no telemetry, no analytics. Disk tools need wide access, so the app makes no network connections at all.</li>
@@ -63,7 +63,7 @@
 <li>Advice follows a documented table, and when the evidence is limited an item stays at <strong>review</strong>.</li>
 </ol>
 <h2 id="tiers">Tiers <a class="anchor" href="#tiers" aria-label="Link to this section">#</a></h2>
-<p>Every item carries a tier with its consequence in plain words.</p>
+<p>Every item carries a tier, and each tier says what the consequence is in plain words.</p>
 <table>
 <thead><tr><th>Tier</th><th>Meaning</th><th>Example</th></tr></thead>
 <tbody>
@@ -73,10 +73,10 @@
 <tr><td><strong>Never offered</strong></td><td>Must not be planned for removal</td><td>Your Photos library, Mail data, system update areas</td></tr>
 <tr><td>(no advice)</td><td>Nothing is known</td><td>Most documents, photos, videos and downloads</td></tr>
 </tbody></table>
-<p><strong>Uncertain is review, never rounded up to safe.</strong> A <code>never</code> item always wins over anything above it, and the most specific rule wins otherwise. The rules, with each one's source and consequence, are in <a href="reclaim-rules.html">Reclaim rules</a>.</p>
-<p>Most of your disk will have <strong>no advice</strong>, and that is the honest answer. DeepYellow does not use AI to guess. It has a rule table and facts it can measure (size, age, kind, which app owns a folder, exact duplicates), and the decision is yours. The <a href="views.html#worklists">worklists</a> exist to turn "no advice" into factual lists such as "large, and untouched for over a year". On one measured home folder (188 GB, 2.18 million files), about 65% of the bytes had no safety advice, and the worklists covered 68 GB of that.</p>
+<p>When an item is uncertain it is review, and it is never rounded up to safe. A <code>never</code> item always wins over anything above it, and otherwise the most specific rule wins. The rules, with each one's source and consequence, are in <a href="reclaim-rules.html">Reclaim rules</a>.</p>
+<p>Most of your disk will have <strong>no advice</strong>. DeepYellow does not use AI to guess, since the app wouldn't have that kind of intelligence. It has a rule table and facts it can measure (size, age, kind, which app owns a folder, exact duplicates), and the decision is yours. The <a href="views.html#worklists">worklists</a> turn "no advice" into factual lists such as "large, and untouched for over a year". To give an idea of the scale, on one measured home folder (188 GB, 2.18 million files), about 65% of the bytes had no safety advice, and the worklists covered 68 GB of that.</p>
 <h2 id="sql-is-read-only">SQL is read-only <a class="anchor" href="#sql-is-read-only" aria-label="Link to this section">#</a></h2>
-<p>You can query your scan with <a href="sql.html">SQL</a>. It can not write: <code>DELETE</code>, <code>UPDATE</code>, <code>INSERT</code>, <code>DROP</code>, <code>CREATE</code>, <code>ATTACH</code>, <code>DETACH</code>, <code>VACUUM INTO</code>, <code>PRAGMA</code> and <code>load_extension</code> are refused, and a SQL result never marks anything and never reaches the Plan. Marks still come only from selection and <kbd>k</kbd> <kbd>x</kbd> <kbd>l</kbd> <kbd>u</kbd>.</p>
+<p>You can query your scan with <a href="sql.html">SQL</a>, but it can't write. <code>DELETE</code>, <code>UPDATE</code>, <code>INSERT</code>, <code>DROP</code>, <code>CREATE</code>, <code>ATTACH</code>, <code>DETACH</code>, <code>VACUUM INTO</code>, <code>PRAGMA</code> and <code>load_extension</code> are refused. A SQL result never marks anything and never reaches the Plan. Marks still come only from selection and <kbd>k</kbd> <kbd>x</kbd> <kbd>l</kbd> <kbd>u</kbd>.</p>
 <h2 id="staged-decisions">Staged decisions <a class="anchor" href="#staged-decisions" aria-label="Link to this section">#</a></h2>
 <p>Marking works like <code>git add</code>. <kbd>x</kbd> stages an item for removal and changes nothing on disk. The staged total is always on screen at the right of the Ledger.</p>
 <ul>
@@ -86,7 +86,7 @@
 <li><kbd>&#8984;Z</kbd> and <kbd>&#8679;&#8984;Z</kbd> undo and redo decisions.</li>
 </ul>
 <h2 id="the-plan">The Plan <a class="anchor" href="#the-plan" aria-label="Link to this section">#</a></h2>
-<p><kbd>&#8984;&#9166;</kbd> opens the Plan: the exact diff of what Apply will do. There are no per-item "are you sure" dialogs, because they teach blind clicking. The Plan shows:</p>
+<p><kbd>&#8984;&#9166;</kbd> opens the Plan, which is the exact diff of what Apply will do. There are no per-item "are you sure" dialogs, because they teach blind clicking. The Plan shows the following:</p>
 <ul>
 <li><strong>Items</strong>: the minimal set of roots to move to the Trash, never a folder and something inside it. <strong>Unstage</strong> beside an item takes it out of the plan. An item staged through a marked folder is marked keep instead, so the rest of the folder stays staged.</li>
 <li><strong>Protected</strong>: what inside those roots is being kept.</li>
@@ -97,16 +97,16 @@
 <p>These are always blocked, regardless of what was selected: the scan root, <code>/</code>, your home folder and its ancestors, <code>/System</code>, <code>/Applications</code>, <code>/Library</code>, <code>/Users</code>, <code>/usr</code>, <code>/bin</code>, <code>/sbin</code>, <code>/private</code>, <code>/Volumes</code>, direct children of <code>/</code>, <code>~/Library</code> itself, <code>~/Documents</code>, <code>~/Desktop</code>, <code>~/Pictures</code>, <code>~/Movies</code>, <code>~/Music</code> and <code>~/Downloads</code> themselves (their contents can be planned), unreadable or restricted items, mount boundaries, anything in tier <code>never</code>, anything inside a <code>.photoslibrary</code>, and anything whose fingerprint no longer matches.</p>
 <h3 id="apply-trash-and-undo">Apply, Trash and undo <a class="anchor" href="#apply-trash-and-undo" aria-label="Link to this section">#</a></h3>
 <p>Apply moves the roots to the Trash and re-checks each item's fingerprint immediately before moving it. If something changed, it is skipped and reported. Anything that could not be moved stays staged and is listed first in the Plan with the reason, and you can unstage those items one at a time or all together. The code that applies a plan has no path that deletes anything. <strong>One step undoes the last apply</strong> and puts everything back where it was.</p>
-<p>The Trash frees nothing until it is emptied, and DeepYellow never empties it. Do that in Finder when you are ready.</p>
+<p>The Trash frees nothing until it is emptied, and DeepYellow never empties it. I decided against an Empty Trash command, so that part is done in Finder when you are ready.</p>
 <h2 id="the-ledger">The Ledger <a class="anchor" href="#the-ledger" aria-label="Link to this section">#</a></h2>
-<p>The bar along the bottom is a single account of the whole volume: visible, hidden, unreadable or unaccounted, and free. Staged removal is hatched over the top.</p>
+<p>The bar along the bottom is a single account of the whole volume, split into visible, hidden, unreadable or unaccounted, and free. Staged removal is hatched over the top.</p>
 <p><img src="../images/app-ledger.webp" alt="The Ledger" loading="lazy" width="1600" height="1000"></p>
 <p>Click it for the reconciliation, which explains why DeepYellow's numbers can differ from Finder's:</p>
 <ul>
 <li><strong>Logical against allocated size.</strong> A file's size and the space it occupies differ. DeepYellow measures allocated space by default.</li>
 <li><strong>Hard links and clones.</strong> Space shared by hard links or APFS clones is counted once.</li>
 <li><strong>Snapshots and purgeable space</strong> that macOS reports separately.</li>
-<li><strong>A labelled remainder.</strong> Whatever cannot be attributed is shown as such, not hidden.</li>
+<li><strong>A labeled remainder.</strong> Whatever cannot be attributed is shown as such, not hidden.</li>
 </ul>
 <h3 id="hidden-is-never-gone">Hidden is never gone <a class="anchor" href="#hidden-is-never-gone" aria-label="Link to this section">#</a></h3>
 <p>Ignore rules remove things from views but never from the accounting. The Ledger always shows "Hidden: 18.2 GB in 41,204 files"-style totals and opens to per-rule totals.</p>
@@ -123,7 +123,7 @@
   </main>
 </div>
 <footer class="foot"><div class="wrap">
-  <p>DeepYellow is a native macOS disk analyzer, MIT licence. <a href="../index.html">Home</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow">Source</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/releases">Releases</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/edit/master/docs/safety-and-accounting.md">Edit this page</a></p>
+  <p>DeepYellow is a native macOS disk analyzer, MIT license. <a href="../index.html">Home</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow">Source</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/releases">Releases</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/edit/master/docs/safety-and-accounting.md">Edit this page</a></p>
 </div></footer>
 <div class="ledger" role="complementary" aria-label="Page ledger"><div class="wrap">
   <span class="lab">LEDGER</span>
