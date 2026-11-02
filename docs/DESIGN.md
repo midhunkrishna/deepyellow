@@ -42,9 +42,9 @@ Most tools drop small files or paint them grey, which users call "lying by omiss
 - **Spectrum** shows the shape directly: count and bytes per size range, plus "the top 40 items hold 80% of your disk".
 
 ### 2.4 Decide like a photo editor
-Culling photos is the closest solved problem to this. Single-key verdicts, auto-advance, and a backlog that shrinks to zero.
+Culling photos is the closest solved problem to this. Single-key verdicts and a backlog that shrinks to zero. A verdict stays on the item, and the arrows move on.
 - `k` keep, `x` remove, `l` later, `u` clear, from any view, on any selection. `⌘Z` undoes.
-- **Review** (`r`) takes the current set (any selection, query or Reclaim family) full-screen: large preview, filmstrip, verdict keys, "38 left · 214 GB decided". The next item is preloaded, so advancing is instant.
+- **Review** (`r`) takes the current set (any selection, query or Reclaim family) full-screen: large preview, filmstrip, verdict keys, "38 left · 214 GB decided". One selected folder opens on its contents, ⏎ goes into a folder and Esc comes back up. The next item is preloaded, so moving along is instant.
 - Decisions inherit downward and the deepest wins. Keeping one file inside a directory marked remove is a first-class state, shown as partial.
 - Decisions persist across scans, keyed by path with a fingerprint. If a file changes after you judged it, the verdict is flagged stale and is not applied.
 - Keep is the default. Nothing is ever pre-marked for removal.

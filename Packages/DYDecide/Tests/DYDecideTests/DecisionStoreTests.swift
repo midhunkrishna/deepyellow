@@ -76,6 +76,17 @@ final class DecisionStoreTests: XCTestCase {
         XCTAssertEqual(store.version, version)
     }
 
+    func testDifferentDecisionsInOneCallAreOneUndoStep() {
+        let store = DecisionStore(fileURL: nil)
+        store.set(.remove, paths: ["/h/other/x.txt", "/h/dev/notes.txt"], tree: tree)
+        store.set(["/h/other/x.txt": .none, "/h/dev/notes.txt": .keep], tree: tree)
+        XCTAssertEqual(effective(store.resolve(tree: tree), "/h/other/x.txt"), .none)
+        XCTAssertEqual(effective(store.resolve(tree: tree), "/h/dev/notes.txt"), .keep)
+        XCTAssertTrue(store.undo())
+        XCTAssertEqual(effective(store.resolve(tree: tree), "/h/other/x.txt"), .remove)
+        XCTAssertEqual(effective(store.resolve(tree: tree), "/h/dev/notes.txt"), .remove)
+    }
+
     func testClearingWithNoneRemovesTheVerdict() {
         let store = DecisionStore(fileURL: nil)
         store.set(.remove, paths: ["/h/other"], tree: tree)

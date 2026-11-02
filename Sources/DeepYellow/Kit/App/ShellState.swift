@@ -81,7 +81,7 @@ public final class ShellState {
     public func perform(_ command: ShellCommand) {
         switch command {
         case .lens(let kind): workspace.setLens(kind)
-        case .mark(let decision): mark(decision)
+        case .mark(let decision): workspace.mark(decision)
         case .review: if workspace.review == nil { Task { _ = await workspace.startReview() } }
         case .openPlan: workspace.endReview(); sheet = .plan
         case .togglePreview: previewOpen.toggle()
@@ -90,7 +90,7 @@ public final class ShellState {
         case .cycleColor: cycleColor()
         case .hide: if !workspace.selectedNodes.isEmpty { workspace.hide(.path, nodes: workspace.selectedNodes) }
         case .zoomIn: goIn()
-        case .zoomOut: _ = workspace.zoomOut()
+        case .zoomOut: if workspace.review != nil { workspace.reviewUp() } else { _ = workspace.zoomOut() }
         case .undo: _ = workspace.undoDecision()
         case .redo: _ = workspace.redoDecision()
         case .openPalette: paletteQuery = ""; sheet = .palette
@@ -112,15 +112,6 @@ public final class ShellState {
         }
     }
 
-    /// Applies a verdict to the review item when reviewing, else to the selection.
-    private func mark(_ decision: Decision) {
-        if workspace.review != nil {
-            if decision == .none { _ = workspace.undoDecision() } else { _ = workspace.reviewVerdict(decision) }
-        } else {
-            _ = workspace.mark(decision)
-        }
-    }
-
     /// Steps to the next colour mode.
     private func cycleColor() {
         let all = ColorMode.allCases
@@ -134,9 +125,10 @@ public final class ShellState {
         workspace.zoomIn(node)
     }
 
-    /// ⏎: on the Map, goes into the selected folder and selects its first item. Elsewhere, zooms into it.
+    /// ⏎: in Review, goes into the current folder. On the Map, goes into the selected folder and selects its first item. Elsewhere, zooms into it.
     private func goIn() {
-        guard sheet == nil, workspace.review == nil else { return }
+        guard sheet == nil else { return }
+        if workspace.review != nil { workspace.reviewEnter(); return }
         guard workspace.lensKind == .map else { zoomIntoSelection(); return }
         guard let lens = workspace.lens else { return }
         if workspace.selectedNodes.isEmpty {
@@ -149,10 +141,10 @@ public final class ShellState {
         workspace.select([first])
     }
 
-    /// Backs out one level: panel, review, preview, then on the Map up a level, elsewhere selection and then zoom.
+    /// Backs out one step: panel, then up a Review level or out of Review, preview, then on the Map up a level, elsewhere selection and then zoom.
     private func backOut() {
         if sheet != nil { sheet = nil }
-        else if workspace.review != nil { workspace.endReview() }
+        else if workspace.review != nil { if !workspace.reviewUp() { workspace.endReview() } }
         else if previewOpen { previewOpen = false }
         else if workspace.lensKind == .map { goUpOnMap() }
         else if workspace.selectionCount > 0 { workspace.clearSelection() }
@@ -183,8 +175,8 @@ public final class ShellState {
 
     /// An arrow key. In Review it steps through the set; otherwise each view moves in the way its layout reads.
     private func move(_ direction: MoveDirection) {
-        if let review = workspace.review {
-            workspace.reviewGo(to: review.index + (direction == .right || direction == .down ? 1 : -1))
+        if workspace.review != nil {
+            workspace.reviewMove(by: direction == .right || direction == .down ? 1 : -1)
             return
         }
         guard sheet == nil else { return }

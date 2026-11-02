@@ -39,9 +39,14 @@ public final class DecisionStore: @unchecked Sendable {
     /// `.none` clears a verdict. Paths missing from `tree` are skipped, because they can't be fingerprinted.
     /// A call that changes nothing adds no undo step.
     public func set(_ decision: Decision, paths: [String], tree: FileTree) {
+        set(Dictionary(paths.map { ($0, decision) }, uniquingKeysWith: { first, _ in first }), tree: tree)
+    }
+
+    /// Records a decision per path as one undo step, with the same rules as `set(_:paths:tree:)`.
+    public func set(_ decisions: [String: Decision], tree: FileTree) {
         lock.withLock {
             var changes: [Change] = []
-            for path in paths {
+            for (path, decision) in decisions {
                 let before = entries[path]
                 var after: DecisionEntry?
                 if decision != .none {

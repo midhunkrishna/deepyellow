@@ -76,7 +76,7 @@ public final class TrashExecutor: @unchecked Sendable {
                 return
             }
         } catch {
-            report.failed.append((path: item.id, error: "Couldn't check it before moving: \(error)"))
+            report.failed.append((path: item.id, error: "Couldn't check it before moving: \(error.localizedDescription)"))
             return
         }
         batch.entries.append(JournalEntry(original: item.id, trashed: nil, state: .moving, bytes: item.bytes))
@@ -95,7 +95,7 @@ public final class TrashExecutor: @unchecked Sendable {
         } catch {
             batch.entries.removeLast()
             _ = publish(batch)
-            report.failed.append((path: item.id, error: "\(error)"))
+            report.failed.append((path: item.id, error: error.localizedDescription))
         }
     }
 
@@ -130,7 +130,7 @@ public final class TrashExecutor: @unchecked Sendable {
             try mover.moveBack(from: trashed, to: entry.original)
             return .restored(trashed: trashed)
         } catch {
-            return .failed(reason: "\(error)", keep: true)
+            return .failed(reason: error.localizedDescription, keep: true)
         }
     }
 

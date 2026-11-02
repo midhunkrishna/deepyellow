@@ -8,6 +8,8 @@
 <meta name="theme-color" content="#0E0D0B">
 <link rel="icon" href="../favicon.png">
 <link rel="apple-touch-icon" href="../images/icon.png">
+<meta name="color-scheme" content="dark">
+<style>html{background:#0E0D0B}body{visibility:hidden;animation:reveal 0s 3s forwards}@keyframes reveal{to{visibility:visible}}</style>
 <link rel="stylesheet" href="../style.css">
 </head>
 <body>
@@ -121,7 +123,20 @@
 <p><img src="../images/app-worklists.webp" alt="Worklists" loading="lazy" width="1600" height="1000"></p>
 <p>Leftovers never raise a tier. They stay "look first".</p>
 <h2 id="review">Review <a class="anchor" href="#review" aria-label="Link to this section">#</a></h2>
-<p>Press <kbd>r</kbd> to take the current set (a selection, a query result or a Reclaim family) full screen: a large preview, a filmstrip, and a counter like "38 left, 214 GB decided". The next item is preloaded so advancing is instant. The item's path can be selected, and <strong>Copy path</strong> or <kbd>&#8984;C</kbd> copies all of it. Keep is the default, and nothing is pre-marked.</p>
+<p>Press <kbd>r</kbd> to take the current set (a selection, a query result or a Reclaim family) full screen: a large preview, a filmstrip, and a counter like "38 left, 214 GB decided". With one folder selected, Review opens on what's inside it. The next item is preloaded so moving along is instant.</p>
+<table>
+<thead><tr><th>Key</th><th>In Review</th></tr></thead>
+<tbody>
+<tr><td><kbd>&larr;</kbd> <kbd>&rarr;</kbd></td><td>Previous or next item in this level</td></tr>
+<tr><td><kbd>k</kbd> <kbd>x</kbd> <kbd>l</kbd></td><td>Keep, mark for removal, or decide later. The mark stays on this item, and nothing moves on by itself</td></tr>
+<tr><td><kbd>u</kbd></td><td>Clear this item's mark</td></tr>
+<tr><td><kbd>&#8984;Z</kbd></td><td>Undo the last mark, wherever it was</td></tr>
+<tr><td><kbd>&#9166;</kbd></td><td>Go into the folder on screen, starting at its first item</td></tr>
+<tr><td><kbd>Esc</kbd></td><td>Go back up to the folder you came from. At the level Review opened on, close Review. Your marks stay</td></tr>
+<tr><td><kbd>&#8984;&#9166;</kbd></td><td>Open the Plan</td></tr>
+</tbody></table>
+<p>A mark on a folder reaches everything inside it, and the deepest mark wins, so you can mark a folder for removal, go in, and keep one photo. A folder with marks inside it shows how many, such as "12 of 40 marked". Packages such as an <code>.app</code> stay one item. Items are sorted biggest first, by the current metric.</p>
+<p>The item's path can be selected, and <strong>Copy path</strong> or <kbd>&#8984;C</kbd> copies all of it. Keep is the default, and nothing is pre-marked.</p>
 <p><img src="../images/app-review.webp" alt="Review" loading="lazy" width="1600" height="1000"></p>
 <h2 id="preview">Preview <a class="anchor" href="#preview" aria-label="Link to this section">#</a></h2>
 <p><kbd>Space</kbd> opens a pane on the right from any view, and the arrow keys keep working underneath it. Video plays with a filmstrip and hover scrub; images decode to screen size with pan and zoom; audio shows a waveform; PDFs and text render natively; everything else uses QuickLook. A folder shows a composition of its largest children. iCloud placeholders are never downloaded by a preview: you get metadata and an explicit Download button.</p>

@@ -15,9 +15,9 @@ public enum PathClipboard {
 
 /// Full-window culling over the current review session.
 ///
-/// The preview fills the stage, a side panel carries the facts and the three verdicts, and a filmstrip shows the whole set.
+/// The preview fills the stage, a side panel carries the facts and the three verdicts, and a filmstrip shows the current level.
 /// Keys are handled by the shell, which calls the same `Workspace` verdict methods these buttons call. The next few items
-/// are prepared ahead, so advancing is instant.
+/// are prepared ahead, so moving along is instant.
 public struct ReviewMode: View {
     let workspace: Workspace
     let controller: PreviewController
@@ -32,16 +32,12 @@ public struct ReviewMode: View {
     public var body: some View {
         if let session = workspace.review {
             VStack(spacing: 0) {
-                ReviewTopBar(workspace: workspace, session: session)
-                if session.isFinished {
-                    ReviewFinished(workspace: workspace, session: session) { actions.reviewPlan() }
-                } else {
-                    stage(session)
-                    Filmstrip(workspace: workspace, session: session)
-                }
+                ReviewTopBar(workspace: workspace, session: session) { actions.reviewPlan() }
+                stage(session)
+                Filmstrip(workspace: workspace, session: session)
             }
             .background(Theme.background)
-            .task(id: session.index) { controller.prepare(workspace.reviewUpcoming(count: 3)) }
+            .task(id: session.current?.path) { controller.prepare(workspace.reviewUpcoming(count: 3)) }
         }
     }
 
@@ -60,27 +56,41 @@ public struct ReviewMode: View {
     }
 }
 
-/// Title, progress, tally and the way out.
+/// Where you are, progress, tally, and the ways out.
 struct ReviewTopBar: View {
     let workspace: Workspace
     let session: ReviewSession
+    let openPlan: () -> Void
 
     /// "38 left · 214 GB decided".
     static func tallyText(_ tally: ReviewTally) -> String { "\(Format.count(tally.left)) left · \(Format.bytes(tally.decidedBytes)) decided" }
 
     var body: some View {
         let total = session.items.count
-        let position = min(session.index + 1, total)
+        let position = session.index + 1
         HStack(spacing: 14) {
-            Text(session.title).font(.system(size: 14, weight: .semibold)).foregroundStyle(Theme.textPrimary)
-            Text(session.isFinished ? "\(total) of \(total)" : "\(position) of \(total)")
+            Text(session.trail.joined(separator: " › ")).font(.system(size: 14, weight: .semibold)).foregroundStyle(Theme.textPrimary)
+                .lineLimit(1).truncationMode(.head)
+            Text("\(position) of \(total)")
                 .font(Theme.number(size: 13)).foregroundStyle(Theme.textSecondary)
-            ProgressBar(fraction: Double(session.index) / Double(max(total, 1))).frame(maxWidth: .infinity)
-            Text(Self.tallyText(session.tally)).font(Theme.number(size: 13)).foregroundStyle(Theme.textSecondary)
-            Button { workspace.endReview() } label: {
-                HStack(spacing: 6) { Text("Done"); KeyCap(key: "esc") }
+            ProgressBar(fraction: Double(position) / Double(max(total, 1))).frame(maxWidth: .infinity)
+            Text(Self.tallyText(workspace.reviewTally)).font(Theme.number(size: 13)).foregroundStyle(Theme.textSecondary)
+            Button(action: openPlan) {
+                HStack(spacing: 6) { Text("Plan"); KeyCap(key: "⌘⏎") }
             }
             .buttonStyle(GhostButtonStyle())
+            if session.depth > 0 {
+                Button { workspace.reviewUp() } label: {
+                    HStack(spacing: 6) { Text("Up"); KeyCap(key: "esc") }
+                }
+                .buttonStyle(GhostButtonStyle())
+                Button("Done") { workspace.endReview() }.buttonStyle(GhostButtonStyle())
+            } else {
+                Button { workspace.endReview() } label: {
+                    HStack(spacing: 6) { Text("Done"); KeyCap(key: "esc") }
+                }
+                .buttonStyle(GhostButtonStyle())
+            }
         }
         .padding(.horizontal, 16).padding(.vertical, 10)
         .overlay(alignment: .bottom) { Rectangle().fill(Theme.hairline).frame(height: 1) }
@@ -120,15 +130,34 @@ struct ReviewSidePanel: View {
                         }
                     }
                 }
-                if let given = session.verdicts[item.path], given != .none {
-                    HStack(spacing: 6) { Text("Marked").foregroundStyle(Theme.textMuted); DecisionTag(decision: given) }.font(.system(size: 12))
+                if let text = markedFilesText { Text(text).font(Theme.number(size: 13)).foregroundStyle(Theme.textSecondary) }
+                let given = workspace.reviewDecision(of: item)
+                if given != .none {
+                    HStack(spacing: 6) {
+                        Text("Marked").foregroundStyle(Theme.textMuted)
+                        DecisionTag(decision: given)
+                        if workspace.reviewMarkIsInherited(item) { Text("through its folder").foregroundStyle(Theme.textMuted) }
+                    }
+                    .font(.system(size: 12))
                 }
                 verdicts.padding(.top, 8)
-                Text("The next item appears immediately. ⌘Z steps back. Nothing moves until you apply the plan.")
+                if item.canGoIn {
+                    Button { workspace.reviewEnter() } label: {
+                        HStack(spacing: 6) { Text("Go in"); KeyCap(key: "⏎") }
+                    }
+                    .buttonStyle(GhostButtonStyle())
+                }
+                Text("← → move. u clears a mark, ⌘Z undoes the last one. Nothing moves until you apply the plan.")
                     .font(.system(size: 12)).foregroundStyle(Theme.textMuted).fixedSize(horizontal: false, vertical: true)
             }
             .padding(18)
         }
+    }
+
+    /// "12 of 40 marked" for a folder with marks inside it.
+    private var markedFilesText: String? {
+        guard let counts = workspace.reviewMarkedFiles(of: item), counts.marked > 0 else { return nil }
+        return "\(Format.count(counts.marked)) of \(Format.count(counts.files)) marked"
     }
 
     /// Kind, age and, for a folder, its file count.
@@ -174,7 +203,7 @@ struct VerdictButton: View {
     }
 }
 
-/// The set as a strip of tiles. The current one is ringed in gold, and decided ones carry their glyph.
+/// The current level as a strip of tiles. The current one is ringed in gold, and decided ones carry their glyph.
 struct Filmstrip: View {
     let workspace: Workspace
     let session: ReviewSession
@@ -185,7 +214,7 @@ struct Filmstrip: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: 5) {
                     ForEach(Array(session.items.enumerated()), id: \.element.id) { index, item in
-                        FilmstripTile(item: item, verdict: session.verdicts[item.path] ?? .none, isCurrent: index == session.index) {
+                        FilmstripTile(item: item, verdict: workspace.reviewDecision(of: item), marked: workspace.reviewMarkedFiles(of: item), isCurrent: index == session.index) {
                             workspace.reviewGo(to: index)
                         }
                         .id(index)
@@ -193,10 +222,12 @@ struct Filmstrip: View {
                 }
                 .padding(.horizontal, 12).padding(.vertical, 8)
             }
+            .onAppear { proxy.scrollTo(session.index, anchor: .center) }
             .onChange(of: session.index) { _, index in
                 if reduceMotion { proxy.scrollTo(index, anchor: .center) } else { withAnimation(.easeOut(duration: 0.2)) { proxy.scrollTo(index, anchor: .center) } }
             }
         }
+        .id(session.trail)
         .frame(height: 80)
         .overlay(alignment: .top) { Rectangle().fill(Theme.hairline).frame(height: 1) }
     }
@@ -206,6 +237,8 @@ struct Filmstrip: View {
 struct FilmstripTile: View {
     let item: ReviewItem
     let verdict: Decision
+    /// For a folder, how many of its files have a mark and how many it holds.
+    let marked: (marked: Int, files: Int)?
     let isCurrent: Bool
     let action: () -> Void
 
@@ -213,12 +246,13 @@ struct FilmstripTile: View {
         Button(action: action) {
             VStack(alignment: .leading, spacing: 0) {
                 HStack(spacing: 4) {
+                    if item.canGoIn { Image(systemName: "folder.fill").font(.system(size: 9)).foregroundStyle(Theme.textSecondary) }
                     Text(item.name).font(.system(size: 10.5)).lineLimit(1).truncationMode(.middle).foregroundStyle(Theme.textPrimary)
                     Spacer(minLength: 0)
                     DecisionGlyph(decision: verdict, size: 11)
                 }
                 Spacer(minLength: 0)
-                Text(Format.bytes(item.bytes)).font(Theme.number(size: 10.5)).foregroundStyle(Theme.textSecondary)
+                Text(detail).font(Theme.number(size: 10.5)).foregroundStyle(Theme.textSecondary).lineLimit(1)
             }
             .padding(6)
             .frame(width: 104, height: 62)
@@ -232,30 +266,13 @@ struct FilmstripTile: View {
             .opacity(verdict != .none && !isCurrent ? 0.75 : 1)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("\(item.name), \(Format.bytes(item.bytes))\(verdict == .none ? "" : ", " + DecisionTag.title(verdict))")
+        .accessibilityLabel("\(item.canGoIn ? "Folder " : "")\(item.name), \(detail)\(verdict == .none ? "" : ", " + DecisionTag.title(verdict))")
     }
-}
 
-/// The state after the last item: what was decided and the way to the plan.
-struct ReviewFinished: View {
-    let workspace: Workspace
-    let session: ReviewSession
-    let openPlan: () -> Void
-
-    var body: some View {
-        let tally = session.tally
-        VStack(spacing: 12) {
-            Text(tally.left == 0 ? "All \(Format.count(session.items.count)) decided" : "End of the set: \(Format.count(tally.left)) left undecided").font(.system(size: 30, weight: .semibold)).tracking(-0.5)
-                .foregroundStyle(Theme.textPrimary)
-            Text("\(tally.kept) kept · \(tally.removed) to remove (\(Format.bytes(tally.removedBytes))) · \(tally.later) for later")
-                .font(Theme.number(size: 15)).foregroundStyle(Theme.textSecondary)
-            HStack(spacing: 8) {
-                Button("Back to the map") { workspace.endReview() }.buttonStyle(GhostButtonStyle())
-                Button("Review plan") { openPlan() }.buttonStyle(PrimaryButtonStyle())
-            }
-            .padding(.top, 6)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    /// The size, and for a folder with marks inside it, how many.
+    private var detail: String {
+        guard let marked, marked.marked > 0, verdict == .none || marked.marked < marked.files else { return Format.bytes(item.bytes) }
+        return "\(Format.bytes(item.bytes)) · \(Format.count(marked.marked))/\(Format.count(marked.files))"
     }
 }
 

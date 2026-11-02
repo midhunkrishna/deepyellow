@@ -154,19 +154,18 @@ final class RenderTests: XCTestCase {
         try await render(ReclaimLens(workspace: workspace), size: CGSize(width: 1180, height: 500), name: "reclaim-empty")
     }
 
-    func testReviewRendersAndAdvances() async throws {
+    func testReviewRendersAndMoves() async throws {
         let workspace = await demoWorkspace()
         let list = try XCTUnwrap(workspace.worklists.first { $0.kind == .largestUndecided })
         XCTAssertTrue(workspace.startReview(worklist: list))
         workspace.reviewVerdict(.keep)
+        workspace.reviewMove(by: 1)
         workspace.reviewVerdict(.remove)
+        workspace.reviewMove(by: 1)
         workspace.reviewVerdict(.later)
-        XCTAssertEqual(workspace.review?.index, 3)
+        XCTAssertEqual(workspace.review?.index, 2)
         let controller = PreviewController()
         let distinct = try await render(ReviewMode(workspace: workspace, controller: controller), size: CGSize(width: 1280, height: 760), name: "review")
         XCTAssertGreaterThan(distinct, 8)
-        workspace.reviewGo(to: workspace.review?.items.count ?? 0)
-        try await render(ReviewMode(workspace: workspace, controller: controller), size: CGSize(width: 1280, height: 520), name: "review-finished")
-        XCTAssertTrue(workspace.review?.isFinished ?? false)
     }
 }
