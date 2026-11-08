@@ -10,6 +10,7 @@ enum Bulk {
     static let cmnModifiedTime: UInt32 = 0x0000_0400
     static let cmnAccessedTime: UInt32 = 0x0000_1000
     static let cmnFlags: UInt32 = 0x0004_0000
+    static let cmnUserAccess: UInt32 = 0x0020_0000
     static let cmnFileID: UInt32 = 0x0200_0000
     static let cmnError: UInt32 = 0x2000_0000
     static let cmnReturnedAttributes: UInt32 = 0x8000_0000
@@ -43,6 +44,9 @@ enum Bulk {
     static let sfFirmlink: UInt32 = 0x0080_0000
     static let sfDataless: UInt32 = 0x4000_0000
 
+    // Bits of the user-access mask, matching access(2).
+    static let userWrite: UInt32 = 0x2
+
     // Vnode types.
     static let objectDirectory: UInt32 = 2
     static let objectSymlink: UInt32 = 5
@@ -55,7 +59,7 @@ enum Bulk {
         var request = attrlist()
         request.bitmapcount = 5
         request.commonattr = cmnReturnedAttributes | cmnError | cmnName | cmnObjectType | cmnModifiedTime
-            | cmnAccessedTime | cmnFlags | cmnFileID
+            | cmnAccessedTime | cmnFlags | cmnUserAccess | cmnFileID
         request.dirattr = dirEntryCount | dirMountStatus
         request.fileattr = fileLinkCount | fileTotalSize | fileAllocSize
         request.forkattr = extRealDeviceID | extCloneID | extFlags | (includePrivateSize ? extPrivateSize : 0)
@@ -80,6 +84,8 @@ struct ParsedEntry {
     var error: UInt32 = 0
     var objectType: UInt32 = 0
     var fsFlags: UInt32 = 0
+    var userAccess: UInt32 = 0
+    var hasUserAccess = false
     var modified: Int32 = 0
     var accessed: Int32 = 0
     var fileID: UInt64 = 0
@@ -122,7 +128,8 @@ private struct FieldCursor {
 /// Turns one `getattrlistbulk` entry into a `ParsedEntry`, driven only by the attribute set the entry itself reports.
 enum BulkEntryParser {
     private static let knownCommon = Bulk.cmnName | Bulk.cmnDeviceID | Bulk.cmnObjectType | Bulk.cmnModifiedTime
-        | Bulk.cmnAccessedTime | Bulk.cmnFlags | Bulk.cmnFileID | Bulk.cmnError | Bulk.cmnReturnedAttributes
+        | Bulk.cmnAccessedTime | Bulk.cmnFlags | Bulk.cmnUserAccess | Bulk.cmnFileID | Bulk.cmnError
+        | Bulk.cmnReturnedAttributes
     private static let knownDir = Bulk.dirEntryCount | Bulk.dirMountStatus
     private static let knownFile = Bulk.fileLinkCount | Bulk.fileTotalSize | Bulk.fileAllocSize
     private static let knownExtended = Bulk.extPrivateSize | Bulk.extRealDeviceID | Bulk.extCloneID | Bulk.extFlags
@@ -160,6 +167,7 @@ enum BulkEntryParser {
         if set & Bulk.cmnModifiedTime != 0 { parsed.modified = readSeconds(&cursor) }
         if set & Bulk.cmnAccessedTime != 0 { parsed.accessed = readSeconds(&cursor) }
         if set & Bulk.cmnFlags != 0 { parsed.fsFlags = cursor.take(UInt32.self) ?? 0 }
+        if set & Bulk.cmnUserAccess != 0 { parsed.userAccess = cursor.take(UInt32.self) ?? 0; parsed.hasUserAccess = true }
         if set & Bulk.cmnFileID != 0 { parsed.fileID = cursor.take(UInt64.self) ?? 0 }
         return true
     }

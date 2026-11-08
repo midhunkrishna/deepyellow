@@ -52,7 +52,9 @@ Marking works like `git add`. <kbd>x</kbd> stages an item for removal and change
 
 ![The Plan](screens/app-plan.png)
 
-These are always blocked, regardless of what was selected: the scan root, `/`, your home folder and its ancestors, `/System`, `/Applications`, `/Library`, `/Users`, `/usr`, `/bin`, `/sbin`, `/private`, `/Volumes`, direct children of `/`, `~/Library` itself, `~/Documents`, `~/Desktop`, `~/Pictures`, `~/Movies`, `~/Music` and `~/Downloads` themselves (their contents can be planned), unreadable or restricted items, mount boundaries, anything in tier `never`, anything inside a `.photoslibrary`, and anything whose fingerprint no longer matches.
+These are always blocked, regardless of what was selected: the scan root, `/`, your home folder and its ancestors, `/System`, `/Applications`, `/Library`, `/Users`, `/usr`, `/bin`, `/sbin`, `/private`, `/Volumes`, direct children of `/`, `~/Library` itself, `~/Documents`, `~/Desktop`, `~/Pictures`, `~/Movies`, `~/Music` and `~/Downloads` themselves (their contents can be planned), unreadable or restricted items, folders you don't have permission to change and anything directly inside one, mount boundaries, anything in tier `never`, anything inside a `.photoslibrary`, and anything whose fingerprint no longer matches.
+
+The folders macOS keeps in `~/Library` and `/Library`, such as `Caches` and `Logs`, are never moved themselves. If you mark one, the Plan lists what is inside it instead, and the folder stays where it is.
 
 ### Apply, Trash and undo
 

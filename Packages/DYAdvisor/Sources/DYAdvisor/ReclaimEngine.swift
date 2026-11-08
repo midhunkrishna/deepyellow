@@ -10,8 +10,10 @@ public enum ReclaimEngine {
     /// Resolves the governing rule for every node and totals each rule's families.
     ///
     /// A rule applies to the node it matches and everything beneath it. The deepest (most specific) match wins, except
-    /// that a `never` ancestor always wins over anything nested in it. SIP-protected nodes are `never`. Returns nil if
-    /// `isCancelled` becomes true.
+    /// that a `never` ancestor always wins over anything nested in it. SIP-protected nodes (`.restricted`) are `never`.
+    /// A node that would start a rule is `never` instead when it is a folder the user cannot write to (`.noWriteAccess`)
+    /// or sits directly inside one, because it cannot be moved. A read-only folder that only inherits a rule keeps that
+    /// rule. Returns nil if `isCancelled` becomes true.
     public static func analyze(lens: TreeLens, home: String, rules: [ReclaimRule], isCancelled: () -> Bool) -> ReclaimReport? {
         let tree = lens.tree
         guard let own = ownMatches(lens: lens, home: home, rules: rules, isCancelled: isCancelled) else { return nil }
@@ -93,6 +95,12 @@ public enum ReclaimEngine {
             let mine = Int(own[index])
             guard mine >= 0 else { continue }
             if inheritedRule >= 0, !leaves[mine].isEmpty, leaves[mine] == leaves[Int(inheritedRule)] { continue }
+            let parentReadOnly = parent >= 0 && tree.flags(NodeID(parent)).contains(.noWriteAccess)
+            if tree.flags(NodeID(index)).contains(.noWriteAccess) || parentReadOnly {
+                result.tier[index] = SafetyTier.never.rawValue
+                result.rule[index] = -1
+                continue
+            }
             result.tier[index] = rules[mine].tier.rawValue
             result.rule[index] = Int32(mine)
             result.isRoot[index] = true

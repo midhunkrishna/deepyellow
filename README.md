@@ -34,7 +34,7 @@ DeepYellow is a native macOS disk analyzer. It draws your disk as a treemap you 
 
 ![The map by file count](docs/screens/app-map-files.png)
 
-**Safety advice you can read.** Each item has a tier (safe, rebuild, review, never offered) with its consequence in a sentence, the condition to meet first, and the official cleanup command where one exists. When the evidence is thin it says "review", and for most personal files it says nothing, because the honest answer is that it cannot know. [All 56 built-in rules](docs/reclaim-rules.md)
+**Safety advice you can read.** Each item has a tier (safe, rebuild, review, never offered) with its consequence in a sentence, the condition to meet first, and the official cleanup command where one exists. When the evidence is thin it says "review", and for most personal files it says nothing, because the honest answer is that it cannot know. [All 57 built-in rules](docs/reclaim-rules.md)
 
 ![Reclaim, grouped by tier](docs/screens/app-reclaim.png)
 

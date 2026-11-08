@@ -286,9 +286,9 @@
 <h3 id="system-logs">System logs <a class="anchor" href="#system-logs" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: never</strong> · <code>system.logs.protected</code></p>
 <ul>
-<li><strong>Pattern:</strong> <code>/var/log || /private/var/log || /var/db/diagnostics || /private/var/db/diagnostics</code></li>
-<li><strong>What it is:</strong> System logs and diagnostics.</li>
-<li><strong>If you remove it:</strong> They are needed by the system and are not offered for removal.</li>
+<li><strong>Pattern:</strong> <code>/var/log || /private/var/log || /var/db/diagnostics || /private/var/db/diagnostics || /Library/Logs</code></li>
+<li><strong>What it is:</strong> Logs and diagnostics macOS keeps for the whole system.</li>
+<li><strong>If you remove it:</strong> They belong to macOS and are mostly owned by the system, so they are not offered for removal.</li>
 <li><strong>Source:</strong> Research notes</li>
 </ul>
 <h3 id="app-language-files">App language files <a class="anchor" href="#app-language-files" aria-label="Link to this section">#</a></h3>
@@ -534,11 +534,19 @@
 <h3 id="logs">Logs <a class="anchor" href="#logs" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: safe</strong> · <code>logs</code></p>
 <ul>
-<li><strong>Pattern:</strong> <code>~/Library/Logs || /Library/Logs</code></li>
+<li><strong>Pattern:</strong> <code>~/Library/Logs/*</code></li>
 <li><strong>What it is:</strong> Records apps and the system wrote about what they did.</li>
 <li><strong>If you remove it:</strong> You would lose logs that help diagnose a past crash.</li>
 <li><strong>Condition:</strong> Skip files changed in the last hour.</li>
 <li><strong>Source:</strong> Apple Support</li>
+</ul>
+<h3 id="logs-macos-writes">Logs macOS writes <a class="anchor" href="#logs-macos-writes" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: never</strong> · <code>logs.apple</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Logs/com.apple.*|DiagnosticReports</code></li>
+<li><strong>What it is:</strong> Logs and crash reports that macOS writes for you.</li>
+<li><strong>If you remove it:</strong> macOS manages these, so they are not offered for removal.</li>
+<li><strong>Source:</strong> Policy choice</li>
 </ul>
 <h3 id="downloaded-installers">Downloaded installers <a class="anchor" href="#downloaded-installers" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: review</strong> · <code>downloads.installers</code></p>
@@ -599,7 +607,7 @@
 <li><strong>Source:</strong> Research notes (unverified)</li>
 </ul>
 <h2 id="summary">Summary <a class="anchor" href="#summary" aria-label="Link to this section">#</a></h2>
-<p>56 rules in total.</p>
+<p>57 rules in total.</p>
 <nav class="pager" aria-label="Pages"><a href="sql.html">&larr; SQL</a><a href="cli.html">Command line &rarr;</a></nav>
   </main>
 </div>
