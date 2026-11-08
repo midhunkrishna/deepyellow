@@ -313,4 +313,66 @@ final class RemovalPlannerTests: XCTestCase {
             }
         }
     }
+
+    // MARK: - Library containers and read-only folders
+
+    func testMarkingLibraryLogsPlansItsChildrenNotTheFolder() {
+        let tree = fixture(extra: [("/Users/me/Library/Logs/a.log", file(10)), ("/Users/me/Library/Logs/b.log", file(20))])
+        let result = plan(tree, remove: ["/Users/me/Library/Logs"])
+        XCTAssertEqual(ids(result), ["/Users/me/Library/Logs/a.log", "/Users/me/Library/Logs/b.log"])
+        XCTAssertTrue(blockedPaths(result).isEmpty)
+    }
+
+    func testMarkingSystemLibraryContainerPlansItsChildren() {
+        let tree = fixture(extra: [("/Library/Logs/x.log", file(10))])
+        let result = plan(tree, remove: ["/Library/Logs"])
+        XCTAssertEqual(ids(result), ["/Library/Logs/x.log"])
+    }
+
+    func testMarkingLibraryCachesPlansChildrenAndKeepsKeptOnesProtected() {
+        let tree = fixture(extra: [("/Users/me/Library/Caches/com.other/f", file(30))])
+        let result = plan(tree, remove: ["/Users/me/Library/Caches"], keep: ["/Users/me/Library/Caches/com.example"])
+        XCTAssertEqual(ids(result), ["/Users/me/Library/Caches/com.other"])
+        XCTAssertEqual(result.protected, ["/Users/me/Library/Caches/com.example"])
+    }
+
+    func testContainerWithNothingRemovablePlansNothing() {
+        let tree = fixture(extra: [("/Users/me/Library/Logs", dir())])
+        let result = plan(tree, remove: ["/Users/me/Library/Logs"])
+        XCTAssertTrue(result.items.isEmpty)
+    }
+
+    func testNoWriteAccessFolderIsBlockedWithReason() {
+        let tree = fixture(extra: [("/Users/me/Library/Caches/locked", dir(.noWriteAccess)),
+                                   ("/Users/me/Library/Caches/locked/f", file(10))])
+        let result = plan(tree, remove: ["/Users/me/Library/Caches/locked"])
+        XCTAssertTrue(result.items.isEmpty)
+        XCTAssertEqual(result.blocked.map(\.reason), ["You don't have permission to move this folder"])
+    }
+
+    func testChildOfNoWriteAccessFolderIsBlocked() {
+        let tree = fixture(extra: [("/Users/me/dev/ro", dir(.noWriteAccess)), ("/Users/me/dev/ro/f", file(10))])
+        let result = plan(tree, remove: ["/Users/me/dev/ro/f"])
+        XCTAssertTrue(result.items.isEmpty)
+        XCTAssertEqual(result.blocked.map(\.reason), ["Its folder is read-only for you, so it can't be moved out"])
+    }
+
+    func testContainerWithReadOnlyChildPlansOthersAndBlocksTheReadOnlyOne() {
+        let tree = fixture(extra: [("/Users/me/Library/Caches/locked", dir(.noWriteAccess)),
+                                   ("/Users/me/Library/Caches/locked/f", file(10)),
+                                   ("/Users/me/Library/Caches/ok/f", file(10))])
+        let result = plan(tree, remove: ["/Users/me/Library/Caches"])
+        XCTAssertEqual(ids(result), ["/Users/me/Library/Caches/com.example", "/Users/me/Library/Caches/ok"])
+        XCTAssertEqual(blockedPaths(result), ["/Users/me/Library/Caches/locked"])
+    }
+
+    func testWritableFolderHoldingReadOnlyFoldersIsPlannedWhole() {
+        let tree = fixture(extra: [("/Users/me/go/pkg/mod/github.com/a/b@v1", dir(.noWriteAccess)),
+                                   ("/Users/me/go/pkg/mod/github.com/a/b@v1/x.go", file(10)),
+                                   ("/Users/me/go/pkg/mod/github.com/c/d@v2", dir(.noWriteAccess)),
+                                   ("/Users/me/go/pkg/mod/github.com/c/d@v2/y.go", file(10))])
+        let result = plan(tree, remove: ["/Users/me/go/pkg/mod"])
+        XCTAssertEqual(ids(result), ["/Users/me/go/pkg/mod"])
+        XCTAssertTrue(result.blocked.isEmpty)
+    }
 }

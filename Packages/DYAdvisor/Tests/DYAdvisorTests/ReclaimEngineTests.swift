@@ -120,6 +120,52 @@ final class ReclaimEngineTests: XCTestCase {
         let report = analyze(tree)
         XCTAssertTrue(report.families.isEmpty)
     }
+
+    /// Logs advice covers what is inside ~/Library/Logs, leaves Apple's own logs and /Library/Logs alone.
+    func testLogsRulesCoverContentsOnly() {
+        let base = "/Users/tester/Library/Logs"
+        let tree = makeTree([file("\(base)/AppX/a.log", 5), file("\(base)/com.apple.foo/b", 1),
+                             file("\(base)/DiagnosticReports/c", 1), file("/Library/Logs/x", 1)])
+        let report = analyze(tree)
+        let folder = tree.find(path: base)!
+        XCTAssertNil(report.rule(for: folder, tree: tree))
+        XCTAssertFalse(report.families.contains { $0.nodes.contains(folder) })
+        XCTAssertEqual(tier(report, tree, "\(base)/AppX"), .safe)
+        XCTAssertEqual(tier(report, tree, "\(base)/com.apple.foo"), .never)
+        XCTAssertEqual(tier(report, tree, "\(base)/DiagnosticReports"), .never)
+        XCTAssertEqual(tier(report, tree, "/Library/Logs/x"), .never)
+    }
+
+    /// A folder the user cannot write to is never offered, and its children inherit that.
+    func testNoWriteAccessIsNeverAndNotAFamilyNode() {
+        let base = "/Users/tester/Library/Caches"
+        let tree = makeTree([dir("\(base)/Locked", .noWriteAccess), file("\(base)/Locked/inner/x", 1), file("\(base)/Open/x", 1)])
+        let report = analyze(tree)
+        XCTAssertEqual(tier(report, tree, "\(base)/Locked"), .never)
+        XCTAssertEqual(tier(report, tree, "\(base)/Locked/inner/x"), .never)
+        XCTAssertEqual(tier(report, tree, "\(base)/Open"), .rebuild)
+        let family = report.families.first { $0.rule.id == "caches.thirdparty" }
+        XCTAssertEqual(family?.bytes, 1)
+        XCTAssertFalse(family?.nodes.contains(tree.find(path: "\(base)/Locked")!) ?? true)
+    }
+
+    /// A read-only folder inside a writable rule root keeps the root's tier and counts in its family.
+    func testReadOnlyFoldersInsideAFamilyRootInheritItsTier() {
+        let mod = "/Users/tester/go/pkg/mod"
+        let tree = makeTree([dir("\(mod)/github.com/a/b@v1", .noWriteAccess), file("\(mod)/github.com/a/b@v1/x.go", 7)])
+        let report = analyze(tree)
+        XCTAssertEqual(tier(report, tree, "\(mod)/github.com/a/b@v1"), .rebuild)
+        XCTAssertEqual(report.rule(for: tree.find(path: "\(mod)/github.com/a/b@v1")!, tree: tree)?.id, "go.modcache")
+        XCTAssertEqual(report.families.first { $0.rule.id == "go.modcache" }?.bytes, 7)
+    }
+
+    /// A rule root directly inside a read-only folder cannot be moved, so it is never.
+    func testRuleRootInsideReadOnlyFolderIsNever() {
+        let tree = makeTree([dir("/Users/tester/Library/Caches", .noWriteAccess), file("/Users/tester/Library/Caches/App/x", 3)])
+        let report = analyze(tree)
+        XCTAssertEqual(tier(report, tree, "/Users/tester/Library/Caches/App"), .never)
+        XCTAssertNil(report.families.first { $0.rule.id == "caches.thirdparty" })
+    }
 }
 
 final class BuiltinRulesTests: XCTestCase {

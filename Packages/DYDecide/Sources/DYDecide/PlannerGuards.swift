@@ -8,6 +8,8 @@ struct PlannerGuards {
     private let stale: Set<NodeID>
     /// Nodes protected by where they are: the root, home, its ancestors, system folders and standard user folders.
     private let placeReasons: [NodeID: String]
+    /// Direct child folders of `~/Library` and `/Library`: never moved whole, their contents are planned instead.
+    private let containers: Set<NodeID>
 
     private static let systemFolders = ["System", "Applications", "Library", "Users", "usr", "bin", "sbin", "private", "Volumes"]
     private static let userFolders = ["Library", "Documents", "Desktop", "Pictures", "Movies", "Music", "Downloads"]
@@ -20,6 +22,7 @@ struct PlannerGuards {
         var reasons: [NodeID: String] = [0: "This is the scan root, which can never be removed"]
         Self.addPlaceGuards(tree: tree, home: home, into: &reasons)
         self.placeReasons = reasons
+        self.containers = Self.libraryContainers(tree: tree, home: home)
     }
 
     /// Why `node` itself must not be moved, or nil. Says nothing about being inside a Photos library.
@@ -32,6 +35,27 @@ struct PlannerGuards {
         if node < tier.count, tier[Int(node)] == SafetyTier.never.rawValue { return "Advice says this must never be removed" }
         if Self.isPhotosLibrary(tree, node) { return "A Photos library; manage it in Photos" }
         if stale.contains(node) { return "Changed since you marked it" }
+        return nil
+    }
+
+    /// Whether `node` is a Library container folder, which the planner splits instead of moving.
+    func isContainer(_ node: NodeID) -> Bool { containers.contains(node) }
+
+    /// The folders directly inside `~/Library` and `/Library`, as present in `tree`.
+    private static func libraryContainers(tree: FileTree, home: String) -> Set<NodeID> {
+        var roots = lookup(tree, ["library"])
+        let homeParts = components(home)
+        if !homeParts.isEmpty { roots += lookup(tree, homeParts + ["library"]) }
+        return Set(roots.flatMap { tree.children($0) }.filter { tree.isDirectory($0) })
+    }
+
+    /// Why `node` can't be moved as a whole because of permissions, or nil. Unlike `hazard`, this never makes a parent split:
+    /// a writable folder holding read-only folders can still be moved whole.
+    func immovable(_ node: NodeID) -> String? {
+        if tree.flags(node).contains(.noWriteAccess) { return "You don't have permission to move this folder" }
+        if node != 0, tree.flags(tree.parent(node)).contains(.noWriteAccess) {
+            return "Its folder is read-only for you, so it can't be moved out"
+        }
         return nil
     }
 

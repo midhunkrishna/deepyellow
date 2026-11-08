@@ -271,9 +271,9 @@ Virtual machines, backups and parts of macOS that are shown but not offered.
 
 **Tier: never** · `system.logs.protected`
 
-- **Pattern:** `/var/log || /private/var/log || /var/db/diagnostics || /private/var/db/diagnostics`
-- **What it is:** System logs and diagnostics.
-- **If you remove it:** They are needed by the system and are not offered for removal.
+- **Pattern:** `/var/log || /private/var/log || /var/db/diagnostics || /private/var/db/diagnostics || /Library/Logs`
+- **What it is:** Logs and diagnostics macOS keeps for the whole system.
+- **If you remove it:** They belong to macOS and are mostly owned by the system, so they are not offered for removal.
 - **Source:** Research notes
 
 ### App language files
@@ -552,11 +552,20 @@ Logs, the Trash, installers, and data that belongs to you.
 
 **Tier: safe** · `logs`
 
-- **Pattern:** `~/Library/Logs || /Library/Logs`
+- **Pattern:** `~/Library/Logs/*`
 - **What it is:** Records apps and the system wrote about what they did.
 - **If you remove it:** You would lose logs that help diagnose a past crash.
 - **Condition:** Skip files changed in the last hour.
 - **Source:** Apple Support
+
+### Logs macOS writes
+
+**Tier: never** · `logs.apple`
+
+- **Pattern:** `~/Library/Logs/com.apple.*|DiagnosticReports`
+- **What it is:** Logs and crash reports that macOS writes for you.
+- **If you remove it:** macOS manages these, so they are not offered for removal.
+- **Source:** Policy choice
 
 ### Downloaded installers
 
@@ -624,4 +633,4 @@ Logs, the Trash, installers, and data that belongs to you.
 
 ## Summary
 
-56 rules in total.
+57 rules in total.

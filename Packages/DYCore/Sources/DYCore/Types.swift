@@ -32,6 +32,8 @@ public struct NodeFlags: OptionSet, Sendable, Hashable {
     public static let restricted = NodeFlags(rawValue: 1 << 10)
     /// `privateBytes` wasn't reported by this filesystem and is a copy of `allocated`.
     public static let privateUnknown = NodeFlags(rawValue: 1 << 11)
+    /// A directory the current user can't write to. macOS refuses to move it, or anything in it, to the Trash.
+    public static let noWriteAccess = NodeFlags(rawValue: 1 << 12)
 }
 
 /// The eight file categories used for colour. Extensions are never coloured individually.

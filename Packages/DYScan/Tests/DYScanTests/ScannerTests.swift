@@ -127,6 +127,21 @@ final class ScannerTests: XCTestCase {
         XCTAssertEqual(tree.fileCount(0), 1)
     }
 
+    func testDirectoriesTheUserCannotWriteAreFlaggedNoWriteAccess() async throws {
+        try fixture.writeFile("open/file.bin", count: 10)
+        try fixture.writeFile("fixed/file.bin", count: 10)
+        try fixture.writeFile("Locked.app/Contents/x", count: 10)
+        fixture.makeReadOnly("fixed")
+        fixture.makeReadOnly("Locked.app")
+        let (tree, _) = await runScan(root: fixture.root)
+        XCTAssertTrue(tree.flags(tree.node("fixed")).contains(.noWriteAccess))
+        XCTAssertFalse(tree.flags(tree.node("open")).contains(.noWriteAccess))
+        XCTAssertTrue(tree.flags(tree.node("Locked.app")).contains(.noWriteAccess))
+        XCTAssertTrue(tree.flags(tree.node("Locked.app")).contains(.package))
+        XCTAssertFalse(tree.flags(tree.node("fixed/file.bin")).contains(.noWriteAccess), "files never get the flag")
+        XCTAssertFalse(tree.flags(tree.node("open/file.bin")).contains(.noWriteAccess))
+    }
+
     func testDeepNestingBeyondPathMax() async throws {
         var descriptor = open(fixture.root, O_RDONLY | O_DIRECTORY)
         let component = String(repeating: "d", count: 40)

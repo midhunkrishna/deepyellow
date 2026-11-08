@@ -54,7 +54,8 @@ private struct PlanWalk {
         }
     }
 
-    /// Walks from the root, emitting each removable root once and splitting directories that hold obstacles.
+    /// Walks from the root, emitting each removable root once and splitting Library containers and directories that hold
+    /// obstacles.
     mutating func run() {
         var stack: [(node: NodeID, inPhotos: Bool, inRemoved: Bool)] = [(0, false, false)]
         while let (node, outerPhotos, inRemoved) = stack.popLast() {
@@ -67,8 +68,10 @@ private struct PlanWalk {
             if let reason = PlannerGuards.pathProblem(path) ?? (inPhotos ? "Inside a Photos library; manage it in Photos" : nil)
                 ?? guards.hazard(node) {
                 block(path, reason)
-            } else if holdsObstacle[Int(node)] {
+            } else if holdsObstacle[Int(node)] || guards.isContainer(node) {
                 for child in tree.children(node) { stack.append((child, inPhotos, true)) }
+            } else if let reason = guards.immovable(node) {
+                block(path, reason)
             } else {
                 emit(node, path: path)
             }

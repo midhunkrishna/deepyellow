@@ -176,6 +176,7 @@ enum EntryClassifier {
         if parsed.objectType == Bulk.objectSymlink { flags.insert(.symlink) }
         if parsed.fsFlags & Bulk.sfDataless != 0 { flags.insert(.dataless) }
         if parsed.fsFlags & Bulk.sfRestricted != 0 { flags.insert(.restricted) }
+        if parsed.isDirectory, parsed.hasUserAccess, parsed.userAccess & Bulk.userWrite == 0 { flags.insert(.noWriteAccess) }
         if parsed.hasExtFlags {
             if parsed.extFlags & Bulk.efMayShareBlocks != 0 { flags.insert(.mayShareBlocks) }
             if parsed.extFlags & Bulk.efIsSparse != 0 { flags.insert(.sparse) }

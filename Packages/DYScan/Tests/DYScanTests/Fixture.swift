@@ -45,6 +45,12 @@ final class Fixture {
         lockedDirectories.append(path(relative))
     }
 
+    /// Makes a directory readable but not writable and remembers to restore it.
+    func makeReadOnly(_ relative: String) {
+        chmod(path(relative), 0o555)
+        lockedDirectories.append(path(relative))
+    }
+
     /// Restores permissions, then deletes the fixture directory.
     func tearDown() {
         for directory in lockedDirectories { chmod(directory, 0o755) }
