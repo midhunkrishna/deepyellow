@@ -1,0 +1,164 @@
+{
+  "$schema": "./schema/rules.schema.json",
+  "version": 1,
+  "section": {
+    "title": "Caches",
+    "intro": "`~/Library/Caches` and its exceptions."
+  },
+  "rules": [
+    {
+      "id": "caches.thirdparty",
+      "title": "App cache",
+      "pattern": "~/Library/Caches/*",
+      "tier": "rebuild",
+      "whatItIs": "A cache an app keeps so it can start faster.",
+      "consequence": "The app will be slower the next time it opens while it rebuilds the cache, and an app that stores real data here could lose it.",
+      "sideCondition": "Close the app first. Do not offer this when the owning app is unknown.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Apple developer documentation",
+      "evidence": {
+        "method": "vendor-doc"
+      }
+    },
+    {
+      "id": "caches.apple",
+      "title": "Apple system cache",
+      "pattern": "~/Library/Caches/com.apple.*",
+      "tier": "never",
+      "whatItIs": "A cache belonging to macOS or an Apple app.",
+      "consequence": "It is probably harmless to remove but belongs to running system services, and the benefit is small.",
+      "sideCondition": "Not offered. macOS clears these itself.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Policy choice",
+      "evidence": {
+        "method": "location"
+      }
+    },
+    {
+      "id": "caches.homebrew",
+      "title": "Homebrew downloads",
+      "pattern": "~/Library/Caches/Homebrew",
+      "tier": "safe",
+      "whatItIs": "Bottles, app installers and package lists Homebrew downloaded, kept after installing.",
+      "consequence": "Homebrew downloads a package again only if you reinstall or upgrade it.",
+      "sideCondition": "Use the command rather than deleting by hand; plain `brew cleanup` keeps recent downloads and freed nothing in our test.",
+      "cleanupCommand": "brew cleanup --prune=all",
+      "ownerBundleIDs": [],
+      "source": "Measured: Homebrew 7.0.12 on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "7.0.12",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Reached 618 MB after installing 15 formulae (73 with dependencies) and 3 casks. `brew cleanup --prune=all` freed 579 MB, leaving 40 MB of package lists; with the cache refilled to 1.3 GB, plain `brew cleanup` would have freed nothing. After deleting the folder, `brew reinstall jq` worked and the folder came back at 40 MB."
+      }
+    },
+    {
+      "id": "caches.jetbrains",
+      "title": "JetBrains IDE data",
+      "pattern": "~/Library/Caches/JetBrains/*",
+      "tier": "review",
+      "whatItIs": "Indexes, caches and logs for a JetBrains IDE, including its Local History.",
+      "consequence": "Indexes rebuild slowly, and Local History (your edit history outside version control) cannot be recovered.",
+      "sideCondition": "Close the IDE first. Never offer this as one blob.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Research notes (unverified)",
+      "evidence": {
+        "method": "research"
+      }
+    },
+    {
+      "id": "caches.spotify",
+      "title": "Spotify offline songs",
+      "pattern": "~/Library/Caches/com.spotify.client/Storage",
+      "tier": "rebuild",
+      "whatItIs": "Songs Spotify saved for offline listening.",
+      "consequence": "You will need to download the songs again, with network access and your account.",
+      "sideCondition": "Close Spotify first.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": ["com.spotify.client"],
+      "source": "Research notes (unverified)",
+      "evidence": {
+        "method": "research"
+      }
+    },
+    {
+      "id": "caches.xcode",
+      "title": "Xcode cache",
+      "pattern": "~/Library/Caches/com.apple.dt.Xcode",
+      "tier": "rebuild",
+      "whatItIs": "Cached data that Xcode uses for indexing.",
+      "consequence": "Xcode will re-index and fetch some information again.",
+      "sideCondition": "Close Xcode first.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": ["com.apple.dt.Xcode"],
+      "source": "Research notes (unverified)",
+      "evidence": {
+        "method": "research"
+      }
+    },
+    {
+      "id": "caches.chrome",
+      "title": "Chrome cache",
+      "pattern": "~/Library/Caches/Google/Chrome",
+      "tier": "rebuild",
+      "whatItIs": "Web pages and images Chrome saved to load sites faster.",
+      "consequence": "Pages load more slowly the first time you visit them again; your logins are not stored here.",
+      "sideCondition": "Close the browser first.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": ["com.google.Chrome"],
+      "source": "Research notes (unverified)",
+      "evidence": {
+        "method": "research"
+      }
+    },
+    {
+      "id": "caches.firefox",
+      "title": "Firefox cache",
+      "pattern": "~/Library/Caches/Firefox/Profiles/*/cache2",
+      "tier": "rebuild",
+      "whatItIs": "Web pages and images Firefox saved to load sites faster.",
+      "consequence": "Pages load more slowly the first time you visit them again; your logins are not stored here.",
+      "sideCondition": "Close the browser first.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": ["org.mozilla.firefox"],
+      "source": "Research notes (unverified)",
+      "evidence": {
+        "method": "research"
+      }
+    },
+    {
+      "id": "caches.heuristic.names",
+      "title": "Cache folder that may hold your data",
+      "pattern": "~/Library/Caches/*/**/*Offline*|*Downloads*|*Drafts*|*Recordings*",
+      "tier": "review",
+      "whatItIs": "A folder inside a cache whose name suggests saved content rather than temporary files.",
+      "consequence": "If it holds your own content, removing it could lose that content for good.",
+      "sideCondition": "Based on the folder name only, so treat it as a hint.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Name heuristic",
+      "evidence": {
+        "method": "location"
+      }
+    },
+    {
+      "id": "caches.heuristic.sqlite",
+      "title": "Database inside a cache",
+      "pattern": "~/Library/Caches/*/**/*.sqlite&!*cache*",
+      "tier": "review",
+      "whatItIs": "A database file inside a cache folder that does not look like a cache.",
+      "consequence": "If it holds your own records, removing it could lose them for good.",
+      "sideCondition": "Based on the file name only, so treat it as a hint.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Name heuristic",
+      "evidence": {
+        "method": "location"
+      }
+    }
+  ]
+}

@@ -3,7 +3,7 @@ import XCTest
 @testable import DYAdvisor
 
 final class ReclaimEngineTests: XCTestCase {
-    private func analyze(_ tree: FileTree, rules: [ReclaimRule] = ReclaimEngine.builtinRules) -> ReclaimReport {
+    private func analyze(_ tree: FileTree, rules: [ReclaimRule] = repoRules) -> ReclaimReport {
         ReclaimEngine.analyze(lens: TreeLens(tree: tree), home: testHome, rules: rules, isCancelled: { false })!
     }
 
@@ -55,7 +55,7 @@ final class ReclaimEngineTests: XCTestCase {
         XCTAssertEqual(tier(report, tree, "\(base)/com.apple.Safari"), .never)
         XCTAssertEqual(tier(report, tree, "\(base)/com.apple.dt.Xcode"), .rebuild, "exception beats com.apple.*")
         XCTAssertEqual(tier(report, tree, "\(base)/Homebrew"), .safe)
-        XCTAssertEqual(report.rule(for: tree.find(path: "\(base)/Homebrew")!, tree: tree)?.cleanupCommand, "brew cleanup")
+        XCTAssertEqual(report.rule(for: tree.find(path: "\(base)/Homebrew")!, tree: tree)?.cleanupCommand, "brew cleanup --prune=all")
         XCTAssertEqual(tier(report, tree, "\(base)/JetBrains/IntelliJ2024"), .review)
         XCTAssertEqual(tier(report, tree, "\(base)/com.spotify.client/Storage"), .rebuild)
         XCTAssertEqual(tier(report, tree, "\(base)/Google/Chrome"), .rebuild)
@@ -111,7 +111,7 @@ final class ReclaimEngineTests: XCTestCase {
 
     func testCancellationReturnsNil() {
         let tree = makeTree([file("/Users/tester/.npm/a", 1)])
-        let report = ReclaimEngine.analyze(lens: TreeLens(tree: tree), home: testHome, rules: ReclaimEngine.builtinRules, isCancelled: { true })
+        let report = ReclaimEngine.analyze(lens: TreeLens(tree: tree), home: testHome, rules: repoRules, isCancelled: { true })
         XCTAssertNil(report)
     }
 
@@ -169,8 +169,26 @@ final class ReclaimEngineTests: XCTestCase {
 }
 
 final class BuiltinRulesTests: XCTestCase {
+    /// Measured rules replace research rules over time, so the count of unverified rules may only go down.
+    func testUnverifiedRulesOnlyShrink() {
+        XCTAssertGreaterThanOrEqual(repoRules.count, 57)
+        XCTAssertLessThanOrEqual(try researchRuleCount(), 30, "new rules must be measured or cite vendor documentation")
+    }
+
+    /// Counts rules whose evidence method is `research`, read from the repo's JSON files.
+    private func researchRuleCount() throws -> Int {
+        let folder = URL(fileURLWithPath: #filePath).deletingLastPathComponent().appendingPathComponent("../../../../rules")
+        return try FileManager.default.contentsOfDirectory(at: folder.standardizedFileURL, includingPropertiesForKeys: nil)
+            .filter { $0.pathExtension == "json" }
+            .reduce(0) { total, file in
+                let object = try JSONSerialization.jsonObject(with: Data(contentsOf: file)) as? [String: Any]
+                let rules = object?["rules"] as? [[String: Any]] ?? []
+                return total + rules.filter { ($0["evidence"] as? [String: Any])?["method"] as? String == "research" }.count
+            }
+    }
+
     func testEveryRuleIsWellFormed() {
-        let rules = ReclaimEngine.builtinRules
+        let rules = repoRules
         XCTAssertEqual(Set(rules.map(\.id)).count, rules.count, "ids are unique")
         for rule in rules {
             XCTAssertFalse(rule.whatItIs.isEmpty)
@@ -184,7 +202,7 @@ final class BuiltinRulesTests: XCTestCase {
     }
 
     func testNoTierUpgradesForKnownRisks() {
-        let byID = Dictionary(uniqueKeysWithValues: ReclaimEngine.builtinRules.map { ($0.id, $0) })
+        let byID = Dictionary(uniqueKeysWithValues: repoRules.map { ($0.id, $0) })
         XCTAssertEqual(byID["mail.store"]?.tier, .never)
         XCTAssertEqual(byID["photos.library"]?.tier, .never)
         XCTAssertEqual(byID["docker.raw"]?.tier, .review)
@@ -192,7 +210,11 @@ final class BuiltinRulesTests: XCTestCase {
         XCTAssertEqual(byID["maven.repository"]?.tier, .review)
         XCTAssertEqual(byID["system.varfolders"]?.tier, .never)
         XCTAssertEqual(byID["logs"]?.tier, .safe)
-        XCTAssertEqual(ReclaimEngine.builtinRules.filter { $0.tier == .safe }.count, 2)
+        // `safe` needs measured or vendor evidence; no rule rated safe may rest on research notes alone.
+        let measuredOrVendor = repoRules.filter { $0.tier == .safe }.allSatisfy { rule in
+            rule.source?.hasPrefix("Measured") == true || ["Homebrew manual", "Apple Support"].contains(rule.source ?? "")
+        }
+        XCTAssertTrue(measuredOrVendor, "a safe rule rests on research notes")
     }
 
     func testGlobMatching() {

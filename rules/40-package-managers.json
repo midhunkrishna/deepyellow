@@ -1,0 +1,868 @@
+{
+  "$schema": "./schema/rules.schema.json",
+  "version": 1,
+  "section": {
+    "title": "Package managers and build output",
+    "intro": "Language caches, dependencies and build folders."
+  },
+  "rules": [
+    {
+      "id": "node.modules",
+      "title": "JavaScript dependencies",
+      "pattern": "**/node_modules if-sibling:package-lock.json|npm-shrinkwrap.json|yarn.lock|pnpm-lock.yaml|bun.lock|bun.lockb",
+      "tier": "rebuild",
+      "whatItIs": "Libraries a JavaScript project installed.",
+      "consequence": "You will need to run the install again, with network access, and any local patches are lost.",
+      "sideCondition": "Offered because a lockfile sits next to it.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Measured: removed and reinstalled with npm 11, pnpm 12, Yarn 1 and Bun 1.4 on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "npm 11.20.0, pnpm 12.18.0, yarn 1.22.22, bun 1.4.4",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Five projects with the same 16 dependencies (about 560 packages) had 606 to 680 MB of node_modules each. After removal, npm, pnpm, Yarn 1 and Bun each installed them again in 4 to 30 seconds, and the npm project loaded its packages. Bun projects have a bun.lock lockfile."
+      }
+    },
+    {
+      "id": "node.modules.nolock",
+      "title": "JavaScript dependencies without a lockfile",
+      "pattern": "**/node_modules",
+      "tier": "review",
+      "whatItIs": "Libraries a JavaScript project installed, with no lockfile beside them.",
+      "consequence": "Without a lockfile the same versions may not come back, and local patches are lost.",
+      "sideCondition": null,
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Research notes (unverified)",
+      "evidence": {
+        "method": "research"
+      }
+    },
+    {
+      "id": "yarn.zeroinstall",
+      "title": "Yarn committed cache",
+      "pattern": "**/.yarn/cache",
+      "tier": "never",
+      "whatItIs": "A Yarn cache that some projects keep in version control as their dependency source.",
+      "consequence": "The project may be unable to install its dependencies.",
+      "sideCondition": "Not offered.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Research notes (unverified)",
+      "evidence": {
+        "method": "research"
+      }
+    },
+    {
+      "id": "npm.cache",
+      "title": "npm download cache",
+      "pattern": "~/.npm",
+      "tier": "rebuild",
+      "whatItIs": "Packages npm downloaded earlier.",
+      "consequence": "npm will download them again when needed.",
+      "sideCondition": null,
+      "cleanupCommand": "npm cache clean --force",
+      "ownerBundleIDs": [],
+      "source": "Measured: removed and reinstalled with npm 11 on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "11.20.0",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Reached 612 MB for one project of 559 packages. `npm cache clean --force` emptied it, deleting it freed 129 of 130 MB on disk, and npm installed again afterwards."
+      }
+    },
+    {
+      "id": "pnpm.store",
+      "title": "pnpm package store",
+      "pattern": "~/Library/pnpm/store || ~/.local/share/pnpm/store",
+      "tier": "rebuild",
+      "whatItIs": "The shared store that pnpm links project dependencies from.",
+      "consequence": "pnpm downloads packages again when you next install, and while your projects keep their node_modules this frees little disk space.",
+      "sideCondition": "`pnpm store prune` removes only packages that no project uses.",
+      "cleanupCommand": "pnpm store prune",
+      "ownerBundleIDs": [],
+      "source": "Measured: removed and reinstalled with pnpm 12 on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "12.18.0",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Reached 1.1 GB, plus a 268 MB metadata cache in ~/Library/Caches/pnpm, for one project of about 560 packages; `pnpm store prune` removed 0 packages. Deleting the store freed only 64 MB of disk, because pnpm on macOS clones files into node_modules, which keep the data. pnpm installed again afterwards."
+      }
+    },
+    {
+      "id": "pip.cache",
+      "title": "pip cache",
+      "pattern": "~/Library/Caches/pip || ~/.cache/pip",
+      "tier": "rebuild",
+      "whatItIs": "Python packages pip downloaded earlier.",
+      "consequence": "pip will download or rebuild them when needed.",
+      "sideCondition": null,
+      "cleanupCommand": "pip cache purge",
+      "ownerBundleIDs": [],
+      "source": "Measured: removed and reinstalled with pip 26 on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "26.2.2",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Reached 281 MB installing 13 popular packages, PyTorch among them, into one virtual environment. `pip cache purge` emptied it, deleting it freed 272 of 274 MB on disk, and pip installed again afterwards."
+      }
+    },
+    {
+      "id": "uv.cache",
+      "title": "uv cache",
+      "pattern": "~/.cache/uv",
+      "tier": "rebuild",
+      "whatItIs": "Python packages uv downloaded earlier.",
+      "consequence": "uv downloads packages again when you next install, and while your environments exist this frees almost no disk space.",
+      "sideCondition": "`uv cache prune` removes only entries no environment uses.",
+      "cleanupCommand": "uv cache clean",
+      "ownerBundleIDs": [],
+      "source": "Measured: removed and reinstalled with uv 0.13 on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "0.13.7",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Reached 1.17 GB for one project with 13 popular packages; `uv cache prune` found nothing unused. Deleting it freed no measurable disk space, because uv on macOS clones files into environments, which kept working. uv installed again afterwards."
+      }
+    },
+    {
+      "id": "conda.pkgs",
+      "title": "conda packages",
+      "pattern": "~/miniconda3/pkgs || ~/anaconda3/pkgs || ~/miniforge3/pkgs",
+      "tier": "rebuild",
+      "whatItIs": "Package files shared by your conda environments.",
+      "consequence": "conda downloads packages again when it needs them, and while your environments exist this frees little disk space.",
+      "sideCondition": "Use the command, never delete by hand.",
+      "cleanupCommand": "conda clean --all",
+      "ownerBundleIDs": [],
+      "source": "Measured: removed and reinstalled with conda 26 (Miniforge) on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "26.9.4",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Reached 2.18 GB for the base install and one environment with 13 popular packages. `conda clean --all` freed 344 MB. Deleting the folder freed only 133 of 1,808 MB, because conda hard-links package files into environments, which kept working."
+      }
+    },
+    {
+      "id": "conda.envs",
+      "title": "conda environments",
+      "pattern": "~/miniconda3/envs/* || ~/anaconda3/envs/* || ~/miniforge3/envs/*",
+      "tier": "review",
+      "whatItIs": "Python environments you created.",
+      "consequence": "You would lose the environment and its installed packages.",
+      "sideCondition": null,
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Measured: conda 26 (Miniforge) on macOS 15.7",
+      "evidence": {
+        "method": "location",
+        "appVersion": "26.9.4",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "One environment with Python 3.12 and 13 popular packages, PyTorch among them, took 1.74 GB."
+      }
+    },
+    {
+      "id": "cargo.cache",
+      "title": "Cargo downloads",
+      "pattern": "~/.cargo/registry || ~/.cargo/git",
+      "tier": "rebuild",
+      "whatItIs": "Rust libraries Cargo downloaded earlier.",
+      "consequence": "Cargo will download them again, which needs the network.",
+      "sideCondition": null,
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Measured: removed and rebuilt with Cargo 1.99 on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "1.99.1",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Reached 32 MB of crates for one project (ripgrep). After removal, Cargo downloaded them again and the project built."
+      }
+    },
+    {
+      "id": "cargo.keep",
+      "title": "Cargo tools and settings",
+      "pattern": "~/.cargo/bin || ~/.cargo/credentials.toml || ~/.cargo/config.toml || ~/.cargo/.crates.toml || ~/.cargo/.crates2.json",
+      "tier": "never",
+      "whatItIs": "Rust tools you installed, your registry login and your settings.",
+      "consequence": "You would lose installed tools and have to log in and configure Cargo again.",
+      "sideCondition": "Not offered.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Cargo documentation",
+      "evidence": {
+        "method": "vendor-doc"
+      }
+    },
+    {
+      "id": "cargo.target",
+      "title": "Rust build output",
+      "pattern": "**/target if-sibling:Cargo.toml",
+      "tier": "rebuild",
+      "whatItIs": "Files produced by building a Rust project.",
+      "consequence": "The project will rebuild in full next time.",
+      "sideCondition": null,
+      "cleanupCommand": "cargo clean",
+      "ownerBundleIDs": [],
+      "source": "Measured: removed and rebuilt with Cargo 1.99 on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "1.99.1",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "A release build of ripgrep left 166 MB in target. `cargo clean` emptied it, and the project built again afterwards."
+      }
+    },
+    {
+      "id": "gradle.cache",
+      "title": "Gradle downloads",
+      "pattern": "~/.gradle/caches || ~/.gradle/wrapper/dists || ~/.gradle/daemon",
+      "tier": "rebuild",
+      "whatItIs": "Libraries and tools Gradle downloaded earlier.",
+      "consequence": "Gradle will download them again and the next build will be slower.",
+      "sideCondition": "Not while a Gradle daemon is running.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Measured: removed and rerun with Gradle 9.5 on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "9.5.1",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "One project (Spring PetClinic) filled 315 MB of caches and 154 MB of wrapper distributions. Deleting the caches freed 311 MB on disk, and the next run downloaded 188 MB again; that build then stopped on a Java version the project asks for, unrelated to the cache."
+      }
+    },
+    {
+      "id": "gradle.keep",
+      "title": "Gradle settings",
+      "pattern": "~/.gradle/gradle.properties || ~/.gradle/init.d || ~/.gradle/init.gradle",
+      "tier": "never",
+      "whatItIs": "Gradle settings you wrote.",
+      "consequence": "You would lose your own configuration.",
+      "sideCondition": "Not offered.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Gradle documentation",
+      "evidence": {
+        "method": "vendor-doc"
+      }
+    },
+    {
+      "id": "maven.repository",
+      "title": "Maven repository",
+      "pattern": "~/.m2/repository",
+      "tier": "review",
+      "whatItIs": "Libraries Maven downloaded, plus any you installed locally.",
+      "consequence": "Downloaded libraries come back from the network, but ones installed only on this Mac are lost.",
+      "sideCondition": null,
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Measured: removed and rebuilt with Maven 3.9 on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "3.9",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "One project (Spring PetClinic) filled 217 MB. After deleting it, Maven downloaded the dependencies again and built the project; deleting it freed 213 MB on disk. It stays review because `mvn install` puts your own builds here, which cannot be downloaded again."
+      }
+    },
+    {
+      "id": "maven.keep",
+      "title": "Maven settings",
+      "pattern": "~/.m2/settings.xml || ~/.m2/settings-security.xml",
+      "tier": "never",
+      "whatItIs": "Maven settings and credentials.",
+      "consequence": "You would lose your own configuration.",
+      "sideCondition": "Not offered.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Research notes (unverified)",
+      "evidence": {
+        "method": "research"
+      }
+    },
+    {
+      "id": "go.modcache",
+      "title": "Go modules",
+      "pattern": "~/go/pkg/mod",
+      "tier": "rebuild",
+      "whatItIs": "Go libraries downloaded earlier.",
+      "consequence": "Go will download them again.",
+      "sideCondition": "These files are read-only, so use the command.",
+      "cleanupCommand": "go clean -modcache",
+      "ownerBundleIDs": [],
+      "source": "Measured: removed and rebuilt with Go 1.27 on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "go1.27.3",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Reached 398 MB of modules for one project (GitHub's gh CLI). `go clean -modcache` emptied it, deleting it freed 403 MB on disk, and the project built again after downloading its modules."
+      }
+    },
+    {
+      "id": "go.buildcache",
+      "title": "Go build cache",
+      "pattern": "~/Library/Caches/go-build",
+      "tier": "rebuild",
+      "whatItIs": "Compiled Go packages kept to speed up builds.",
+      "consequence": "The next builds will be slower.",
+      "sideCondition": null,
+      "cleanupCommand": "go clean -cache",
+      "ownerBundleIDs": [],
+      "source": "Measured: removed and rebuilt with Go 1.27 on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "go1.27.3",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Reached 633 MB building one project (GitHub's gh CLI). `go clean -cache` emptied it, deleting it freed 622 MB on disk, and the project built again afterwards."
+      }
+    },
+    {
+      "id": "go.keep",
+      "title": "Go tools and sources",
+      "pattern": "~/go/bin || ~/go/src",
+      "tier": "never",
+      "whatItIs": "Go tools you installed and sources you keep.",
+      "consequence": "You would lose installed tools or your own code.",
+      "sideCondition": "Not offered.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Go documentation",
+      "evidence": {
+        "method": "vendor-doc"
+      }
+    },
+    {
+      "id": "cocoapods.cache",
+      "title": "CocoaPods data",
+      "pattern": "~/.cocoapods || ~/Library/Caches/CocoaPods",
+      "tier": "rebuild",
+      "whatItIs": "Pod specifications and downloaded pods.",
+      "consequence": "CocoaPods will download them again, which is large.",
+      "sideCondition": "Check that no project keeps its Pods folder only here.",
+      "cleanupCommand": "pod cache clean --all",
+      "ownerBundleIDs": [],
+      "source": "Research notes (unverified)",
+      "evidence": {
+        "method": "research"
+      }
+    },
+    {
+      "id": "swiftpm.cache",
+      "title": "Swift package cache",
+      "pattern": "~/Library/Caches/org.swift.swiftpm",
+      "tier": "rebuild",
+      "whatItIs": "Swift packages downloaded earlier.",
+      "consequence": "They will be fetched again.",
+      "sideCondition": null,
+      "cleanupCommand": "swift package purge-cache",
+      "ownerBundleIDs": [],
+      "source": "Measured: removed and rebuilt with SwiftPM 6.1 on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "Swift 6.1.2",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Held 9.6 MB of cloned dependencies for a package with two dependencies. `swift package purge-cache` emptied it, and the package built again afterwards."
+      }
+    },
+    {
+      "id": "swiftpm.build",
+      "title": "Swift build output",
+      "pattern": "**/.build if-sibling:Package.swift",
+      "tier": "rebuild",
+      "whatItIs": "Files produced by building a Swift package.",
+      "consequence": "The package will rebuild in full next time.",
+      "sideCondition": null,
+      "cleanupCommand": "swift package clean",
+      "ownerBundleIDs": [],
+      "source": "Measured: removed and rebuilt with SwiftPM 6.1 on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "Swift 6.1.2",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "A release build of a package with two dependencies left 172 MB in .build; deleting it freed about 160 MB, and the package built again afterwards."
+      }
+    },
+    {
+      "id": "swiftpm.security",
+      "title": "Swift package trust data",
+      "pattern": "~/Library/org.swift.swiftpm/security",
+      "tier": "never",
+      "whatItIs": "Records of packages you chose to trust.",
+      "consequence": "You would lose those trust decisions.",
+      "sideCondition": "Not offered.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Research notes (unverified)",
+      "evidence": {
+        "method": "research"
+      }
+    },
+    {
+      "id": "homebrew.installed",
+      "title": "Homebrew installed software",
+      "pattern": "/opt/homebrew/Cellar || /opt/homebrew/Caskroom",
+      "tier": "never",
+      "whatItIs": "The software Homebrew installed.",
+      "consequence": "Deleting it removes the apps and tools themselves.",
+      "sideCondition": "Not offered. The cleanup command removes only outdated versions.",
+      "cleanupCommand": "brew cleanup",
+      "ownerBundleIDs": [],
+      "source": "Homebrew manual",
+      "evidence": {
+        "method": "vendor-doc",
+        "observed": "15 formulae installed 73 packages with dependencies, taking 1.15 GB in Cellar; 3 casks installed their apps into /Applications and kept 40 KB in Caskroom (Homebrew 7.0, macOS 15.7, 2026-11-08)."
+      }
+    },
+    {
+      "id": "yarn.cache",
+      "title": "Yarn 1 package cache",
+      "pattern": "~/Library/Caches/Yarn",
+      "tier": "rebuild",
+      "whatItIs": "Packages Yarn 1 downloaded, kept unpacked so later installs can copy them.",
+      "consequence": "Yarn downloads packages again when you next install.",
+      "sideCondition": null,
+      "cleanupCommand": "yarn cache clean",
+      "ownerBundleIDs": [],
+      "source": "Measured: removed and reinstalled with Yarn 1.22 on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "1.22.22",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Reached 3.0 GB for one project of about 560 packages, five times what npm kept for the same dependencies. `yarn cache clean` emptied it, deleting it freed 2.95 GB of disk, and Yarn installed again afterwards."
+      }
+    },
+    {
+      "id": "yarn.berry.cache",
+      "title": "Yarn package cache",
+      "pattern": "~/.yarn/berry/cache",
+      "tier": "rebuild",
+      "whatItIs": "Packages Yarn 2 and later downloaded, shared by all your projects.",
+      "consequence": "Yarn downloads packages again when you next install.",
+      "sideCondition": null,
+      "cleanupCommand": "yarn cache clean --all",
+      "ownerBundleIDs": [],
+      "source": "Measured: removed and reinstalled with Yarn 4.9 on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "4.9.2",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Reached 556 MB for one project of about 560 packages. `yarn cache clean --all` emptied it, deleting it freed 492 MB of disk, and Yarn installed again afterwards."
+      }
+    },
+    {
+      "id": "bun.cache",
+      "title": "Bun package cache",
+      "pattern": "~/.bun/install/cache",
+      "tier": "rebuild",
+      "whatItIs": "Packages Bun downloaded, shared by all your projects.",
+      "consequence": "Bun downloads packages again when you next install, and while your projects keep their node_modules this frees almost no disk space.",
+      "sideCondition": null,
+      "cleanupCommand": "bun pm cache rm",
+      "ownerBundleIDs": [],
+      "source": "Measured: removed and reinstalled with Bun 1.4 on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "1.4.4",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Reached 631 MB for one project of about 560 packages. `bun pm cache rm` emptied it. Deleting it freed no measurable disk space, because Bun on macOS clones files into node_modules, which keep the data. Bun installed again afterwards."
+      }
+    },
+    {
+      "id": "nvm.cache",
+      "title": "nvm downloads",
+      "pattern": "~/.nvm/.cache",
+      "tier": "safe",
+      "whatItIs": "Node.js archives nvm downloaded to install versions.",
+      "consequence": "Installed Node versions keep working.",
+      "sideCondition": null,
+      "cleanupCommand": "nvm cache clear",
+      "ownerBundleIDs": [],
+      "source": "Measured: nvm 0.40 on macOS 15.7",
+      "evidence": {
+        "method": "vendor-doc",
+        "appVersion": "0.40.3",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Held 30 MB after installing one Node version; `nvm cache clear` emptied it."
+      }
+    },
+    {
+      "id": "nvm.versions",
+      "title": "Node versions installed with nvm",
+      "pattern": "~/.nvm/versions",
+      "tier": "review",
+      "whatItIs": "The Node.js versions nvm installed, with their global packages.",
+      "consequence": "Projects and tools that use a removed version stop working until you install it again.",
+      "sideCondition": "Remove versions you no longer use with `nvm uninstall <version>`.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Measured: nvm 0.40 on macOS 15.7",
+      "evidence": {
+        "method": "location",
+        "appVersion": "0.40.3",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "One Node 26 install took 228 MB."
+      }
+    },
+    {
+      "id": "corepack.cache",
+      "title": "Corepack's package manager downloads",
+      "pattern": "~/.cache/node/corepack",
+      "tier": "rebuild",
+      "whatItIs": "The pnpm and Yarn versions Corepack downloaded for your projects.",
+      "consequence": "Corepack downloads the version a project asks for the next time you use it.",
+      "sideCondition": null,
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Measured: removed and reran with Corepack on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "corepack 0.34",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Held 58 MB for pnpm 12 and Yarn 1 and 4. After removal, pnpm and Yarn 4 ran again, and Corepack downloaded 52 MB back."
+      }
+    },
+    {
+      "id": "poetry.virtualenvs",
+      "title": "Poetry project environments",
+      "pattern": "~/Library/Caches/pypoetry/virtualenvs",
+      "tier": "rebuild",
+      "whatItIs": "The virtual environments of your Poetry projects, which Poetry keeps inside its cache folder by default.",
+      "consequence": "Your Poetry projects stop running until you run `poetry install` in each of them.",
+      "sideCondition": "These are not caches, even though they sit in ~/Library/Caches.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Measured: removed and reinstalled with Poetry 2.5 on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "2.5.1",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "One project with 13 popular packages had a 1.09 GB environment here. Deleting it freed 1,078 MB and the project could no longer import its packages; `poetry install` rebuilt it in 11 seconds and the project worked again."
+      }
+    },
+    {
+      "id": "poetry.cache",
+      "title": "Poetry package cache",
+      "pattern": "~/Library/Caches/pypoetry/cache || ~/Library/Caches/pypoetry/artifacts",
+      "tier": "rebuild",
+      "whatItIs": "Package metadata and files Poetry downloaded for your projects.",
+      "consequence": "Poetry downloads them again when you next install or update a project.",
+      "sideCondition": "`poetry cache clear --all PyPI` freed only 14 of 550 MB in our test.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Measured: removed and reinstalled with Poetry 2.5 on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "2.5.1",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Reached 550 MB (282 MB cache, 268 MB artifacts) for one project with 13 popular packages. After deleting both, Poetry still worked and rebuilt a project environment by downloading again."
+      }
+    },
+    {
+      "id": "uv.pythons",
+      "title": "Python versions installed by uv",
+      "pattern": "~/.local/share/uv/python",
+      "tier": "review",
+      "whatItIs": "Python interpreters uv downloaded for your projects and tools.",
+      "consequence": "Environments built on a removed Python stop working until uv installs it again.",
+      "sideCondition": "Remove versions you no longer use with `uv python uninstall <version>`.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Measured: uv 0.13 on macOS 15.7",
+      "evidence": {
+        "method": "location",
+        "appVersion": "0.13.7",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "One Python 3.12 took 72 MB."
+      }
+    },
+    {
+      "id": "uv.tools",
+      "title": "Tools installed with uv",
+      "pattern": "~/.local/share/uv/tools",
+      "tier": "review",
+      "whatItIs": "Command-line tools installed with `uv tool install`, each in its own environment.",
+      "consequence": "The tools stop working until you install them again.",
+      "sideCondition": "Remove tools with `uv tool uninstall <name>`.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Measured: uv 0.13 on macOS 15.7",
+      "evidence": {
+        "method": "location",
+        "appVersion": "0.13.7",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Poetry and pipx installed as uv tools took 49 MB."
+      }
+    },
+    {
+      "id": "rustup.toolchains",
+      "title": "Rust toolchains",
+      "pattern": "~/.rustup/toolchains",
+      "tier": "review",
+      "whatItIs": "The Rust compilers and standard libraries rustup installed.",
+      "consequence": "Rust projects that use a removed toolchain stop building until rustup installs it again.",
+      "sideCondition": "Remove toolchains you no longer use with `rustup toolchain uninstall <name>`.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Measured: rustup 1.29 on macOS 15.7",
+      "evidence": {
+        "method": "location",
+        "appVersion": "1.29.3",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "The stable toolchain with the default profile took 1.4 GB."
+      }
+    },
+    {
+      "id": "mise.installs",
+      "title": "Tool versions installed by mise",
+      "pattern": "~/.local/share/mise/installs",
+      "tier": "review",
+      "whatItIs": "The language and tool versions mise installed, such as Node and Python.",
+      "consequence": "Projects that use a removed version stop working until mise installs it again.",
+      "sideCondition": "`mise prune` removes versions no project or global setting uses.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Measured: mise 2026.11.4 on macOS 15.7",
+      "evidence": {
+        "method": "location",
+        "appVersion": "2026.11.4",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Node 22 and Python 3.12 took 259 MB; `mise prune` found nothing to remove while both were in use."
+      }
+    },
+    {
+      "id": "mise.cache",
+      "title": "mise downloads",
+      "pattern": "~/Library/Caches/mise",
+      "tier": "safe",
+      "whatItIs": "Archives and metadata mise downloaded while installing tools.",
+      "consequence": "Installed tools keep working.",
+      "sideCondition": null,
+      "cleanupCommand": "mise cache clear",
+      "ownerBundleIDs": [],
+      "source": "Measured: mise 2026.11.4 on macOS 15.7",
+      "evidence": {
+        "method": "vendor-doc",
+        "appVersion": "2026.11.4",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Held 74 MB after installing Node and Python; `mise cache clear` emptied it."
+      }
+    },
+    {
+      "id": "asdf.installs",
+      "title": "Tool versions installed by asdf",
+      "pattern": "~/.asdf/installs",
+      "tier": "review",
+      "whatItIs": "The language and tool versions asdf installed.",
+      "consequence": "Projects that use a removed version stop working until asdf installs it again.",
+      "sideCondition": "Remove versions you no longer use with `asdf uninstall <tool> <version>`.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Measured: asdf v0.20.2 (revision cb72590) on macOS 15.7",
+      "evidence": {
+        "method": "location",
+        "appVersion": "v0.20.2 (revision cb72590)",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Node 20 took 158 MB, and its plugin 11 MB; asdf removed its downloads after installing."
+      }
+    },
+    {
+      "id": "sdkman.archives",
+      "title": "SDKMAN downloads",
+      "pattern": "~/.sdkman/tmp || ~/.sdkman/archives",
+      "tier": "safe",
+      "whatItIs": "Archives SDKMAN downloaded to install JDKs and tools, kept after installing.",
+      "consequence": "Installed JDKs and tools keep working.",
+      "sideCondition": null,
+      "cleanupCommand": "sdk flush",
+      "ownerBundleIDs": [],
+      "source": "Measured: SDKMAN on macOS 15.7",
+      "evidence": {
+        "method": "vendor-doc",
+        "appVersion": "release current on 2026-11-08 (version not recorded)",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Held 304 MB after installing a JDK, Gradle and Maven; `sdk flush` freed 297 MB, and the JDK and Maven kept working."
+      }
+    },
+    {
+      "id": "sdkman.candidates",
+      "title": "JDKs and tools installed by SDKMAN",
+      "pattern": "~/.sdkman/candidates",
+      "tier": "review",
+      "whatItIs": "The JDKs, Gradle, Maven and other tools SDKMAN installed.",
+      "consequence": "Projects and tools that use a removed version stop working until SDKMAN installs it again.",
+      "sideCondition": "Remove versions you no longer use with `sdk uninstall <tool> <version>`.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Measured: SDKMAN on macOS 15.7",
+      "evidence": {
+        "method": "location",
+        "appVersion": "release current on 2026-11-08 (version not recorded)",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "A JDK 25, Gradle and Maven took 463 MB. SDKMAN needs Bash 4 or later, which macOS does not include."
+      }
+    },
+    {
+      "id": "rbenv.versions",
+      "title": "rbenv Ruby versions",
+      "pattern": "~/.rbenv/versions",
+      "tier": "review",
+      "whatItIs": "Ruby versions rbenv built, each with the gems installed into it.",
+      "consequence": "Projects that use a removed version stop working until rbenv builds it again and their gems are reinstalled.",
+      "sideCondition": null,
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Measured: built Ruby 3.4.12 with rbenv 1.3.2 on macOS 15.7",
+      "evidence": {
+        "method": "location",
+        "appVersion": "rbenv 1.3.2, ruby-build 20261023",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Ruby 3.4.12 took 115 MB once built. After bundling a Rails 8 app's gems into it the folder was 268 MB, about 30 MB of which was the downloaded .gem files in its gem cache."
+      }
+    },
+    {
+      "id": "rvm.rubies",
+      "title": "RVM Ruby versions and gems",
+      "pattern": "~/.rvm/rubies || ~/.rvm/gems",
+      "tier": "review",
+      "whatItIs": "Ruby versions RVM installed, and the gems installed for each of them.",
+      "consequence": "Projects that use a removed version stop working until RVM installs it again and their gems are reinstalled.",
+      "sideCondition": null,
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Measured: built Ruby 3.4.12 with RVM 1.29.12-next on macOS 15.7",
+      "evidence": {
+        "method": "location",
+        "appVersion": "rvm 1.29.12-next (master branch)",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Ruby 3.4.12 took 52 MB in rubies, and a Rails 8 app's gems took 153 MB in gems."
+      }
+    },
+    {
+      "id": "rvm.sources",
+      "title": "RVM sources and archives",
+      "pattern": "~/.rvm/src || ~/.rvm/archives",
+      "tier": "safe",
+      "whatItIs": "Source code and downloaded archives RVM keeps after building Ruby.",
+      "consequence": "Installed Rubies and gems keep working, but installing a version again downloads its source again.",
+      "sideCondition": null,
+      "cleanupCommand": "rvm cleanup all",
+      "ownerBundleIDs": [],
+      "source": "Measured: rvm cleanup all, then bundled again with RVM 1.29.12-next on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "rvm 1.29.12-next (master branch)",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "After building Ruby 3.4.12 the folders held 283 MB of source and 23 MB of archives. rvm cleanup all removed both, and Bundler then installed the app's gems with that Ruby as before."
+      }
+    },
+    {
+      "id": "ruby.gem-cache",
+      "title": "Downloaded gem files",
+      "pattern": "**/cache if-sibling:specifications",
+      "tier": "rebuild",
+      "whatItIs": "The .gem files RubyGems keeps after installing each gem.",
+      "consequence": "Installed gems keep working, but reinstalling or repairing a gem downloads it again.",
+      "sideCondition": null,
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Measured: removed with Ruby 3.4.12 from rbenv, RVM and mise on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "Ruby 3.4.12, RubyGems and Bundler as bundled with it",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "With a Rails 8 app's gems installed, the gem caches held 30 MB under rbenv and 27 MB under RVM. Deleting the .gem files freed that space, bundle install downloaded nothing, and the app still loaded Rails."
+      }
+    },
+    {
+      "id": "bundler.cache",
+      "title": "Bundler's gem index",
+      "pattern": "~/.bundle/cache",
+      "tier": "rebuild",
+      "whatItIs": "Bundler's copy of the rubygems.org gem index, which it uses to choose gem versions.",
+      "consequence": "The next bundle install downloads the index again.",
+      "sideCondition": null,
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Measured: removed and bundled again with Ruby 3.4.12 on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "Bundler as bundled with Ruby 3.4.12",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "After bundling one Rails 8 app it held 776 files and 30 MB. It was removed and came back at the same size on the next bundle install."
+      }
+    },
+    {
+      "id": "bundler.vendor",
+      "title": "Gems vendored in a project",
+      "pattern": "**/vendor/bundle/ruby",
+      "tier": "rebuild",
+      "whatItIs": "Gems Bundler installed inside a project whose bundle path is vendor/bundle.",
+      "consequence": "The project stops running until you run bundle install again, with network access.",
+      "sideCondition": null,
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Measured: removed and bundled again with Ruby 3.4.12 from mise on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "mise 2026.11.4, Ruby 3.4.12",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "A Rails 8 app's gems took 178 MB. After removal, bundle install put them back and the app loaded nokogiri again."
+      }
+    },
+    {
+      "id": "homebrew.program",
+      "title": "Homebrew itself",
+      "pattern": "/opt/homebrew/Library",
+      "tier": "never",
+      "whatItIs": "Homebrew's own code, its formula lists, and the Ruby and gems it runs on.",
+      "consequence": "brew stops working.",
+      "sideCondition": "Use brew cleanup and brew uninstall instead.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Measured: folder contents listed after installing Homebrew on macOS 15.7",
+      "evidence": {
+        "method": "location",
+        "appVersion": "version not recorded",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "The folder held Homebrew's own portable Ruby and a vendor/bundle of gems, which the generic gem-cache and vendor/bundle rules would otherwise match."
+      }
+    }
+  ]
+}

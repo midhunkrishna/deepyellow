@@ -1,0 +1,85 @@
+{
+  "$schema": "./schema/rules.schema.json",
+  "version": 1,
+  "section": {"title": "Xcode and developer tools", "intro": "Xcode, simulators and the toolchain."},
+  "rules": [
+    {
+      "id": "xcode.deriveddata",
+      "title": "Xcode build files",
+      "pattern": "~/Library/Developer/Xcode/DerivedData",
+      "tier": "rebuild",
+      "whatItIs": "Build results and indexes Xcode creates for your projects.",
+      "consequence": "Every project will rebuild and re-index in full the next time you open it.",
+      "sideCondition": "Quit Xcode and any builds. Delete the contents, not the folder.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Third-party guides",
+      "evidence": {"method": "research"}
+    },
+    {
+      "id": "xcode.archives",
+      "title": "Xcode archives",
+      "pattern": "~/Library/Developer/Xcode/Archives",
+      "tier": "review",
+      "whatItIs": "Saved builds of apps you shipped, with their debugging symbols.",
+      "consequence": "You would lose the ability to read crash reports for those builds or re-export them.",
+      "sideCondition": "Review each archive by date and version. Move to Trash only.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Third-party guides",
+      "evidence": {"method": "research"}
+    },
+    {
+      "id": "xcode.devicesupport",
+      "title": "Device support files",
+      "pattern": "~/Library/Developer/Xcode/*DeviceSupport/*",
+      "tier": "rebuild",
+      "whatItIs": "Debugging symbols Xcode copied from a connected iPhone, iPad or watch.",
+      "consequence": "Xcode copies them again the next time you connect that device, which is slow, and old crash logs lose their symbols until then.",
+      "sideCondition": "Delete the folders inside, never the parent. Keep the newest two versions. Close Xcode first.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Apple Developer Forums",
+      "evidence": {"method": "vendor-doc"}
+    },
+    {
+      "id": "xcode.simulators",
+      "title": "Simulator devices",
+      "pattern": "~/Library/Developer/CoreSimulator/Devices/*",
+      "tier": "review",
+      "whatItIs": "A simulated iPhone or iPad with its installed apps and test data.",
+      "consequence": "You would lose the apps and test data inside that simulator.",
+      "sideCondition": "Do not delete by hand. The command removes only simulators whose runtime is gone.",
+      "cleanupCommand": "xcrun simctl delete unavailable",
+      "ownerBundleIDs": [],
+      "source": "Third-party guides",
+      "evidence": {"method": "research"}
+    },
+    {
+      "id": "xcode.simruntimes",
+      "title": "Simulator runtimes",
+      "pattern": "/Library/Developer/CoreSimulator/Volumes|Images|Cryptex",
+      "tier": "rebuild",
+      "whatItIs": "The system images that simulators run on.",
+      "consequence": "You would need to download the runtime again, which can be several gigabytes.",
+      "sideCondition": "Remove through Xcode Settings or the runtime commands, never by hand or by unmounting.",
+      "cleanupCommand": "xcrun simctl runtime list",
+      "ownerBundleIDs": [],
+      "source": "Local tool help",
+      "evidence": {"method": "vendor-doc"}
+    },
+    {
+      "id": "xcode.userdata",
+      "title": "Xcode settings",
+      "pattern": "~/Library/Developer/Xcode/UserData",
+      "tier": "never",
+      "whatItIs": "Your Xcode snippets, themes and key bindings.",
+      "consequence": "You would lose settings you wrote yourself.",
+      "sideCondition": "Not offered.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Research notes (unverified)",
+      "evidence": {"method": "research"}
+    }
+  ]
+}

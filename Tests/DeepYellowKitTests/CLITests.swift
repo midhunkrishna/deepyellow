@@ -85,10 +85,10 @@ final class CLITests: XCTestCase {
         XCTAssertEqual(CLIRender.thingsJSON(report), CLIRender.thingsJSON(report))
     }
 
-    func testSpectrumAndReclaimRenderOnSampleTree() {
+    func testSpectrumAndReclaimRenderOnSampleTree() throws {
         let tree = SyntheticTree.make(scale: 0.05)
         XCTAssertTrue(CLIRender.spectrum(CLIAnalysis.spectrum(tree: tree), style: .plain).contains("largest files hold 80%"))
-        let summary = CLIAnalysis.reclaim(tree: tree, home: "/Users/demo", catalog: NoApps())
+        let summary = CLIAnalysis.reclaim(tree: tree, home: "/Users/demo", catalog: NoApps(), rules: try ReclaimEngine.rules.get())
         XCTAssertFalse(summary.groups.isEmpty)
         XCTAssertTrue(CLIRender.reclaim(summary, style: .plain).contains("Safety groups"))
         XCTAssertNotNil(try? JSONSerialization.jsonObject(with: Data(CLIRender.reclaimJSON(summary).utf8)))

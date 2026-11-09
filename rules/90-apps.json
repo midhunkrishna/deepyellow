@@ -1,0 +1,428 @@
+{
+  "$schema": "./schema/rules.schema.json",
+  "version": 1,
+  "section": {
+    "title": "Measured app rules",
+    "intro": "Rules for one app's folders, from [`rules/90-apps.json`](https://github.com/midhunkrishna/deepyellow/blob/master/rules/90-apps.json). Each was measured in a macOS virtual machine: the app was used, quit, the folder moved to the Trash, and the app relaunched to see what came back and whether it stayed signed in. The **Measured** line records what was seen."
+  },
+  "rules": [
+    {
+      "id": "slack.cache",
+      "title": "Slack's web cache",
+      "pattern": "~/Library/Application Support/Slack/Cache",
+      "tier": "rebuild",
+      "whatItIs": "Images, files and pages Slack downloaded so it can show them again without fetching them.",
+      "consequence": "Slack downloads them again as you open them, and you stay signed in.",
+      "sideCondition": "Quit Slack first.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": ["com.tinyspeck.slackmacgap"],
+      "source": "Measured: removed and relaunched Slack 4.53 on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "4.53.280",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Reached 55 MB after about 2 hours of use and grew by about 1 MB a minute while reading channels. After removal Slack relaunched signed in; the folder came back at 0.5 MB and reached 2.5 MB after 5 channels."
+      }
+    },
+    {
+      "id": "slack.logs",
+      "title": "Slack's logs",
+      "pattern": "~/Library/Application Support/Slack/logs",
+      "tier": "safe",
+      "whatItIs": "Text logs Slack writes while it runs, used to troubleshoot problems.",
+      "consequence": "Slack starts new logs and you stay signed in.",
+      "sideCondition": "Quit Slack first.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": ["com.tinyspeck.slackmacgap"],
+      "source": "Measured: removed and relaunched Slack 4.53 on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "4.53.280",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Three log files reached 6.5 MB after about 2 hours of use, 2.1 MB of it in 6 minutes of switching channels, with no rotated copies. After removal Slack relaunched signed in and wrote 0.4 MB of new logs."
+      }
+    },
+    {
+      "id": "slack.service-worker",
+      "title": "Slack's offline app copy",
+      "pattern": "~/Library/Application Support/Slack/Service Worker || ~/Library/Application Support/Slack/Service Worker/CacheStorage",
+      "tier": "review",
+      "whatItIs": "A copy of Slack's web app that Slack downloads after you sign in, so it can start without the network.",
+      "consequence": "Slack downloads it again as soon as it starts, so the space is taken again within a minute.",
+      "sideCondition": null,
+      "cleanupCommand": null,
+      "ownerBundleIDs": ["com.tinyspeck.slackmacgap"],
+      "source": "Measured: removed and relaunched Slack 4.53 on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "4.53.280",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Appeared at 83 MB right after sign-in and stayed at that size through further use. After removal Slack relaunched signed in and the folder was back at 83 MB within 25 seconds."
+      }
+    },
+    {
+      "id": "safari.cache",
+      "title": "Safari's web cache",
+      "pattern": "~/Library/Containers/com.apple.Safari/Data/Library/Caches/com.apple.Safari",
+      "tier": "rebuild",
+      "whatItIs": "Pages, images and video Safari downloaded so it can show them again without fetching them.",
+      "consequence": "Safari downloads them again as you browse, and your history and bookmarks stay.",
+      "sideCondition": "Quit Safari first.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": ["com.apple.Safari"],
+      "source": "Measured: removed and relaunched Safari 18.6 on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "18.6",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Reached 552 MB after 60 page views of 30 public sites in 13 minutes. After removal Safari relaunched normally with its history file unchanged; the folder came back at 0.1 MB and reached 74 MB after 8 pages."
+      }
+    },
+    {
+      "id": "safari.website-data",
+      "title": "What websites store in Safari",
+      "pattern": "~/Library/Containers/com.apple.Safari/Data/Library/WebKit/WebsiteData",
+      "tier": "review",
+      "whatItIs": "Data websites keep in Safari, such as saved settings, offline copies and site databases.",
+      "consequence": "Websites lose what they stored on this Mac, such as settings and offline data.",
+      "sideCondition": "Quit Safari first.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": ["com.apple.Safari"],
+      "source": "Measured: removed and relaunched Safari 18.6 on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "18.6",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Reached 42 MB after 60 page views without signing in to any site. After removal Safari relaunched normally; the folder came back at 0.7 MB and reached 12 MB after 8 pages. Sign-ins to websites were not tested."
+      }
+    },
+    {
+      "id": "safari.profile",
+      "title": "Safari's history and tabs",
+      "pattern": "~/Library/Safari || ~/Library/Containers/com.apple.Safari/Data/Library/Safari",
+      "tier": "never",
+      "whatItIs": "Safari's browsing history, open tabs, per-site settings and AutoFill data.",
+      "consequence": "It deletes your browsing history, tabs and site settings.",
+      "sideCondition": null,
+      "cleanupCommand": null,
+      "ownerBundleIDs": ["com.apple.Safari"],
+      "source": "Measured: folder contents listed in Safari 18.6 on macOS 15.7",
+      "evidence": {
+        "method": "location",
+        "appVersion": "18.6",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Holds History.db, SafariTabs.db, PerSitePreferences.db and AutoFill databases; 36 MB after 60 page views, 12 MB of it AutoFill corrections."
+      }
+    },
+    {
+      "id": "chrome.components",
+      "title": "Chrome's downloaded components",
+      "pattern": "~/Library/Application Support/Google/Chrome/component_crx_cache || ~/Library/Application Support/Google/Chrome/optimization_guide_model_store || ~/Library/Application Support/Google/Chrome/WasmTtsEngine || ~/Library/Application Support/Google/Chrome/Safe Browsing || ~/Library/Application Support/Google/Chrome/OnDeviceHeadSuggestModel",
+      "tier": "review",
+      "whatItIs": "Models, voices and lists Chrome downloads in the background for features such as Safe Browsing, read aloud and search suggestions.",
+      "consequence": "Chrome downloads them again within minutes, so the space is taken again.",
+      "sideCondition": null,
+      "cleanupCommand": null,
+      "ownerBundleIDs": ["com.google.Chrome"],
+      "source": "Measured: removed and relaunched Chrome 157 on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "157.0.8103.39",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Took 147 MB after the first launch and 60 page views. After removal Chrome relaunched normally and downloaded 132 MB of it again within 6 minutes."
+      }
+    },
+    {
+      "id": "spotify.cache",
+      "title": "Spotify's streaming cache",
+      "pattern": "~/Library/Caches/com.spotify.client",
+      "tier": "rebuild",
+      "whatItIs": "Songs Spotify streamed, kept so they play again without downloading, plus the cache of its built-in browser.",
+      "consequence": "Spotify streams songs again as you play them, and you stay signed in.",
+      "sideCondition": "Quit Spotify first.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": ["com.spotify.client"],
+      "source": "Measured: removed and relaunched Spotify 1.3.8 on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "1.3.8.620",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Reached 334 MB after 40 tracks in 14 minutes, 240 MB of it streamed audio. After removal Spotify relaunched signed in; the folder came back at 57 MB and reached 248 MB after 6 more tracks."
+      }
+    },
+    {
+      "id": "spotify.account-data",
+      "title": "Spotify's account database",
+      "pattern": "~/Library/Application Support/Spotify/PersistentCache",
+      "tier": "review",
+      "whatItIs": "A database Spotify keeps for each signed-in account.",
+      "consequence": "Spotify rebuilds it and you stay signed in, though it forgot what was playing.",
+      "sideCondition": "Quit Spotify first.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": ["com.spotify.client"],
+      "source": "Measured: removed and relaunched Spotify 1.3.8 on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "1.3.8.620",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Reached 28 MB after 40 tracks on a free account. After removal Spotify relaunched signed in with nothing queued; the folder came back at 8 MB and reached 10 MB after 6 tracks. Songs downloaded for offline listening (Premium) were not tested."
+      }
+    },
+    {
+      "id": "vscode.extension-installers",
+      "title": "VS Code's extension installer cache",
+      "pattern": "~/Library/Application Support/Code/CachedExtensionVSIXs",
+      "tier": "safe",
+      "whatItIs": "Copies of the installer files of extensions VS Code has installed.",
+      "consequence": "Your extensions stay installed and keep working.",
+      "sideCondition": "Quit VS Code first.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": ["com.microsoft.VSCode"],
+      "source": "Measured: removed and relaunched VS Code 1.145 on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "1.145.2",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Reached 174 MB after installing 6 extensions (9 with their dependencies). After removal VS Code relaunched with all 9 extensions installed, and the folder stayed empty after opening a project."
+      }
+    },
+    {
+      "id": "vscode.compiled-code",
+      "title": "VS Code's compiled code cache",
+      "pattern": "~/Library/Application Support/Code/CachedData",
+      "tier": "rebuild",
+      "whatItIs": "JavaScript that VS Code and its extensions compiled, kept so later starts are faster.",
+      "consequence": "VS Code compiles it again on its next start, which makes that start slower.",
+      "sideCondition": "Quit VS Code first.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": ["com.microsoft.VSCode"],
+      "source": "Measured: removed and relaunched VS Code 1.145 on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "1.145.2",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Was 15 MB after the first launch. After removal VS Code relaunched normally and rebuilt it at 86 MB right away, now including the installed extensions."
+      }
+    },
+    {
+      "id": "vscode.logs",
+      "title": "VS Code's logs",
+      "pattern": "~/Library/Application Support/Code/logs",
+      "tier": "safe",
+      "whatItIs": "Text logs VS Code and its extensions write while they run, used to troubleshoot problems.",
+      "consequence": "VS Code starts new logs, and your settings and extensions stay.",
+      "sideCondition": "Quit VS Code first.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": ["com.microsoft.VSCode"],
+      "source": "Measured: removed and relaunched VS Code 1.145 on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "1.145.2",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Reached 1.1 MB after opening 5 projects. After removal VS Code relaunched normally and wrote 0.2 MB of new logs."
+      }
+    },
+    {
+      "id": "vscode.extensions",
+      "title": "VS Code extensions",
+      "pattern": "~/.vscode/extensions",
+      "tier": "never",
+      "whatItIs": "The extensions installed in VS Code, including the language tools and libraries they bundle.",
+      "consequence": "Removing files inside breaks the extensions that own them.",
+      "sideCondition": "Uninstall extensions from the Extensions view in VS Code instead.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": ["com.microsoft.VSCode"],
+      "source": "Measured: folder contents listed in VS Code 1.145 on macOS 15.7",
+      "evidence": {
+        "method": "location",
+        "appVersion": "1.145.2",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "6 extensions took 528 MB, 274 MB of it the C/C++ extension. Generic rules matched folders inside them, such as a node_modules bundled with Prettier, where removal would break the extension."
+      }
+    },
+    {
+      "id": "zoom.components",
+      "title": "Zoom's downloaded components",
+      "pattern": "~/Library/Application Support/zoom.us/asr || ~/Library/Application Support/zoom.us/CefPlugin",
+      "tier": "review",
+      "whatItIs": "Speech recognition models for captions and an embedded web engine that Zoom downloads in the background.",
+      "consequence": "Zoom downloads them again as soon as it starts, so the space is taken again within minutes.",
+      "sideCondition": null,
+      "cleanupCommand": null,
+      "ownerBundleIDs": ["us.zoom.xos"],
+      "source": "Measured: removed and relaunched Zoom 7.2.5 on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "7.2.5 (90525)",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Took 498 MB after one session with captions: 217 MB of speech models and 281 MB of web engine. After removal Zoom relaunched signed in and downloaded 464 MB of it again within 90 seconds. On a Mac used for months the speech models were 407 MB, all downloaded in the same month."
+      }
+    },
+    {
+      "id": "zoom.app-code",
+      "title": "Zoom's program files",
+      "pattern": "~/Library/Application Support/zoom.us/Plugins",
+      "tier": "never",
+      "whatItIs": "Part of the Zoom app itself, unpacked here on first launch and extended with downloaded features.",
+      "consequence": "Zoom puts the files back the next time it starts, so no space stays free.",
+      "sideCondition": "Uninstall Zoom to remove it.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": ["us.zoom.xos"],
+      "source": "Measured: removed and relaunched Zoom 7.2.5 on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "7.2.5 (90525)",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "First launch unpacked 148 MB here and it reached 276 MB. After removal Zoom relaunched signed in and had put back 196 MB within 90 seconds."
+      }
+    },
+    {
+      "id": "zoom.account-data",
+      "title": "Zoom's account data",
+      "pattern": "~/Library/Application Support/zoom.us/data",
+      "tier": "review",
+      "whatItIs": "Zoom's databases for the signed-in account, meetings and settings.",
+      "consequence": "Zoom signs you out and starts as if it were newly installed.",
+      "sideCondition": "Quit Zoom first.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": ["us.zoom.xos"],
+      "source": "Measured: removed and relaunched Zoom 7.2.5 on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "7.2.5 (90525)",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Reached 189 MB after one session, and 260 MB on a Mac used for months. After removal Zoom relaunched signed out, showing its first-run screen, and the folder came back at 2.3 MB."
+      }
+    },
+    {
+      "id": "teams.cache",
+      "title": "Teams' web cache",
+      "pattern": "~/Library/Containers/com.microsoft.teams2/Data/Library/Caches/Microsoft/MSTeams",
+      "tier": "rebuild",
+      "whatItIs": "Images, files and pages Teams downloaded so it can show them again without fetching them.",
+      "consequence": "Teams downloads them again as you open them, and you stay signed in.",
+      "sideCondition": "Quit Teams first.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": ["com.microsoft.teams2"],
+      "source": "Measured: removed and relaunched Teams 26289 on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "26289.204.5281.6363",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Reached 85 MB after sign-in and 10 minutes of use with a personal account. After removal Teams relaunched signed in and the folder came back at 2.4 MB."
+      }
+    },
+    {
+      "id": "teams.service-worker",
+      "title": "Teams' offline app copy",
+      "pattern": "~/Library/Containers/com.microsoft.teams2/Data/Library/Application Support/Microsoft/MSTeams/EBWebView/WV2Profile_*/Service Worker",
+      "tier": "review",
+      "whatItIs": "A copy of the Teams web app that Teams downloads after you sign in, so it can start quickly and without the network.",
+      "consequence": "Teams downloads it again as soon as it starts, so the space is taken again within a minute.",
+      "sideCondition": null,
+      "cleanupCommand": null,
+      "ownerBundleIDs": ["com.microsoft.teams2"],
+      "source": "Measured: removed and relaunched Teams 26289 on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "26289.204.5281.6363",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Was 387 MB right after signing in with a personal account. After removal Teams relaunched signed in and the folder was back at 408 MB within 60 seconds. Work and school accounts were not tested."
+      }
+    },
+    {
+      "id": "teams.logs",
+      "title": "Teams' logs",
+      "pattern": "~/Library/Group Containers/UBF8T346G9.com.microsoft.teams/Library/Application Support/Logs",
+      "tier": "safe",
+      "whatItIs": "Text logs Teams writes while it runs, used to troubleshoot problems.",
+      "consequence": "Teams starts new logs and you stay signed in.",
+      "sideCondition": "Quit Teams first.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": ["com.microsoft.teams2"],
+      "source": "Measured: removed and relaunched Teams 26289 on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "26289.204.5281.6363",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Reached 6 MB after sign-in and 10 minutes of use. After removal Teams relaunched signed in and wrote 3.7 MB of new logs within a minute."
+      }
+    },
+    {
+      "id": "teams.data",
+      "title": "Teams' app data",
+      "pattern": "~/Library/Containers/com.microsoft.teams2",
+      "tier": "review",
+      "whatItIs": "Everything Teams keeps for your account on this Mac: chats, settings, the offline app copy and caches.",
+      "consequence": "Teams signs you out and downloads everything again after you sign back in.",
+      "sideCondition": "Quit Teams first.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": ["com.microsoft.teams2"],
+      "source": "Measured: removed and relaunched Teams 26289 on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "26289.204.5281.6363",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Was 540 MB after sign-in and 10 minutes of use. After removing it and the shared Teams group container, Teams relaunched signed out, offering the remembered account, and the folder came back at 28 MB."
+      }
+    },
+    {
+      "id": "discord.cache",
+      "title": "Discord's web cache",
+      "pattern": "~/Library/Application Support/discord/Cache",
+      "tier": "rebuild",
+      "whatItIs": "Images, GIFs and pages Discord downloaded so it can show them again without fetching them.",
+      "consequence": "Discord downloads them again as you open channels, and you stay signed in.",
+      "sideCondition": "Quit Discord first.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": ["com.hnc.Discord"],
+      "source": "Measured: removed and relaunched Discord 0.0.421 on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "0.0.421",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Reached 29 MB after sign-in and 10 minutes in a public community, growing by 18 MB during that use. After removal Discord relaunched signed in and the folder came back at 17 MB within a minute."
+      }
+    },
+    {
+      "id": "discord.app-code",
+      "title": "Discord's program modules",
+      "pattern": "~/Library/Application Support/discord/app-*",
+      "tier": "never",
+      "whatItIs": "Part of the Discord app itself, such as voice and noise suppression, downloaded on first launch.",
+      "consequence": "Discord stops starting with a fatal error, and does not download the files again.",
+      "sideCondition": "Uninstall Discord to remove it.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": ["com.hnc.Discord"],
+      "source": "Measured: removed and relaunched Discord 0.0.421 on macOS 15.7",
+      "evidence": {
+        "method": "relaunch-test",
+        "appVersion": "0.0.421",
+        "macOSVersion": "15.7.7",
+        "measuredOn": "2026-11-08",
+        "observed": "Took 224 MB after first launch and use, including a 111 MB voice module. After removal Discord showed 'Cannot find module discord_desktop_core' on two launches in a row; putting the folder back from the Trash fixed it, still signed in."
+      }
+    }
+  ]
+}

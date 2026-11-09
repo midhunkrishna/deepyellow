@@ -1,5 +1,5 @@
 #!/bin/sh
-# Builds dist/DeepYellow.app: universal binary, Info.plist, icon, CLI script, signature.
+# Builds dist/DeepYellow.app: universal binary, Info.plist, icon, CLI script, rule files, signature.
 # Environment:
 #   VERSION        version to stamp (default: git describe, else 0.0.0-dev)
 #   ARCHS          space-separated architectures (default: "arm64 x86_64")
@@ -32,6 +32,8 @@ lipo -create $binaries -output "$app/Contents/MacOS/DeepYellow"
 cp "$root/Resources/AppIcon.icns" "$app/Contents/Resources/AppIcon.icns"
 cp "$root/Resources/bin/deepyellow" "$app/Contents/Resources/bin/deepyellow"
 chmod +x "$app/Contents/Resources/bin/deepyellow"
+mkdir -p "$app/Contents/Resources/rules"
+cp "$root"/rules/*.json "$app/Contents/Resources/rules/"
 sed -e "s/@VERSION@/$version/" -e "s/@BUILD@/$build_number/" \
     "$root/Resources/Info.plist" > "$app/Contents/Info.plist"
 printf 'APPL????' > "$app/Contents/PkgInfo"

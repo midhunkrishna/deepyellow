@@ -50,7 +50,7 @@ Every file has a kind. It is resolved in three steps, and none of them involves 
 
 ## Reclaim
 
-A rule has a path pattern, a tier, one sentence on what the place is, one on what removing it costs, optional conditions, an optional cleanup command (displayed, never run) and a source. The matcher supports `~`, `**`, alternatives, exclusions and `if-sibling:` conditions. For example, `node_modules` is offered as rebuildable when a lockfile sits next to it, and as review when it does not. The most specific rule wins, and a `never` ancestor always wins. See [Reclaim rules](reclaim-rules.md).
+Rules are JSON files in `rules/`, copied into `DeepYellow.app/Contents/Resources/rules/` by the build and read at launch. If they cannot be read, the CLI exits with an error and the app shows it and offers no advice. A rule has a path pattern, a tier, one sentence on what the place is, one on what removing it costs, optional conditions, an optional cleanup command (displayed, never run) and a source. The matcher supports `~`, `**`, alternatives, exclusions and `if-sibling:` conditions. For example, `node_modules` is offered as rebuildable when a lockfile sits next to it, and as review when it does not. The most specific rule wins, and a `never` ancestor always wins. See [Reclaim rules](reclaim-rules.md).
 
 Ownership adds facts and leaves the tiers alone. It looks only at the direct children of a fixed list of `~/Library` folders and decides whether the owning app appears to be installed. It never applies to `com.apple.*`, and a plain name that matches nothing is only "possibly not installed".
 

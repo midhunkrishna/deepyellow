@@ -117,7 +117,7 @@ final class OwnershipTests: XCTestCase {
     func testCancelAndNoTierChange() throws {
         let tree = makeTree([file(lib + "/Caches/com.gone.app/x", 5_000)])
         XCTAssertNil(OwnershipEngine.analyze(lens: TreeLens(tree: tree), home: testHome, catalog: catalog, isCancelled: { true }))
-        let rules = ReclaimEngine.builtinRules
+        let rules = repoRules
         let before = ReclaimEngine.analyze(lens: TreeLens(tree: tree), home: testHome, rules: rules, isCancelled: { false })?.nodeTier
         _ = OwnershipEngine.analyze(lens: TreeLens(tree: tree), home: testHome, catalog: catalog, isCancelled: { false })
         XCTAssertEqual(before, ReclaimEngine.analyze(lens: TreeLens(tree: tree), home: testHome, rules: rules, isCancelled: { false })?.nodeTier)

@@ -10,7 +10,7 @@ import Foundation
 /// - A segment may list alternatives with `|` and exclusions with `&!`, for example `*.sqlite&!*cache*`.
 /// - Several full paths may be joined with ` || `.
 /// - A trailing ` if-sibling:a|b` only matches when the node has a sibling named `a` or `b`.
-public struct ReclaimRule: Identifiable, Sendable {
+public struct ReclaimRule: Identifiable, Sendable, Equatable {
     public let id: String
     public let title: String
     public let pattern: String
