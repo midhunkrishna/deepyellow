@@ -25,9 +25,9 @@ lab_home=${LAB_HOME:-$HOME/.tart/dy-lab}
 
 die() { echo "lab: $*" >&2; exit 1; }
 
-# Refuses to act on the base VM, which must stay as it was frozen.
+# Refuses to act on a base VM (dy-base, dy-base-dev, ...), which must stay as it was frozen.
 not_base() {
-    [ "$1" != "$base" ] || die "$base is the frozen base VM; copy it with 'new' instead"
+    case $1 in dy-base*|"$base") die "$1 is a frozen base VM; copy it with 'new' instead" ;; esac
 }
 
 # Prints the VM's IP address, waiting up to two minutes for it to boot.

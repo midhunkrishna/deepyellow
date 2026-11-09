@@ -34,7 +34,7 @@ DeepYellow is a native macOS disk analyzer. It draws your disk as a treemap you 
 
 ![The map by file count](docs/screens/app-map-files.png)
 
-**Safety advice you can read.** Each item has a tier (safe, rebuild, review, never offered) with its consequence in a sentence, the condition to meet first, and the official cleanup command where one exists. When the evidence is thin it says "review", and for most personal files it says nothing, because the honest answer is that it cannot know. [All 66 rules, from JSON files you can read](docs/reclaim-rules.md)
+**Safety advice you can read.** Each item has a tier (safe, rebuild, review, never offered) with its consequence in a sentence, the condition to meet first, and the official cleanup command where one exists. When the evidence is thin it says "review", and for most personal files it says nothing, because the honest answer is that it cannot know. [Every rule is in JSON files you can read](docs/reclaim-rules.md), and [you can add to them](CONTRIBUTING.md).
 
 ![Reclaim, grouped by tier](docs/screens/app-reclaim.png)
 
@@ -90,6 +90,10 @@ A complete scan needs **Full Disk Access**. Without it, DeepYellow still works, 
 ## Documentation
 
 Everything else is in [docs/](docs/README.md): [getting started](docs/getting-started.md), [views](docs/views.md), [SQL](docs/sql.md), [query language](docs/query-language.md), [safety and accounting](docs/safety-and-accounting.md), [reclaim rules](docs/reclaim-rules.md), [command line](docs/cli.md), [building from source](docs/building-from-source.md), [architecture](docs/architecture.md), [FAQ](docs/faq.md) and [uninstall](docs/uninstall.md).
+
+## Contributing
+
+The safety advice comes from rules anyone can read and improve. [CONTRIBUTING.md](CONTRIBUTING.md) explains how to report a folder, write a rule from documentation or measure one in a virtual machine, and [rules/README.md](rules/README.md) explains what makes a rule trustworthy.
 
 ## Licence
 

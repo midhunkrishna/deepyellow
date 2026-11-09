@@ -55,7 +55,7 @@ final class ReclaimEngineTests: XCTestCase {
         XCTAssertEqual(tier(report, tree, "\(base)/com.apple.Safari"), .never)
         XCTAssertEqual(tier(report, tree, "\(base)/com.apple.dt.Xcode"), .rebuild, "exception beats com.apple.*")
         XCTAssertEqual(tier(report, tree, "\(base)/Homebrew"), .safe)
-        XCTAssertEqual(report.rule(for: tree.find(path: "\(base)/Homebrew")!, tree: tree)?.cleanupCommand, "brew cleanup")
+        XCTAssertEqual(report.rule(for: tree.find(path: "\(base)/Homebrew")!, tree: tree)?.cleanupCommand, "brew cleanup --prune=all")
         XCTAssertEqual(tier(report, tree, "\(base)/JetBrains/IntelliJ2024"), .review)
         XCTAssertEqual(tier(report, tree, "\(base)/com.spotify.client/Storage"), .rebuild)
         XCTAssertEqual(tier(report, tree, "\(base)/Google/Chrome"), .rebuild)
@@ -169,9 +169,22 @@ final class ReclaimEngineTests: XCTestCase {
 }
 
 final class BuiltinRulesTests: XCTestCase {
-    /// The first five sections hold the built-in rules; the measured app rules come after them.
-    func testBuiltinSectionsHold57Rules() {
-        XCTAssertEqual(repoSections.prefix(5).flatMap(\.rules).count, 57)
+    /// Measured rules replace research rules over time, so the count of unverified rules may only go down.
+    func testUnverifiedRulesOnlyShrink() {
+        XCTAssertGreaterThanOrEqual(repoRules.count, 57)
+        XCTAssertLessThanOrEqual(try researchRuleCount(), 30, "new rules must be measured or cite vendor documentation")
+    }
+
+    /// Counts rules whose evidence method is `research`, read from the repo's JSON files.
+    private func researchRuleCount() throws -> Int {
+        let folder = URL(fileURLWithPath: #filePath).deletingLastPathComponent().appendingPathComponent("../../../../rules")
+        return try FileManager.default.contentsOfDirectory(at: folder.standardizedFileURL, includingPropertiesForKeys: nil)
+            .filter { $0.pathExtension == "json" }
+            .reduce(0) { total, file in
+                let object = try JSONSerialization.jsonObject(with: Data(contentsOf: file)) as? [String: Any]
+                let rules = object?["rules"] as? [[String: Any]] ?? []
+                return total + rules.filter { ($0["evidence"] as? [String: Any])?["method"] as? String == "research" }.count
+            }
     }
 
     func testEveryRuleIsWellFormed() {
@@ -197,8 +210,11 @@ final class BuiltinRulesTests: XCTestCase {
         XCTAssertEqual(byID["maven.repository"]?.tier, .review)
         XCTAssertEqual(byID["system.varfolders"]?.tier, .never)
         XCTAssertEqual(byID["logs"]?.tier, .safe)
-        // Research-based rules stay at two `safe`; measured app rules reach `safe` only with relaunch-test evidence.
-        XCTAssertEqual(repoSections.prefix(5).flatMap(\.rules).filter { $0.tier == .safe }.count, 2)
+        // `safe` needs measured or vendor evidence; no rule rated safe may rest on research notes alone.
+        let measuredOrVendor = repoRules.filter { $0.tier == .safe }.allSatisfy { rule in
+            rule.source?.hasPrefix("Measured") == true || ["Homebrew manual", "Apple Support"].contains(rule.source ?? "")
+        }
+        XCTAssertTrue(measuredOrVendor, "a safe rule rests on research notes")
     }
 
     func testGlobMatching() {

@@ -1,0 +1,144 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "rules.schema.json",
+  "title": "DeepYellow reclaim rule file",
+  "description": "One file of reclaim rules. Each rule says what a place on disk is, how safe it is to remove, and what removal costs.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "section", "rules"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Points editors at this schema. It has no effect on the app."
+    },
+    "version": {
+      "const": 1,
+      "description": "The rule file format version. Always 1."
+    },
+    "section": {
+      "type": "object",
+      "description": "The heading and intro shown for this file on the generated rules page.",
+      "additionalProperties": false,
+      "required": ["title", "intro"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The section heading, for example Caches."
+        },
+        "intro": {
+          "type": "string",
+          "minLength": 1,
+          "description": "One or two plain sentences saying what this group of rules covers."
+        }
+      }
+    },
+    "rules": {
+      "type": "array",
+      "description": "The rules in this file, in the order they appear on the rules page.",
+      "items": { "$ref": "#/$defs/rule" }
+    }
+  },
+  "$defs": {
+    "rule": {
+      "type": "object",
+      "description": "One rule for one place on disk.",
+      "additionalProperties": false,
+      "required": ["id", "title", "pattern", "tier", "whatItIs", "consequence", "sideCondition", "cleanupCommand", "ownerBundleIDs", "source", "evidence"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(\\.[a-z0-9-]+)*$",
+          "description": "A unique, lowercase, dotted name such as caches.spotify. It must not change once released."
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "description": "A short name shown in the app, with no full stop at the end."
+        },
+        "pattern": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The place this rule matches. Start with ~/ for your home folder or / for an absolute path. Use * inside a name, ** for any number of folders, and || to join several paths."
+        },
+        "tier": {
+          "enum": ["safe", "rebuild", "review", "never"],
+          "description": "How safe removal is. safe: regenerates with no visible loss. rebuild: recoverable at a cost of time, network or a login. review: may hold personal data, so the user must look. never: not offered for removal."
+        },
+        "whatItIs": {
+          "type": "string",
+          "minLength": 1,
+          "description": "One plain sentence saying what lives here, ending with a full stop."
+        },
+        "consequence": {
+          "type": "string",
+          "minLength": 1,
+          "description": "What the user loses or waits for if they remove it, with concrete numbers where you have them. End with a full stop."
+        },
+        "sideCondition": {
+          "type": ["string", "null"],
+          "minLength": 1,
+          "description": "A condition to meet before removing, such as closing the app. Use null when there is none."
+        },
+        "cleanupCommand": {
+          "type": ["string", "null"],
+          "minLength": 1,
+          "description": "The official cleanup command, shown to the user and never run by DeepYellow. Use null when there is none."
+        },
+        "ownerBundleIDs": {
+          "type": "array",
+          "description": "Bundle IDs of the apps that own this place, such as com.spotify.client. Use an empty list when no app owns it.",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "source": {
+          "type": ["string", "null"],
+          "minLength": 1,
+          "description": "Where the claim comes from, such as a vendor page or a test you ran. Safe and rebuild rules need one."
+        },
+        "evidence": { "$ref": "#/$defs/evidence" }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "description": "How the tier was established.",
+      "additionalProperties": false,
+      "required": ["method"],
+      "properties": {
+        "method": {
+          "enum": ["relaunch-test", "vendor-doc", "location", "research"],
+          "description": "relaunch-test: you removed it and relaunched the app. vendor-doc: the vendor documents it. location: the place is known by where it sits. research: notes that nobody has verified."
+        },
+        "appVersion": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The app version you tested, for example 1.2.3."
+        },
+        "macOSVersion": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The macOS version you tested on, for example 15.5."
+        },
+        "measuredOn": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "description": "The date of the test, as YYYY-MM-DD."
+        },
+        "observed": {
+          "type": "string",
+          "minLength": 1,
+          "description": "What you saw after removing it and relaunching, with sizes and times where you have them."
+        }
+      },
+      "if": {
+        "properties": { "method": { "const": "relaunch-test" } },
+        "required": ["method"]
+      },
+      "then": {
+        "required": ["method", "appVersion", "macOSVersion", "measuredOn", "observed"]
+      }
+    }
+  }
+}

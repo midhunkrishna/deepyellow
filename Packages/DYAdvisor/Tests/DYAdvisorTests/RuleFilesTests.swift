@@ -240,4 +240,37 @@ final class RuleFilesTests: XCTestCase {
         XCTAssertEqual(SafetyTier(rawValue: report.nodeTier[Int(node)]), .never)
         XCTAssertEqual(report.rule(for: node, tree: tree)?.id, "discord.app-code")
     }
+
+    /// Poetry keeps real project environments inside ~/Library/Caches; they must not fall under the generic cache rule.
+    func testPoetryEnvironmentsAreNotTreatedAsCache() {
+        let base = "/Users/tester/Library/Caches/pypoetry"
+        let tree = makeTree([file(base + "/virtualenvs/app-x1-py3.12/lib/numpy.so", 900), file(base + "/cache/repositories/x", 5),
+                             file("/Users/tester/Library/Caches/com.example.app/blob", 7)])
+        let report = ReclaimEngine.analyze(lens: TreeLens(tree: tree), home: testHome, rules: repoRules,
+                                           isCancelled: { false })!
+        func ruleID(_ path: String) -> String? { report.rule(for: tree.find(path: path)!, tree: tree)?.id }
+        XCTAssertEqual(ruleID(base + "/virtualenvs/app-x1-py3.12/lib/numpy.so"), "poetry.virtualenvs")
+        XCTAssertEqual(ruleID(base + "/cache/repositories/x"), "poetry.cache")
+        XCTAssertEqual(ruleID("/Users/tester/Library/Caches/com.example.app/blob"), "caches.thirdparty")
+    }
+
+    /// Gem caches inside a Ruby install get their own rule, and Homebrew's own Ruby and gems stay protected.
+    func testRubyGemCachesAndHomebrewsOwnRuby() {
+        let gems = "/Users/tester/.rbenv/versions/3.4.12/lib/ruby/gems/3.4.0"
+        let brew = "/opt/homebrew/Library/Homebrew/vendor"
+        let app = "/Users/tester/Projects/app/vendor/bundle/ruby/3.4.0"
+        let tree = makeTree([file(gems + "/cache/rails-8.1.4.1.gem", 9), file(gems + "/specifications/rails-8.1.4.1.gemspec", 1),
+                             file(gems + "/gems/rails-8.1.4.1/README.md", 3), file(app + "/gems/nokogiri-1.18/lib/nokogiri.rb", 4),
+                             file(brew + "/bundle/ruby/3.4.0/gems/sorbet-1/lib/sorbet.rb", 5),
+                             file(brew + "/portable-ruby/4.0.9/lib/ruby/gems/4.0.0/cache/json.gem", 6),
+                             file(brew + "/portable-ruby/4.0.9/lib/ruby/gems/4.0.0/specifications/json.gemspec", 1)])
+        let report = ReclaimEngine.analyze(lens: TreeLens(tree: tree), home: testHome, rules: repoRules,
+                                           isCancelled: { false })!
+        func ruleID(_ path: String) -> String? { report.rule(for: tree.find(path: path)!, tree: tree)?.id }
+        XCTAssertEqual(ruleID(gems + "/cache/rails-8.1.4.1.gem"), "ruby.gem-cache")
+        XCTAssertEqual(ruleID(gems + "/gems/rails-8.1.4.1/README.md"), "rbenv.versions")
+        XCTAssertEqual(ruleID(app + "/gems/nokogiri-1.18/lib/nokogiri.rb"), "bundler.vendor")
+        XCTAssertEqual(ruleID(brew + "/bundle/ruby/3.4.0/gems/sorbet-1/lib/sorbet.rb"), "homebrew.program")
+        XCTAssertEqual(ruleID(brew + "/portable-ruby/4.0.9/lib/ruby/gems/4.0.0/cache/json.gem"), "homebrew.program")
+    }
 }

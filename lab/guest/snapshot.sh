@@ -14,7 +14,9 @@ user_var=$(cd "$(getconf DARWIN_USER_DIR)/.." && pwd -P)
 export DEEPYELLOW_HOME=/opt/deepyellow/home
 : > "$out"
 first=1
-for dir in "$HOME" /Library /Applications "$user_var"; do
+roots="$HOME /Library /Applications $user_var"
+[ -d /opt/homebrew ] && roots="$roots /opt/homebrew"   # Homebrew's prefix on Apple silicon
+for dir in $roots; do
     if [ $first -eq 1 ]; then
         "$dy" --cli sql "$dir" "$query" --csv >> "$out"
         first=0

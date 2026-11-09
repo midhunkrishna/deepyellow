@@ -1,4 +1,5 @@
 {
+  "$schema": "./schema/rules.schema.json",
   "version": 1,
   "section": {"title": "Logs, Trash, downloads and personal data", "intro": "Logs, the Trash, installers, and data that belongs to you."},
   "rules": [

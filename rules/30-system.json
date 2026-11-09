@@ -1,4 +1,5 @@
 {
+  "$schema": "./schema/rules.schema.json",
   "version": 1,
   "section": {"title": "Containers, backups and system areas", "intro": "Virtual machines, backups and parts of macOS that are shown but not offered."},
   "rules": [
