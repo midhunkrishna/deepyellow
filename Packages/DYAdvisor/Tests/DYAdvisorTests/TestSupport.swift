@@ -63,3 +63,13 @@ final class FakeReader: FileReading, @unchecked Sendable {
         return data.subdata(in: start..<min(start + length, data.count))
     }
 }
+
+/// The repo's `rules/` folder, found from this file.
+let repoRulesDirectory = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+    .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("rules", isDirectory: true)
+
+/// Every section of the repo's rules, in file order. Fails the test run if the files do not load.
+let repoSections: [RuleSection] = try! RuleFiles.load(directory: repoRulesDirectory, home: testHome)
+
+/// Every rule of the repo's rules, in file order.
+let repoRules: [ReclaimRule] = repoSections.flatMap(\.rules)

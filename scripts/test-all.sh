@@ -1,5 +1,5 @@
 #!/bin/sh
-# Runs `swift test` for every package under Packages/, then for the root package, then the release script tests.
+# Runs `swift test` for every package under Packages/, then for the root package, then the release script tests and the rules doc check.
 set -eu
 
 root=$(cd "$(dirname "$0")/.." && pwd)
@@ -14,6 +14,10 @@ echo "==> DeepYellow (root package)"
 (cd "$root" && swift test) || failed="$failed DeepYellow"
 echo "==> release scripts"
 "$root/scripts/test-next-version.sh" || failed="$failed next-version"
+echo "==> rules doc"
+python3 "$root/scripts/gen-rules-doc.py" --check || failed="$failed rules-doc"
+echo "==> rules doc generator tests"
+python3 "$root/scripts/test-gen-rules-doc.py" || failed="$failed rules-doc-tests"
 if [ -n "$failed" ]; then
     echo "FAILED:$failed" >&2
     exit 1

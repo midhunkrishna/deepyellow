@@ -1,0 +1,110 @@
+{
+  "version": 1,
+  "section": {"title": "Containers, backups and system areas", "intro": "Virtual machines, backups and parts of macOS that are shown but not offered."},
+  "rules": [
+    {
+      "id": "backup.iphone",
+      "title": "iPhone or iPad backup",
+      "pattern": "~/Library/Application Support/MobileSync/Backup/*",
+      "tier": "review",
+      "whatItIs": "A backup of an iPhone or iPad stored on this Mac.",
+      "consequence": "That backup would be gone for good, and if the device is lost with no iCloud backup its data cannot be recovered.",
+      "sideCondition": "Delete from Finder or the Apple Devices app, not by hand.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Apple Support",
+      "evidence": {"method": "vendor-doc"}
+    },
+    {
+      "id": "docker.raw",
+      "title": "Docker disk image",
+      "pattern": "~/Library/Containers/com.docker.docker/Data/vms/0/data/Docker.raw",
+      "tier": "review",
+      "whatItIs": "The single file holding every Docker image, container and volume.",
+      "consequence": "Deleting it would destroy all your images, containers and volume data, including databases.",
+      "sideCondition": "Never remove the file itself. The command clears only unused items.",
+      "cleanupCommand": "docker system prune",
+      "ownerBundleIDs": ["com.docker.docker"],
+      "source": "Docker documentation",
+      "evidence": {"method": "vendor-doc"}
+    },
+    {
+      "id": "vm.disks",
+      "title": "Virtual machine",
+      "pattern": "~/Parallels || ~/Virtual Machines.localized || ~/.lima || ~/.colima || ~/Library/Containers/com.utmapp.UTM",
+      "tier": "review",
+      "whatItIs": "A virtual machine and everything stored inside it.",
+      "consequence": "You would lose that virtual machine and all of its data.",
+      "sideCondition": "Shown for information only.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Research notes (unverified)",
+      "evidence": {"method": "research"}
+    },
+    {
+      "id": "system.osupdate",
+      "title": "OS update area",
+      "pattern": "/Library/Updates || /System/Library/AssetsV2 || /System/Library/Assets",
+      "tier": "never",
+      "whatItIs": "Files macOS uses to stage and apply updates.",
+      "consequence": "Removing them could interfere with system updates.",
+      "sideCondition": "Manage only through System Settings.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Research notes (unverified)",
+      "evidence": {"method": "research"}
+    },
+    {
+      "id": "system.swap",
+      "title": "Swap and sleep files",
+      "pattern": "/System/Volumes/VM/swapfile* || /private/var/vm",
+      "tier": "never",
+      "whatItIs": "Memory swap files managed by the system.",
+      "consequence": "They are managed by macOS and the space returns by itself.",
+      "sideCondition": "Shown under system volumes, not offered.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Local observation",
+      "evidence": {"method": "location"}
+    },
+    {
+      "id": "system.varfolders",
+      "title": "System temporary data",
+      "pattern": "/private/var/folders || /var/folders",
+      "tier": "never",
+      "whatItIs": "Temporary files and caches in use by running programs.",
+      "consequence": "Programs that are running would fail or lose their working data.",
+      "sideCondition": "Display only.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Local observation",
+      "evidence": {"method": "location"}
+    },
+    {
+      "id": "system.logs.protected",
+      "title": "System logs",
+      "pattern": "/var/log || /private/var/log || /var/db/diagnostics || /private/var/db/diagnostics || /Library/Logs",
+      "tier": "never",
+      "whatItIs": "Logs and diagnostics macOS keeps for the whole system.",
+      "consequence": "They belong to macOS and are mostly owned by the system, so they are not offered for removal.",
+      "sideCondition": null,
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Research notes",
+      "evidence": {"method": "research"}
+    },
+    {
+      "id": "system.lproj",
+      "title": "App language files",
+      "pattern": "/Applications/*.app/Contents/Resources/*.lproj",
+      "tier": "never",
+      "whatItIs": "Language files inside an installed app.",
+      "consequence": "Removing them may invalidate the app's signature so it will not open.",
+      "sideCondition": "Not offered.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Eclectic Light Company",
+      "evidence": {"method": "research"}
+    }
+  ]
+}

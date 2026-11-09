@@ -190,6 +190,14 @@ extension Workspace {
     func startAnalysis() {
         analysisToken?.cancel()
         guard let tree else { return }
+        let rules: [ReclaimRule]
+        switch ReclaimEngine.rules {
+        case .success(let loaded): rules = loaded
+        case .failure(let error):
+            analysis = [.reclaim: .cancelled, .ownership: .idle, .kinds: .idle, .duplicates: .idle]
+            post("Rules could not be loaded: \(error)")
+            return
+        }
         let token = CancelToken()
         analysisToken = token
         let (home, catalog, reader, minimum) = (environment.homePath, environment.appCatalog, environment.reader, environment.kindRefinementMinimumSize)
@@ -198,7 +206,7 @@ extension Workspace {
         analysisTask = Task { [weak self] in
             let first = await Task.detached(priority: .utility) { () -> (TreeLens, ReclaimReport?) in
                 let lens = TreeLens(tree: tree)
-                return (lens, ReclaimEngine.analyze(lens: lens, home: home, rules: ReclaimEngine.builtinRules, isCancelled: { token.isCancelled }))
+                return (lens, ReclaimEngine.analyze(lens: lens, home: home, rules: rules, isCancelled: { token.isCancelled }))
             }.value
             let full = first.0
             guard let self, !token.isCancelled, let report = first.1 else { self?.markCancelled(token); return }

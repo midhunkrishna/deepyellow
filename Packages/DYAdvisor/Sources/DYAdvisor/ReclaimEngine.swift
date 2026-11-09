@@ -4,8 +4,20 @@ import Foundation
 /// Matches reclaim rules against a scan and resolves what applies to every node. Advice only: nothing is marked,
 /// moved or deleted, and cleanup commands are data for display.
 public enum ReclaimEngine {
-    /// The built-in rules, transcribed from the research notes.
-    public static let builtinRules: [ReclaimRule] = BuiltinRules.all
+    /// Every rule in the `rules` folder the app reads (see `RuleFiles.defaultDirectory()`), loaded once.
+    /// A failure is kept so callers can report it; there is no fallback list.
+    public static let rules: Result<[ReclaimRule], RulesError> = loadRules()
+
+    /// Loads the rules from the default folder, relative to the user's home folder.
+    private static func loadRules() -> Result<[ReclaimRule], RulesError> {
+        do {
+            return .success(try RuleFiles.load(directory: RuleFiles.defaultDirectory(), home: NSHomeDirectory()).flatMap(\.rules))
+        } catch let error as RulesError {
+            return .failure(error)
+        } catch {
+            return .failure(RulesError(problem: "\(error)"))
+        }
+    }
 
     /// Resolves the governing rule for every node and totals each rule's families.
     ///

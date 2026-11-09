@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Reclaim rules | DeepYellow docs</title>
-<meta name="description" content="Every built-in rule DeepYellow uses to advise on a place on disk. This page is generated from the rule table in `BuiltinRules.swift`, so it lists exactly what the app contains.">
+<meta name="description" content="Every rule DeepYellow uses to advise on a place on disk. The rules are read from the JSON files in `rules/` when the app starts, and this page is generated from the same files, so ">
 <meta name="theme-color" content="#0E0D0B">
 <link rel="icon" href="../favicon.png">
 <link rel="apple-touch-icon" href="../images/icon.png">
@@ -51,7 +51,7 @@
   </nav>
   <main id="main" class="prose">
 <h1 id="reclaim-rules">Reclaim rules</h1>
-<p>Every built-in rule DeepYellow uses to advise on a place on disk. This page is generated from the rule table in <a href="https://github.com/midhunkrishna/deepyellow/blob/master/Packages/DYAdvisor/Sources/DYAdvisor/BuiltinRules.swift"><code>BuiltinRules.swift</code></a>, so it lists exactly what the app contains.</p>
+<p>Every rule DeepYellow uses to advise on a place on disk. The rules are read from the JSON files in <a href="https://github.com/midhunkrishna/deepyellow/tree/master/rules"><code>rules/</code></a> when the app starts, and this page is generated from the same files, so it lists exactly what the app contains.</p>
 <p>A rule says what a place is, how safe it is to remove, what removal costs, any condition to meet first, and an official cleanup command when one exists. <strong>Commands are shown and never run.</strong> Removal always goes through a <a href="safety-and-accounting.html#the-plan">Plan</a> and the Trash.</p>
 <h2 id="how-to-read-it">How to read it <a class="anchor" href="#how-to-read-it" aria-label="Link to this section">#</a></h2>
 <table>
@@ -108,6 +108,7 @@
 <li><strong>If you remove it:</strong> Indexes rebuild slowly, and Local History (your edit history outside version control) cannot be recovered.</li>
 <li><strong>Condition:</strong> Close the IDE first. Never offer this as one blob.</li>
 <li><strong>Source:</strong> Research notes (unverified)</li>
+<li><strong>Evidence:</strong> unverified</li>
 </ul>
 <h3 id="spotify-offline-songs">Spotify offline songs <a class="anchor" href="#spotify-offline-songs" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: rebuild</strong> · <code>caches.spotify</code></p>
@@ -118,6 +119,7 @@
 <li><strong>Condition:</strong> Close Spotify first.</li>
 <li><strong>Owning app:</strong> <code>com.spotify.client</code></li>
 <li><strong>Source:</strong> Research notes (unverified)</li>
+<li><strong>Evidence:</strong> unverified</li>
 </ul>
 <h3 id="xcode-cache">Xcode cache <a class="anchor" href="#xcode-cache" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: rebuild</strong> · <code>caches.xcode</code></p>
@@ -128,6 +130,7 @@
 <li><strong>Condition:</strong> Close Xcode first.</li>
 <li><strong>Owning app:</strong> <code>com.apple.dt.Xcode</code></li>
 <li><strong>Source:</strong> Research notes (unverified)</li>
+<li><strong>Evidence:</strong> unverified</li>
 </ul>
 <h3 id="chrome-cache">Chrome cache <a class="anchor" href="#chrome-cache" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: rebuild</strong> · <code>caches.chrome</code></p>
@@ -138,6 +141,7 @@
 <li><strong>Condition:</strong> Close the browser first.</li>
 <li><strong>Owning app:</strong> <code>com.google.Chrome</code></li>
 <li><strong>Source:</strong> Research notes (unverified)</li>
+<li><strong>Evidence:</strong> unverified</li>
 </ul>
 <h3 id="firefox-cache">Firefox cache <a class="anchor" href="#firefox-cache" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: rebuild</strong> · <code>caches.firefox</code></p>
@@ -148,6 +152,7 @@
 <li><strong>Condition:</strong> Close the browser first.</li>
 <li><strong>Owning app:</strong> <code>org.mozilla.firefox</code></li>
 <li><strong>Source:</strong> Research notes (unverified)</li>
+<li><strong>Evidence:</strong> unverified</li>
 </ul>
 <h3 id="cache-folder-that-may-hold-your-data">Cache folder that may hold your data <a class="anchor" href="#cache-folder-that-may-hold-your-data" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: review</strong> · <code>caches.heuristic.names</code></p>
@@ -177,6 +182,7 @@
 <li><strong>If you remove it:</strong> Every project will rebuild and re-index in full the next time you open it.</li>
 <li><strong>Condition:</strong> Quit Xcode and any builds. Delete the contents, not the folder.</li>
 <li><strong>Source:</strong> Third-party guides</li>
+<li><strong>Evidence:</strong> unverified</li>
 </ul>
 <h3 id="xcode-archives">Xcode archives <a class="anchor" href="#xcode-archives" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: review</strong> · <code>xcode.archives</code></p>
@@ -186,6 +192,7 @@
 <li><strong>If you remove it:</strong> You would lose the ability to read crash reports for those builds or re-export them.</li>
 <li><strong>Condition:</strong> Review each archive by date and version. Move to Trash only.</li>
 <li><strong>Source:</strong> Third-party guides</li>
+<li><strong>Evidence:</strong> unverified</li>
 </ul>
 <h3 id="device-support-files">Device support files <a class="anchor" href="#device-support-files" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: rebuild</strong> · <code>xcode.devicesupport</code></p>
@@ -205,6 +212,7 @@
 <li><strong>Condition:</strong> Do not delete by hand. The command removes only simulators whose runtime is gone.</li>
 <li><strong>Official command:</strong> <code>xcrun simctl delete unavailable</code></li>
 <li><strong>Source:</strong> Third-party guides</li>
+<li><strong>Evidence:</strong> unverified</li>
 </ul>
 <h3 id="simulator-runtimes">Simulator runtimes <a class="anchor" href="#simulator-runtimes" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: rebuild</strong> · <code>xcode.simruntimes</code></p>
@@ -224,6 +232,7 @@
 <li><strong>If you remove it:</strong> You would lose settings you wrote yourself.</li>
 <li><strong>Condition:</strong> Not offered.</li>
 <li><strong>Source:</strong> Research notes (unverified)</li>
+<li><strong>Evidence:</strong> unverified</li>
 </ul>
 <h2 id="containers-backups-and-system-areas">Containers, backups and system areas <a class="anchor" href="#containers-backups-and-system-areas" aria-label="Link to this section">#</a></h2>
 <p>Virtual machines, backups and parts of macOS that are shown but not offered.</p>
@@ -255,6 +264,7 @@
 <li><strong>If you remove it:</strong> You would lose that virtual machine and all of its data.</li>
 <li><strong>Condition:</strong> Shown for information only.</li>
 <li><strong>Source:</strong> Research notes (unverified)</li>
+<li><strong>Evidence:</strong> unverified</li>
 </ul>
 <h3 id="os-update-area">OS update area <a class="anchor" href="#os-update-area" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: never</strong> · <code>system.osupdate</code></p>
@@ -264,6 +274,7 @@
 <li><strong>If you remove it:</strong> Removing them could interfere with system updates.</li>
 <li><strong>Condition:</strong> Manage only through System Settings.</li>
 <li><strong>Source:</strong> Research notes (unverified)</li>
+<li><strong>Evidence:</strong> unverified</li>
 </ul>
 <h3 id="swap-and-sleep-files">Swap and sleep files <a class="anchor" href="#swap-and-sleep-files" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: never</strong> · <code>system.swap</code></p>
@@ -290,6 +301,7 @@
 <li><strong>What it is:</strong> Logs and diagnostics macOS keeps for the whole system.</li>
 <li><strong>If you remove it:</strong> They belong to macOS and are mostly owned by the system, so they are not offered for removal.</li>
 <li><strong>Source:</strong> Research notes</li>
+<li><strong>Evidence:</strong> unverified</li>
 </ul>
 <h3 id="app-language-files">App language files <a class="anchor" href="#app-language-files" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: never</strong> · <code>system.lproj</code></p>
@@ -299,6 +311,7 @@
 <li><strong>If you remove it:</strong> Removing them may invalidate the app's signature so it will not open.</li>
 <li><strong>Condition:</strong> Not offered.</li>
 <li><strong>Source:</strong> Eclectic Light Company</li>
+<li><strong>Evidence:</strong> unverified</li>
 </ul>
 <h2 id="package-managers-and-build-output">Package managers and build output <a class="anchor" href="#package-managers-and-build-output" aria-label="Link to this section">#</a></h2>
 <p>Language caches, dependencies and build folders.</p>
@@ -310,6 +323,7 @@
 <li><strong>If you remove it:</strong> You will need to run the install again, with network access, and any local patches are lost.</li>
 <li><strong>Condition:</strong> Offered because a lockfile sits next to it.</li>
 <li><strong>Source:</strong> Research notes (unverified)</li>
+<li><strong>Evidence:</strong> unverified</li>
 </ul>
 <h3 id="javascript-dependencies-without-a-lockfile">JavaScript dependencies without a lockfile <a class="anchor" href="#javascript-dependencies-without-a-lockfile" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: review</strong> · <code>node.modules.nolock</code></p>
@@ -318,6 +332,7 @@
 <li><strong>What it is:</strong> Libraries a JavaScript project installed, with no lockfile beside them.</li>
 <li><strong>If you remove it:</strong> Without a lockfile the same versions may not come back, and local patches are lost.</li>
 <li><strong>Source:</strong> Research notes (unverified)</li>
+<li><strong>Evidence:</strong> unverified</li>
 </ul>
 <h3 id="yarn-committed-cache">Yarn committed cache <a class="anchor" href="#yarn-committed-cache" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: never</strong> · <code>yarn.zeroinstall</code></p>
@@ -327,6 +342,7 @@
 <li><strong>If you remove it:</strong> The project may be unable to install its dependencies.</li>
 <li><strong>Condition:</strong> Not offered.</li>
 <li><strong>Source:</strong> Research notes (unverified)</li>
+<li><strong>Evidence:</strong> unverified</li>
 </ul>
 <h3 id="npm-download-cache">npm download cache <a class="anchor" href="#npm-download-cache" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: rebuild</strong> · <code>npm.cache</code></p>
@@ -336,6 +352,7 @@
 <li><strong>If you remove it:</strong> npm will download them again when needed.</li>
 <li><strong>Official command:</strong> <code>npm cache clean --force</code></li>
 <li><strong>Source:</strong> Research notes (unverified)</li>
+<li><strong>Evidence:</strong> unverified</li>
 </ul>
 <h3 id="pnpm-package-store">pnpm package store <a class="anchor" href="#pnpm-package-store" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: rebuild</strong> · <code>pnpm.store</code></p>
@@ -355,6 +372,7 @@
 <li><strong>If you remove it:</strong> pip will download or rebuild them when needed.</li>
 <li><strong>Official command:</strong> <code>pip cache purge</code></li>
 <li><strong>Source:</strong> Research notes (unverified)</li>
+<li><strong>Evidence:</strong> unverified</li>
 </ul>
 <h3 id="uv-cache">uv cache <a class="anchor" href="#uv-cache" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: rebuild</strong> · <code>uv.cache</code></p>
@@ -375,6 +393,7 @@
 <li><strong>Condition:</strong> Use the command, never delete by hand.</li>
 <li><strong>Official command:</strong> <code>conda clean --all</code></li>
 <li><strong>Source:</strong> Research notes (unverified)</li>
+<li><strong>Evidence:</strong> unverified</li>
 </ul>
 <h3 id="conda-environments">conda environments <a class="anchor" href="#conda-environments" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: review</strong> · <code>conda.envs</code></p>
@@ -383,6 +402,7 @@
 <li><strong>What it is:</strong> Python environments you created.</li>
 <li><strong>If you remove it:</strong> You would lose the environment and its installed packages.</li>
 <li><strong>Source:</strong> Research notes (unverified)</li>
+<li><strong>Evidence:</strong> unverified</li>
 </ul>
 <h3 id="cargo-downloads">Cargo downloads <a class="anchor" href="#cargo-downloads" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: rebuild</strong> · <code>cargo.cache</code></p>
@@ -409,6 +429,7 @@
 <li><strong>If you remove it:</strong> The project will rebuild in full next time.</li>
 <li><strong>Official command:</strong> <code>cargo clean</code></li>
 <li><strong>Source:</strong> Research notes (unverified)</li>
+<li><strong>Evidence:</strong> unverified</li>
 </ul>
 <h3 id="gradle-downloads">Gradle downloads <a class="anchor" href="#gradle-downloads" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: rebuild</strong> · <code>gradle.cache</code></p>
@@ -435,6 +456,7 @@
 <li><strong>What it is:</strong> Libraries Maven downloaded, plus any you installed locally.</li>
 <li><strong>If you remove it:</strong> Downloaded libraries come back from the network, but ones installed only on this Mac are lost.</li>
 <li><strong>Source:</strong> Research notes (unverified)</li>
+<li><strong>Evidence:</strong> unverified</li>
 </ul>
 <h3 id="maven-settings">Maven settings <a class="anchor" href="#maven-settings" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: never</strong> · <code>maven.keep</code></p>
@@ -444,6 +466,7 @@
 <li><strong>If you remove it:</strong> You would lose your own configuration.</li>
 <li><strong>Condition:</strong> Not offered.</li>
 <li><strong>Source:</strong> Research notes (unverified)</li>
+<li><strong>Evidence:</strong> unverified</li>
 </ul>
 <h3 id="go-modules">Go modules <a class="anchor" href="#go-modules" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: rebuild</strong> · <code>go.modcache</code></p>
@@ -482,6 +505,7 @@
 <li><strong>Condition:</strong> Check that no project keeps its Pods folder only here.</li>
 <li><strong>Official command:</strong> <code>pod cache clean --all</code></li>
 <li><strong>Source:</strong> Research notes (unverified)</li>
+<li><strong>Evidence:</strong> unverified</li>
 </ul>
 <h3 id="swift-package-cache">Swift package cache <a class="anchor" href="#swift-package-cache" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: rebuild</strong> · <code>swiftpm.cache</code></p>
@@ -491,6 +515,7 @@
 <li><strong>If you remove it:</strong> They will be fetched again.</li>
 <li><strong>Official command:</strong> <code>swift package purge-cache</code></li>
 <li><strong>Source:</strong> Research notes (unverified)</li>
+<li><strong>Evidence:</strong> unverified</li>
 </ul>
 <h3 id="swift-build-output">Swift build output <a class="anchor" href="#swift-build-output" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: rebuild</strong> · <code>swiftpm.build</code></p>
@@ -500,6 +525,7 @@
 <li><strong>If you remove it:</strong> The package will rebuild in full next time.</li>
 <li><strong>Official command:</strong> <code>swift package clean</code></li>
 <li><strong>Source:</strong> Research notes (unverified)</li>
+<li><strong>Evidence:</strong> unverified</li>
 </ul>
 <h3 id="swift-package-trust-data">Swift package trust data <a class="anchor" href="#swift-package-trust-data" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: never</strong> · <code>swiftpm.security</code></p>
@@ -509,6 +535,7 @@
 <li><strong>If you remove it:</strong> You would lose those trust decisions.</li>
 <li><strong>Condition:</strong> Not offered.</li>
 <li><strong>Source:</strong> Research notes (unverified)</li>
+<li><strong>Evidence:</strong> unverified</li>
 </ul>
 <h3 id="homebrew-installed-software">Homebrew installed software <a class="anchor" href="#homebrew-installed-software" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: never</strong> · <code>homebrew.installed</code></p>
@@ -556,6 +583,7 @@
 <li><strong>If you remove it:</strong> If this is your only copy, such as licensed software or an old version, it is gone for good.</li>
 <li><strong>Condition:</strong> Move to Trash only. Whether the app is already installed is a guess.</li>
 <li><strong>Source:</strong> Research notes (unverified)</li>
+<li><strong>Evidence:</strong> unverified</li>
 </ul>
 <h3 id="mail-attachment-copies">Mail attachment copies <a class="anchor" href="#mail-attachment-copies" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: rebuild</strong> · <code>mail.downloads</code></p>
@@ -566,6 +594,7 @@
 <li><strong>Condition:</strong> Close Mail first.</li>
 <li><strong>Owning app:</strong> <code>com.apple.mail</code></li>
 <li><strong>Source:</strong> Third-party guides</li>
+<li><strong>Evidence:</strong> unverified</li>
 </ul>
 <h3 id="mail-data">Mail data <a class="anchor" href="#mail-data" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: never</strong> · <code>mail.store</code></p>
@@ -576,6 +605,7 @@
 <li><strong>Condition:</strong> Use Mail itself.</li>
 <li><strong>Owning app:</strong> <code>com.apple.mail</code></li>
 <li><strong>Source:</strong> Third-party guides</li>
+<li><strong>Evidence:</strong> unverified</li>
 </ul>
 <h3 id="messages-data">Messages data <a class="anchor" href="#messages-data" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: never</strong> · <code>messages.data</code></p>
@@ -586,6 +616,7 @@
 <li><strong>Condition:</strong> Use the Messages app settings.</li>
 <li><strong>Owning app:</strong> <code>com.apple.MobileSMS</code></li>
 <li><strong>Source:</strong> Third-party guides</li>
+<li><strong>Evidence:</strong> unverified</li>
 </ul>
 <h3 id="photos-library">Photos library <a class="anchor" href="#photos-library" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: never</strong> · <code>photos.library</code></p>
@@ -605,9 +636,108 @@
 <li><strong>If you remove it:</strong> It rebuilds on its own, though some web apps keep offline-only data in the service worker cache.</li>
 <li><strong>Condition:</strong> Close the app first. IndexedDB, Local Storage and Cookies are not caches.</li>
 <li><strong>Source:</strong> Research notes (unverified)</li>
+<li><strong>Evidence:</strong> unverified</li>
+</ul>
+<h2 id="measured-app-rules">Measured app rules <a class="anchor" href="#measured-app-rules" aria-label="Link to this section">#</a></h2>
+<p>Rules for one app's folders, from <a href="https://github.com/midhunkrishna/deepyellow/blob/master/rules/90-apps.json"><code>rules/90-apps.json</code></a>. Each was measured in a macOS virtual machine: the app was used, quit, the folder moved to the Trash, and the app relaunched to see what came back and whether it stayed signed in. The <strong>Measured</strong> line records what was seen.</p>
+<h3 id="slacks-web-cache">Slack's web cache <a class="anchor" href="#slacks-web-cache" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: rebuild</strong> · <code>slack.cache</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Application Support/Slack/Cache</code></li>
+<li><strong>What it is:</strong> Images, files and pages Slack downloaded so it can show them again without fetching them.</li>
+<li><strong>If you remove it:</strong> Slack downloads them again as you open them, and you stay signed in.</li>
+<li><strong>Condition:</strong> Quit Slack first.</li>
+<li><strong>Owning app:</strong> <code>com.tinyspeck.slackmacgap</code></li>
+<li><strong>Source:</strong> Measured: removed and relaunched Slack 4.53 on macOS 15.7</li>
+<li><strong>Measured:</strong> Reached 55 MB after about 2 hours of use and grew by about 1 MB a minute while reading channels. After removal Slack relaunched signed in; the folder came back at 0.5 MB and reached 2.5 MB after 5 channels. (Slack 4.53.280, macOS 15.7.7, 2026-11-08)</li>
+</ul>
+<h3 id="slacks-logs">Slack's logs <a class="anchor" href="#slacks-logs" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: safe</strong> · <code>slack.logs</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Application Support/Slack/logs</code></li>
+<li><strong>What it is:</strong> Text logs Slack writes while it runs, used to troubleshoot problems.</li>
+<li><strong>If you remove it:</strong> Slack starts new logs and you stay signed in.</li>
+<li><strong>Condition:</strong> Quit Slack first.</li>
+<li><strong>Owning app:</strong> <code>com.tinyspeck.slackmacgap</code></li>
+<li><strong>Source:</strong> Measured: removed and relaunched Slack 4.53 on macOS 15.7</li>
+<li><strong>Measured:</strong> Three log files reached 6.5 MB after about 2 hours of use, 2.1 MB of it in 6 minutes of switching channels, with no rotated copies. After removal Slack relaunched signed in and wrote 0.4 MB of new logs. (Slack 4.53.280, macOS 15.7.7, 2026-11-08)</li>
+</ul>
+<h3 id="slacks-offline-app-copy">Slack's offline app copy <a class="anchor" href="#slacks-offline-app-copy" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: review</strong> · <code>slack.service-worker</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Application Support/Slack/Service Worker || ~/Library/Application Support/Slack/Service Worker/CacheStorage</code></li>
+<li><strong>What it is:</strong> A copy of Slack's web app that Slack downloads after you sign in, so it can start without the network.</li>
+<li><strong>If you remove it:</strong> Slack downloads it again as soon as it starts, so the space is taken again within a minute.</li>
+<li><strong>Owning app:</strong> <code>com.tinyspeck.slackmacgap</code></li>
+<li><strong>Source:</strong> Measured: removed and relaunched Slack 4.53 on macOS 15.7</li>
+<li><strong>Measured:</strong> Appeared at 83 MB right after sign-in and stayed at that size through further use. After removal Slack relaunched signed in and the folder was back at 83 MB within 25 seconds. (Slack 4.53.280, macOS 15.7.7, 2026-11-08)</li>
+</ul>
+<h3 id="safaris-web-cache">Safari's web cache <a class="anchor" href="#safaris-web-cache" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: rebuild</strong> · <code>safari.cache</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Containers/com.apple.Safari/Data/Library/Caches/com.apple.Safari</code></li>
+<li><strong>What it is:</strong> Pages, images and video Safari downloaded so it can show them again without fetching them.</li>
+<li><strong>If you remove it:</strong> Safari downloads them again as you browse, and your history and bookmarks stay.</li>
+<li><strong>Condition:</strong> Quit Safari first.</li>
+<li><strong>Owning app:</strong> <code>com.apple.Safari</code></li>
+<li><strong>Source:</strong> Measured: removed and relaunched Safari 18.6 on macOS 15.7</li>
+<li><strong>Measured:</strong> Reached 552 MB after 60 page views of 30 public sites in 13 minutes. After removal Safari relaunched normally with its history file unchanged; the folder came back at 0.1 MB and reached 74 MB after 8 pages. (Safari 18.6, macOS 15.7.7, 2026-11-08)</li>
+</ul>
+<h3 id="what-websites-store-in-safari">What websites store in Safari <a class="anchor" href="#what-websites-store-in-safari" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: review</strong> · <code>safari.website-data</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Containers/com.apple.Safari/Data/Library/WebKit/WebsiteData</code></li>
+<li><strong>What it is:</strong> Data websites keep in Safari, such as saved settings, offline copies and site databases.</li>
+<li><strong>If you remove it:</strong> Websites lose what they stored on this Mac, such as settings and offline data.</li>
+<li><strong>Condition:</strong> Quit Safari first.</li>
+<li><strong>Owning app:</strong> <code>com.apple.Safari</code></li>
+<li><strong>Source:</strong> Measured: removed and relaunched Safari 18.6 on macOS 15.7</li>
+<li><strong>Measured:</strong> Reached 42 MB after 60 page views without signing in to any site. After removal Safari relaunched normally; the folder came back at 0.7 MB and reached 12 MB after 8 pages. Sign-ins to websites were not tested. (Safari 18.6, macOS 15.7.7, 2026-11-08)</li>
+</ul>
+<h3 id="safaris-history-and-tabs">Safari's history and tabs <a class="anchor" href="#safaris-history-and-tabs" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: never</strong> · <code>safari.profile</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Safari || ~/Library/Containers/com.apple.Safari/Data/Library/Safari</code></li>
+<li><strong>What it is:</strong> Safari's browsing history, open tabs, per-site settings and AutoFill data.</li>
+<li><strong>If you remove it:</strong> It deletes your browsing history, tabs and site settings.</li>
+<li><strong>Owning app:</strong> <code>com.apple.Safari</code></li>
+<li><strong>Source:</strong> Measured: folder contents listed in Safari 18.6 on macOS 15.7</li>
+<li><strong>Observed:</strong> Holds History.db, SafariTabs.db, PerSitePreferences.db and AutoFill databases; 36 MB after 60 page views, 12 MB of it AutoFill corrections.</li>
+</ul>
+<h3 id="chromes-downloaded-components">Chrome's downloaded components <a class="anchor" href="#chromes-downloaded-components" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: review</strong> · <code>chrome.components</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Application Support/Google/Chrome/component_crx_cache || ~/Library/Application Support/Google/Chrome/optimization_guide_model_store || ~/Library/Application Support/Google/Chrome/WasmTtsEngine || ~/Library/Application Support/Google/Chrome/Safe Browsing || ~/Library/Application Support/Google/Chrome/OnDeviceHeadSuggestModel</code></li>
+<li><strong>What it is:</strong> Models, voices and lists Chrome downloads in the background for features such as Safe Browsing, read aloud and search suggestions.</li>
+<li><strong>If you remove it:</strong> Chrome downloads them again within minutes, so the space is taken again.</li>
+<li><strong>Owning app:</strong> <code>com.google.Chrome</code></li>
+<li><strong>Source:</strong> Measured: removed and relaunched Chrome 157 on macOS 15.7</li>
+<li><strong>Measured:</strong> Took 147 MB after the first launch and 60 page views. After removal Chrome relaunched normally and downloaded 132 MB of it again within 6 minutes. (Chrome 157.0.8103.39, macOS 15.7.7, 2026-11-08)</li>
+</ul>
+<h3 id="spotifys-streaming-cache">Spotify's streaming cache <a class="anchor" href="#spotifys-streaming-cache" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: rebuild</strong> · <code>spotify.cache</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Caches/com.spotify.client</code></li>
+<li><strong>What it is:</strong> Songs Spotify streamed, kept so they play again without downloading, plus the cache of its built-in browser.</li>
+<li><strong>If you remove it:</strong> Spotify streams songs again as you play them, and you stay signed in.</li>
+<li><strong>Condition:</strong> Quit Spotify first.</li>
+<li><strong>Owning app:</strong> <code>com.spotify.client</code></li>
+<li><strong>Source:</strong> Measured: removed and relaunched Spotify 1.3.8 on macOS 15.7</li>
+<li><strong>Measured:</strong> Reached 334 MB after 40 tracks in 14 minutes, 240 MB of it streamed audio. After removal Spotify relaunched signed in; the folder came back at 57 MB and reached 248 MB after 6 more tracks. (Spotify 1.3.8.620, macOS 15.7.7, 2026-11-09)</li>
+</ul>
+<h3 id="spotifys-account-database">Spotify's account database <a class="anchor" href="#spotifys-account-database" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: review</strong> · <code>spotify.account-data</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Application Support/Spotify/PersistentCache</code></li>
+<li><strong>What it is:</strong> A database Spotify keeps for each signed-in account.</li>
+<li><strong>If you remove it:</strong> Spotify rebuilds it and you stay signed in, though it forgot what was playing.</li>
+<li><strong>Condition:</strong> Quit Spotify first.</li>
+<li><strong>Owning app:</strong> <code>com.spotify.client</code></li>
+<li><strong>Source:</strong> Measured: removed and relaunched Spotify 1.3.8 on macOS 15.7</li>
+<li><strong>Measured:</strong> Reached 28 MB after 40 tracks on a free account. After removal Spotify relaunched signed in with nothing queued; the folder came back at 8 MB and reached 10 MB after 6 tracks. Songs downloaded for offline listening (Premium) were not tested. (Spotify 1.3.8.620, macOS 15.7.7, 2026-11-09)</li>
 </ul>
 <h2 id="summary">Summary <a class="anchor" href="#summary" aria-label="Link to this section">#</a></h2>
-<p>57 rules in total.</p>
+<p>66 rules in total: 3 safe, 27 rebuild, 17 review, 19 never.</p>
 <nav class="pager" aria-label="Pages"><a href="sql.html">&larr; SQL</a><a href="cli.html">Command line &rarr;</a></nav>
   </main>
 </div>

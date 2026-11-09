@@ -1,6 +1,6 @@
 # Reclaim rules
 
-Every built-in rule DeepYellow uses to advise on a place on disk. This page is generated from the rule table in [`BuiltinRules.swift`](https://github.com/midhunkrishna/deepyellow/blob/master/Packages/DYAdvisor/Sources/DYAdvisor/BuiltinRules.swift), so it lists exactly what the app contains.
+Every rule DeepYellow uses to advise on a place on disk. The rules are read from the JSON files in [`rules/`](https://github.com/midhunkrishna/deepyellow/tree/master/rules) when the app starts, and this page is generated from the same files, so it lists exactly what the app contains.
 
 A rule says what a place is, how safe it is to remove, what removal costs, any condition to meet first, and an official cleanup command when one exists. **Commands are shown and never run.** Removal always goes through a [Plan](safety-and-accounting.md#the-plan) and the Trash.
 
@@ -68,6 +68,7 @@ Patterns are case-insensitive. `~/` is your home folder and a leading `/` is an 
 - **If you remove it:** Indexes rebuild slowly, and Local History (your edit history outside version control) cannot be recovered.
 - **Condition:** Close the IDE first. Never offer this as one blob.
 - **Source:** Research notes (unverified)
+- **Evidence:** unverified
 
 ### Spotify offline songs
 
@@ -79,6 +80,7 @@ Patterns are case-insensitive. `~/` is your home folder and a leading `/` is an 
 - **Condition:** Close Spotify first.
 - **Owning app:** `com.spotify.client`
 - **Source:** Research notes (unverified)
+- **Evidence:** unverified
 
 ### Xcode cache
 
@@ -90,6 +92,7 @@ Patterns are case-insensitive. `~/` is your home folder and a leading `/` is an 
 - **Condition:** Close Xcode first.
 - **Owning app:** `com.apple.dt.Xcode`
 - **Source:** Research notes (unverified)
+- **Evidence:** unverified
 
 ### Chrome cache
 
@@ -101,6 +104,7 @@ Patterns are case-insensitive. `~/` is your home folder and a leading `/` is an 
 - **Condition:** Close the browser first.
 - **Owning app:** `com.google.Chrome`
 - **Source:** Research notes (unverified)
+- **Evidence:** unverified
 
 ### Firefox cache
 
@@ -112,6 +116,7 @@ Patterns are case-insensitive. `~/` is your home folder and a leading `/` is an 
 - **Condition:** Close the browser first.
 - **Owning app:** `org.mozilla.firefox`
 - **Source:** Research notes (unverified)
+- **Evidence:** unverified
 
 ### Cache folder that may hold your data
 
@@ -147,6 +152,7 @@ Xcode, simulators and the toolchain.
 - **If you remove it:** Every project will rebuild and re-index in full the next time you open it.
 - **Condition:** Quit Xcode and any builds. Delete the contents, not the folder.
 - **Source:** Third-party guides
+- **Evidence:** unverified
 
 ### Xcode archives
 
@@ -157,6 +163,7 @@ Xcode, simulators and the toolchain.
 - **If you remove it:** You would lose the ability to read crash reports for those builds or re-export them.
 - **Condition:** Review each archive by date and version. Move to Trash only.
 - **Source:** Third-party guides
+- **Evidence:** unverified
 
 ### Device support files
 
@@ -178,6 +185,7 @@ Xcode, simulators and the toolchain.
 - **Condition:** Do not delete by hand. The command removes only simulators whose runtime is gone.
 - **Official command:** `xcrun simctl delete unavailable`
 - **Source:** Third-party guides
+- **Evidence:** unverified
 
 ### Simulator runtimes
 
@@ -199,6 +207,7 @@ Xcode, simulators and the toolchain.
 - **If you remove it:** You would lose settings you wrote yourself.
 - **Condition:** Not offered.
 - **Source:** Research notes (unverified)
+- **Evidence:** unverified
 
 ## Containers, backups and system areas
 
@@ -236,6 +245,7 @@ Virtual machines, backups and parts of macOS that are shown but not offered.
 - **If you remove it:** You would lose that virtual machine and all of its data.
 - **Condition:** Shown for information only.
 - **Source:** Research notes (unverified)
+- **Evidence:** unverified
 
 ### OS update area
 
@@ -246,6 +256,7 @@ Virtual machines, backups and parts of macOS that are shown but not offered.
 - **If you remove it:** Removing them could interfere with system updates.
 - **Condition:** Manage only through System Settings.
 - **Source:** Research notes (unverified)
+- **Evidence:** unverified
 
 ### Swap and sleep files
 
@@ -275,6 +286,7 @@ Virtual machines, backups and parts of macOS that are shown but not offered.
 - **What it is:** Logs and diagnostics macOS keeps for the whole system.
 - **If you remove it:** They belong to macOS and are mostly owned by the system, so they are not offered for removal.
 - **Source:** Research notes
+- **Evidence:** unverified
 
 ### App language files
 
@@ -285,6 +297,7 @@ Virtual machines, backups and parts of macOS that are shown but not offered.
 - **If you remove it:** Removing them may invalidate the app's signature so it will not open.
 - **Condition:** Not offered.
 - **Source:** Eclectic Light Company
+- **Evidence:** unverified
 
 ## Package managers and build output
 
@@ -300,6 +313,7 @@ Language caches, dependencies and build folders.
 - **If you remove it:** You will need to run the install again, with network access, and any local patches are lost.
 - **Condition:** Offered because a lockfile sits next to it.
 - **Source:** Research notes (unverified)
+- **Evidence:** unverified
 
 ### JavaScript dependencies without a lockfile
 
@@ -309,6 +323,7 @@ Language caches, dependencies and build folders.
 - **What it is:** Libraries a JavaScript project installed, with no lockfile beside them.
 - **If you remove it:** Without a lockfile the same versions may not come back, and local patches are lost.
 - **Source:** Research notes (unverified)
+- **Evidence:** unverified
 
 ### Yarn committed cache
 
@@ -319,6 +334,7 @@ Language caches, dependencies and build folders.
 - **If you remove it:** The project may be unable to install its dependencies.
 - **Condition:** Not offered.
 - **Source:** Research notes (unverified)
+- **Evidence:** unverified
 
 ### npm download cache
 
@@ -329,6 +345,7 @@ Language caches, dependencies and build folders.
 - **If you remove it:** npm will download them again when needed.
 - **Official command:** `npm cache clean --force`
 - **Source:** Research notes (unverified)
+- **Evidence:** unverified
 
 ### pnpm package store
 
@@ -350,6 +367,7 @@ Language caches, dependencies and build folders.
 - **If you remove it:** pip will download or rebuild them when needed.
 - **Official command:** `pip cache purge`
 - **Source:** Research notes (unverified)
+- **Evidence:** unverified
 
 ### uv cache
 
@@ -372,6 +390,7 @@ Language caches, dependencies and build folders.
 - **Condition:** Use the command, never delete by hand.
 - **Official command:** `conda clean --all`
 - **Source:** Research notes (unverified)
+- **Evidence:** unverified
 
 ### conda environments
 
@@ -381,6 +400,7 @@ Language caches, dependencies and build folders.
 - **What it is:** Python environments you created.
 - **If you remove it:** You would lose the environment and its installed packages.
 - **Source:** Research notes (unverified)
+- **Evidence:** unverified
 
 ### Cargo downloads
 
@@ -410,6 +430,7 @@ Language caches, dependencies and build folders.
 - **If you remove it:** The project will rebuild in full next time.
 - **Official command:** `cargo clean`
 - **Source:** Research notes (unverified)
+- **Evidence:** unverified
 
 ### Gradle downloads
 
@@ -439,6 +460,7 @@ Language caches, dependencies and build folders.
 - **What it is:** Libraries Maven downloaded, plus any you installed locally.
 - **If you remove it:** Downloaded libraries come back from the network, but ones installed only on this Mac are lost.
 - **Source:** Research notes (unverified)
+- **Evidence:** unverified
 
 ### Maven settings
 
@@ -449,6 +471,7 @@ Language caches, dependencies and build folders.
 - **If you remove it:** You would lose your own configuration.
 - **Condition:** Not offered.
 - **Source:** Research notes (unverified)
+- **Evidence:** unverified
 
 ### Go modules
 
@@ -491,6 +514,7 @@ Language caches, dependencies and build folders.
 - **Condition:** Check that no project keeps its Pods folder only here.
 - **Official command:** `pod cache clean --all`
 - **Source:** Research notes (unverified)
+- **Evidence:** unverified
 
 ### Swift package cache
 
@@ -501,6 +525,7 @@ Language caches, dependencies and build folders.
 - **If you remove it:** They will be fetched again.
 - **Official command:** `swift package purge-cache`
 - **Source:** Research notes (unverified)
+- **Evidence:** unverified
 
 ### Swift build output
 
@@ -511,6 +536,7 @@ Language caches, dependencies and build folders.
 - **If you remove it:** The package will rebuild in full next time.
 - **Official command:** `swift package clean`
 - **Source:** Research notes (unverified)
+- **Evidence:** unverified
 
 ### Swift package trust data
 
@@ -521,6 +547,7 @@ Language caches, dependencies and build folders.
 - **If you remove it:** You would lose those trust decisions.
 - **Condition:** Not offered.
 - **Source:** Research notes (unverified)
+- **Evidence:** unverified
 
 ### Homebrew installed software
 
@@ -576,6 +603,7 @@ Logs, the Trash, installers, and data that belongs to you.
 - **If you remove it:** If this is your only copy, such as licensed software or an old version, it is gone for good.
 - **Condition:** Move to Trash only. Whether the app is already installed is a guess.
 - **Source:** Research notes (unverified)
+- **Evidence:** unverified
 
 ### Mail attachment copies
 
@@ -587,6 +615,7 @@ Logs, the Trash, installers, and data that belongs to you.
 - **Condition:** Close Mail first.
 - **Owning app:** `com.apple.mail`
 - **Source:** Third-party guides
+- **Evidence:** unverified
 
 ### Mail data
 
@@ -598,6 +627,7 @@ Logs, the Trash, installers, and data that belongs to you.
 - **Condition:** Use Mail itself.
 - **Owning app:** `com.apple.mail`
 - **Source:** Third-party guides
+- **Evidence:** unverified
 
 ### Messages data
 
@@ -609,6 +639,7 @@ Logs, the Trash, installers, and data that belongs to you.
 - **Condition:** Use the Messages app settings.
 - **Owning app:** `com.apple.MobileSMS`
 - **Source:** Third-party guides
+- **Evidence:** unverified
 
 ### Photos library
 
@@ -630,7 +661,272 @@ Logs, the Trash, installers, and data that belongs to you.
 - **If you remove it:** It rebuilds on its own, though some web apps keep offline-only data in the service worker cache.
 - **Condition:** Close the app first. IndexedDB, Local Storage and Cookies are not caches.
 - **Source:** Research notes (unverified)
+- **Evidence:** unverified
+
+## Measured app rules
+
+Rules for one app's folders, from [`rules/90-apps.json`](https://github.com/midhunkrishna/deepyellow/blob/master/rules/90-apps.json). Each was measured in a macOS virtual machine: the app was used, quit, the folder moved to the Trash, and the app relaunched to see what came back and whether it stayed signed in. The **Measured** line records what was seen.
+
+
+### Slack's web cache
+
+**Tier: rebuild** · `slack.cache`
+
+- **Pattern:** `~/Library/Application Support/Slack/Cache`
+- **What it is:** Images, files and pages Slack downloaded so it can show them again without fetching them.
+- **If you remove it:** Slack downloads them again as you open them, and you stay signed in.
+- **Condition:** Quit Slack first.
+- **Owning app:** `com.tinyspeck.slackmacgap`
+- **Source:** Measured: removed and relaunched Slack 4.53 on macOS 15.7
+- **Measured:** Reached 55 MB after about 2 hours of use and grew by about 1 MB a minute while reading channels. After removal Slack relaunched signed in; the folder came back at 0.5 MB and reached 2.5 MB after 5 channels. (Slack 4.53.280, macOS 15.7.7, 2026-11-08)
+
+### Slack's logs
+
+**Tier: safe** · `slack.logs`
+
+- **Pattern:** `~/Library/Application Support/Slack/logs`
+- **What it is:** Text logs Slack writes while it runs, used to troubleshoot problems.
+- **If you remove it:** Slack starts new logs and you stay signed in.
+- **Condition:** Quit Slack first.
+- **Owning app:** `com.tinyspeck.slackmacgap`
+- **Source:** Measured: removed and relaunched Slack 4.53 on macOS 15.7
+- **Measured:** Three log files reached 6.5 MB after about 2 hours of use, 2.1 MB of it in 6 minutes of switching channels, with no rotated copies. After removal Slack relaunched signed in and wrote 0.4 MB of new logs. (Slack 4.53.280, macOS 15.7.7, 2026-11-08)
+
+### Slack's offline app copy
+
+**Tier: review** · `slack.service-worker`
+
+- **Pattern:** `~/Library/Application Support/Slack/Service Worker || ~/Library/Application Support/Slack/Service Worker/CacheStorage`
+- **What it is:** A copy of Slack's web app that Slack downloads after you sign in, so it can start without the network.
+- **If you remove it:** Slack downloads it again as soon as it starts, so the space is taken again within a minute.
+- **Owning app:** `com.tinyspeck.slackmacgap`
+- **Source:** Measured: removed and relaunched Slack 4.53 on macOS 15.7
+- **Measured:** Appeared at 83 MB right after sign-in and stayed at that size through further use. After removal Slack relaunched signed in and the folder was back at 83 MB within 25 seconds. (Slack 4.53.280, macOS 15.7.7, 2026-11-08)
+
+### Safari's web cache
+
+**Tier: rebuild** · `safari.cache`
+
+- **Pattern:** `~/Library/Containers/com.apple.Safari/Data/Library/Caches/com.apple.Safari`
+- **What it is:** Pages, images and video Safari downloaded so it can show them again without fetching them.
+- **If you remove it:** Safari downloads them again as you browse, and your history and bookmarks stay.
+- **Condition:** Quit Safari first.
+- **Owning app:** `com.apple.Safari`
+- **Source:** Measured: removed and relaunched Safari 18.6 on macOS 15.7
+- **Measured:** Reached 552 MB after 60 page views of 30 public sites in 13 minutes. After removal Safari relaunched normally with its history file unchanged; the folder came back at 0.1 MB and reached 74 MB after 8 pages. (Safari 18.6, macOS 15.7.7, 2026-11-08)
+
+### What websites store in Safari
+
+**Tier: review** · `safari.website-data`
+
+- **Pattern:** `~/Library/Containers/com.apple.Safari/Data/Library/WebKit/WebsiteData`
+- **What it is:** Data websites keep in Safari, such as saved settings, offline copies and site databases.
+- **If you remove it:** Websites lose what they stored on this Mac, such as settings and offline data.
+- **Condition:** Quit Safari first.
+- **Owning app:** `com.apple.Safari`
+- **Source:** Measured: removed and relaunched Safari 18.6 on macOS 15.7
+- **Measured:** Reached 42 MB after 60 page views without signing in to any site. After removal Safari relaunched normally; the folder came back at 0.7 MB and reached 12 MB after 8 pages. Sign-ins to websites were not tested. (Safari 18.6, macOS 15.7.7, 2026-11-08)
+
+### Safari's history and tabs
+
+**Tier: never** · `safari.profile`
+
+- **Pattern:** `~/Library/Safari || ~/Library/Containers/com.apple.Safari/Data/Library/Safari`
+- **What it is:** Safari's browsing history, open tabs, per-site settings and AutoFill data.
+- **If you remove it:** It deletes your browsing history, tabs and site settings.
+- **Owning app:** `com.apple.Safari`
+- **Source:** Measured: folder contents listed in Safari 18.6 on macOS 15.7
+- **Observed:** Holds History.db, SafariTabs.db, PerSitePreferences.db and AutoFill databases; 36 MB after 60 page views, 12 MB of it AutoFill corrections.
+
+### Chrome's downloaded components
+
+**Tier: review** · `chrome.components`
+
+- **Pattern:** `~/Library/Application Support/Google/Chrome/component_crx_cache || ~/Library/Application Support/Google/Chrome/optimization_guide_model_store || ~/Library/Application Support/Google/Chrome/WasmTtsEngine || ~/Library/Application Support/Google/Chrome/Safe Browsing || ~/Library/Application Support/Google/Chrome/OnDeviceHeadSuggestModel`
+- **What it is:** Models, voices and lists Chrome downloads in the background for features such as Safe Browsing, read aloud and search suggestions.
+- **If you remove it:** Chrome downloads them again within minutes, so the space is taken again.
+- **Owning app:** `com.google.Chrome`
+- **Source:** Measured: removed and relaunched Chrome 157 on macOS 15.7
+- **Measured:** Took 147 MB after the first launch and 60 page views. After removal Chrome relaunched normally and downloaded 132 MB of it again within 6 minutes. (Chrome 157.0.8103.39, macOS 15.7.7, 2026-11-08)
+
+### Spotify's streaming cache
+
+**Tier: rebuild** · `spotify.cache`
+
+- **Pattern:** `~/Library/Caches/com.spotify.client`
+- **What it is:** Songs Spotify streamed, kept so they play again without downloading, plus the cache of its built-in browser.
+- **If you remove it:** Spotify streams songs again as you play them, and you stay signed in.
+- **Condition:** Quit Spotify first.
+- **Owning app:** `com.spotify.client`
+- **Source:** Measured: removed and relaunched Spotify 1.3.8 on macOS 15.7
+- **Measured:** Reached 334 MB after 40 tracks in 14 minutes, 240 MB of it streamed audio. After removal Spotify relaunched signed in; the folder came back at 57 MB and reached 248 MB after 6 more tracks. (Spotify 1.3.8.620, macOS 15.7.7, 2026-11-09)
+
+### Spotify's account database
+
+**Tier: review** · `spotify.account-data`
+
+- **Pattern:** `~/Library/Application Support/Spotify/PersistentCache`
+- **What it is:** A database Spotify keeps for each signed-in account.
+- **If you remove it:** Spotify rebuilds it and you stay signed in, though it forgot what was playing.
+- **Condition:** Quit Spotify first.
+- **Owning app:** `com.spotify.client`
+- **Source:** Measured: removed and relaunched Spotify 1.3.8 on macOS 15.7
+- **Measured:** Reached 28 MB after 40 tracks on a free account. After removal Spotify relaunched signed in with nothing queued; the folder came back at 8 MB and reached 10 MB after 6 tracks. Songs downloaded for offline listening (Premium) were not tested. (Spotify 1.3.8.620, macOS 15.7.7, 2026-11-09)
+
+### VS Code's extension installer cache
+
+**Tier: safe** · `vscode.extension-installers`
+
+- **Pattern:** `~/Library/Application Support/Code/CachedExtensionVSIXs`
+- **What it is:** Copies of the installer files of extensions VS Code has installed.
+- **If you remove it:** Your extensions stay installed and keep working.
+- **Condition:** Quit VS Code first.
+- **Owning app:** `com.microsoft.VSCode`
+- **Source:** Measured: removed and relaunched VS Code 1.145 on macOS 15.7
+- **Measured:** Reached 174 MB after installing 6 extensions (9 with their dependencies). After removal VS Code relaunched with all 9 extensions installed, and the folder stayed empty after opening a project. (VS 1.145.2, macOS 15.7.7, 2026-11-09)
+
+### VS Code's compiled code cache
+
+**Tier: rebuild** · `vscode.compiled-code`
+
+- **Pattern:** `~/Library/Application Support/Code/CachedData`
+- **What it is:** JavaScript that VS Code and its extensions compiled, kept so later starts are faster.
+- **If you remove it:** VS Code compiles it again on its next start, which makes that start slower.
+- **Condition:** Quit VS Code first.
+- **Owning app:** `com.microsoft.VSCode`
+- **Source:** Measured: removed and relaunched VS Code 1.145 on macOS 15.7
+- **Measured:** Was 15 MB after the first launch. After removal VS Code relaunched normally and rebuilt it at 86 MB right away, now including the installed extensions. (VS 1.145.2, macOS 15.7.7, 2026-11-09)
+
+### VS Code's logs
+
+**Tier: safe** · `vscode.logs`
+
+- **Pattern:** `~/Library/Application Support/Code/logs`
+- **What it is:** Text logs VS Code and its extensions write while they run, used to troubleshoot problems.
+- **If you remove it:** VS Code starts new logs, and your settings and extensions stay.
+- **Condition:** Quit VS Code first.
+- **Owning app:** `com.microsoft.VSCode`
+- **Source:** Measured: removed and relaunched VS Code 1.145 on macOS 15.7
+- **Measured:** Reached 1.1 MB after opening 5 projects. After removal VS Code relaunched normally and wrote 0.2 MB of new logs. (VS 1.145.2, macOS 15.7.7, 2026-11-09)
+
+### VS Code extensions
+
+**Tier: never** · `vscode.extensions`
+
+- **Pattern:** `~/.vscode/extensions`
+- **What it is:** The extensions installed in VS Code, including the language tools and libraries they bundle.
+- **If you remove it:** Removing files inside breaks the extensions that own them.
+- **Condition:** Uninstall extensions from the Extensions view in VS Code instead.
+- **Owning app:** `com.microsoft.VSCode`
+- **Source:** Measured: folder contents listed in VS Code 1.145 on macOS 15.7
+- **Observed:** 6 extensions took 528 MB, 274 MB of it the C/C++ extension. Generic rules matched folders inside them, such as a node_modules bundled with Prettier, where removal would break the extension.
+
+### Zoom's downloaded components
+
+**Tier: review** · `zoom.components`
+
+- **Pattern:** `~/Library/Application Support/zoom.us/asr || ~/Library/Application Support/zoom.us/CefPlugin`
+- **What it is:** Speech recognition models for captions and an embedded web engine that Zoom downloads in the background.
+- **If you remove it:** Zoom downloads them again as soon as it starts, so the space is taken again within minutes.
+- **Owning app:** `us.zoom.xos`
+- **Source:** Measured: removed and relaunched Zoom 7.2.5 on macOS 15.7
+- **Measured:** Took 498 MB after one session with captions: 217 MB of speech models and 281 MB of web engine. After removal Zoom relaunched signed in and downloaded 464 MB of it again within 90 seconds. On a Mac used for months the speech models were 407 MB, all downloaded in the same month. (Zoom 7.2.5 (90525), macOS 15.7.7, 2026-11-09)
+
+### Zoom's program files
+
+**Tier: never** · `zoom.app-code`
+
+- **Pattern:** `~/Library/Application Support/zoom.us/Plugins`
+- **What it is:** Part of the Zoom app itself, unpacked here on first launch and extended with downloaded features.
+- **If you remove it:** Zoom puts the files back the next time it starts, so no space stays free.
+- **Condition:** Uninstall Zoom to remove it.
+- **Owning app:** `us.zoom.xos`
+- **Source:** Measured: removed and relaunched Zoom 7.2.5 on macOS 15.7
+- **Measured:** First launch unpacked 148 MB here and it reached 276 MB. After removal Zoom relaunched signed in and had put back 196 MB within 90 seconds. (Zoom 7.2.5 (90525), macOS 15.7.7, 2026-11-09)
+
+### Zoom's account data
+
+**Tier: review** · `zoom.account-data`
+
+- **Pattern:** `~/Library/Application Support/zoom.us/data`
+- **What it is:** Zoom's databases for the signed-in account, meetings and settings.
+- **If you remove it:** Zoom signs you out and starts as if it were newly installed.
+- **Condition:** Quit Zoom first.
+- **Owning app:** `us.zoom.xos`
+- **Source:** Measured: removed and relaunched Zoom 7.2.5 on macOS 15.7
+- **Measured:** Reached 189 MB after one session, and 260 MB on a Mac used for months. After removal Zoom relaunched signed out, showing its first-run screen, and the folder came back at 2.3 MB. (Zoom 7.2.5 (90525), macOS 15.7.7, 2026-11-09)
+
+### Teams' web cache
+
+**Tier: rebuild** · `teams.cache`
+
+- **Pattern:** `~/Library/Containers/com.microsoft.teams2/Data/Library/Caches/Microsoft/MSTeams`
+- **What it is:** Images, files and pages Teams downloaded so it can show them again without fetching them.
+- **If you remove it:** Teams downloads them again as you open them, and you stay signed in.
+- **Condition:** Quit Teams first.
+- **Owning app:** `com.microsoft.teams2`
+- **Source:** Measured: removed and relaunched Teams 26289 on macOS 15.7
+- **Measured:** Reached 85 MB after sign-in and 10 minutes of use with a personal account. After removal Teams relaunched signed in and the folder came back at 2.4 MB. (Teams 26289.204.5281.6363, macOS 15.7.7, 2026-11-09)
+
+### Teams' offline app copy
+
+**Tier: review** · `teams.service-worker`
+
+- **Pattern:** `~/Library/Containers/com.microsoft.teams2/Data/Library/Application Support/Microsoft/MSTeams/EBWebView/WV2Profile_*/Service Worker`
+- **What it is:** A copy of the Teams web app that Teams downloads after you sign in, so it can start quickly and without the network.
+- **If you remove it:** Teams downloads it again as soon as it starts, so the space is taken again within a minute.
+- **Owning app:** `com.microsoft.teams2`
+- **Source:** Measured: removed and relaunched Teams 26289 on macOS 15.7
+- **Measured:** Was 387 MB right after signing in with a personal account. After removal Teams relaunched signed in and the folder was back at 408 MB within 60 seconds. Work and school accounts were not tested. (Teams 26289.204.5281.6363, macOS 15.7.7, 2026-11-09)
+
+### Teams' logs
+
+**Tier: safe** · `teams.logs`
+
+- **Pattern:** `~/Library/Group Containers/UBF8T346G9.com.microsoft.teams/Library/Application Support/Logs`
+- **What it is:** Text logs Teams writes while it runs, used to troubleshoot problems.
+- **If you remove it:** Teams starts new logs and you stay signed in.
+- **Condition:** Quit Teams first.
+- **Owning app:** `com.microsoft.teams2`
+- **Source:** Measured: removed and relaunched Teams 26289 on macOS 15.7
+- **Measured:** Reached 6 MB after sign-in and 10 minutes of use. After removal Teams relaunched signed in and wrote 3.7 MB of new logs within a minute. (Teams 26289.204.5281.6363, macOS 15.7.7, 2026-11-09)
+
+### Teams' app data
+
+**Tier: review** · `teams.data`
+
+- **Pattern:** `~/Library/Containers/com.microsoft.teams2`
+- **What it is:** Everything Teams keeps for your account on this Mac: chats, settings, the offline app copy and caches.
+- **If you remove it:** Teams signs you out and downloads everything again after you sign back in.
+- **Condition:** Quit Teams first.
+- **Owning app:** `com.microsoft.teams2`
+- **Source:** Measured: removed and relaunched Teams 26289 on macOS 15.7
+- **Measured:** Was 540 MB after sign-in and 10 minutes of use. After removing it and the shared Teams group container, Teams relaunched signed out, offering the remembered account, and the folder came back at 28 MB. (Teams 26289.204.5281.6363, macOS 15.7.7, 2026-11-09)
+
+### Discord's web cache
+
+**Tier: rebuild** · `discord.cache`
+
+- **Pattern:** `~/Library/Application Support/discord/Cache`
+- **What it is:** Images, GIFs and pages Discord downloaded so it can show them again without fetching them.
+- **If you remove it:** Discord downloads them again as you open channels, and you stay signed in.
+- **Condition:** Quit Discord first.
+- **Owning app:** `com.hnc.Discord`
+- **Source:** Measured: removed and relaunched Discord 0.0.421 on macOS 15.7
+- **Measured:** Reached 29 MB after sign-in and 10 minutes in a public community, growing by 18 MB during that use. After removal Discord relaunched signed in and the folder came back at 17 MB within a minute. (Discord 0.0.421, macOS 15.7.7, 2026-11-09)
+
+### Discord's program modules
+
+**Tier: never** · `discord.app-code`
+
+- **Pattern:** `~/Library/Application Support/discord/app-*`
+- **What it is:** Part of the Discord app itself, such as voice and noise suppression, downloaded on first launch.
+- **If you remove it:** Discord stops starting with a fatal error, and does not download the files again.
+- **Condition:** Uninstall Discord to remove it.
+- **Owning app:** `com.hnc.Discord`
+- **Source:** Measured: removed and relaunched Discord 0.0.421 on macOS 15.7
+- **Measured:** Took 224 MB after first launch and use, including a 111 MB voice module. After removal Discord showed 'Cannot find module discord_desktop_core' on two launches in a row; putting the folder back from the Trash fixed it, still signed in. (Discord 0.0.421, macOS 15.7.7, 2026-11-09)
 
 ## Summary
 
-57 rules in total.
+79 rules in total: 6 safe, 30 rebuild, 21 review, 22 never.

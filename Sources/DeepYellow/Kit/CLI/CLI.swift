@@ -48,8 +48,9 @@ public enum CLI {
                 context.out(json ? CLIRender.thingsJSON(report) : CLIRender.things(report, style: style))
             }
         case .reclaim(let path, let json):
+            guard case .success(let rules) = ReclaimEngine.rules else { return rulesFailure(context) }
             return withTree(path, context) { tree in
-                let summary = CLIAnalysis.reclaim(tree: tree, home: context.home, catalog: SystemAppCatalog())
+                let summary = CLIAnalysis.reclaim(tree: tree, home: context.home, catalog: SystemAppCatalog(), rules: rules)
                 context.out(json ? CLIRender.reclaimJSON(summary) : CLIRender.reclaim(summary, style: style))
             }
         case .spectrum(let path, let json):
@@ -69,6 +70,12 @@ public enum CLI {
                 context.out(json ? CLIRender.dupesJSON(summary) : CLIRender.dupes(summary, style: style))
             }
         }
+    }
+
+    /// Reports that the rules could not be loaded, on stderr, and returns the failure exit code.
+    static func rulesFailure(_ context: CLIContext) -> Int32 {
+        if case .failure(let error) = ReclaimEngine.rules { context.err("deepyellow: rules could not be loaded: \(error)\n") }
+        return 1
     }
 
     /// Resolves `path` to an absolute folder path, or nil when it doesn't exist or isn't a folder.

@@ -3,7 +3,7 @@ import XCTest
 @testable import DYAdvisor
 
 final class ReclaimEngineTests: XCTestCase {
-    private func analyze(_ tree: FileTree, rules: [ReclaimRule] = ReclaimEngine.builtinRules) -> ReclaimReport {
+    private func analyze(_ tree: FileTree, rules: [ReclaimRule] = repoRules) -> ReclaimReport {
         ReclaimEngine.analyze(lens: TreeLens(tree: tree), home: testHome, rules: rules, isCancelled: { false })!
     }
 
@@ -111,7 +111,7 @@ final class ReclaimEngineTests: XCTestCase {
 
     func testCancellationReturnsNil() {
         let tree = makeTree([file("/Users/tester/.npm/a", 1)])
-        let report = ReclaimEngine.analyze(lens: TreeLens(tree: tree), home: testHome, rules: ReclaimEngine.builtinRules, isCancelled: { true })
+        let report = ReclaimEngine.analyze(lens: TreeLens(tree: tree), home: testHome, rules: repoRules, isCancelled: { true })
         XCTAssertNil(report)
     }
 
@@ -169,8 +169,13 @@ final class ReclaimEngineTests: XCTestCase {
 }
 
 final class BuiltinRulesTests: XCTestCase {
+    /// The first five sections hold the built-in rules; the measured app rules come after them.
+    func testBuiltinSectionsHold57Rules() {
+        XCTAssertEqual(repoSections.prefix(5).flatMap(\.rules).count, 57)
+    }
+
     func testEveryRuleIsWellFormed() {
-        let rules = ReclaimEngine.builtinRules
+        let rules = repoRules
         XCTAssertEqual(Set(rules.map(\.id)).count, rules.count, "ids are unique")
         for rule in rules {
             XCTAssertFalse(rule.whatItIs.isEmpty)
@@ -184,7 +189,7 @@ final class BuiltinRulesTests: XCTestCase {
     }
 
     func testNoTierUpgradesForKnownRisks() {
-        let byID = Dictionary(uniqueKeysWithValues: ReclaimEngine.builtinRules.map { ($0.id, $0) })
+        let byID = Dictionary(uniqueKeysWithValues: repoRules.map { ($0.id, $0) })
         XCTAssertEqual(byID["mail.store"]?.tier, .never)
         XCTAssertEqual(byID["photos.library"]?.tier, .never)
         XCTAssertEqual(byID["docker.raw"]?.tier, .review)
@@ -192,7 +197,8 @@ final class BuiltinRulesTests: XCTestCase {
         XCTAssertEqual(byID["maven.repository"]?.tier, .review)
         XCTAssertEqual(byID["system.varfolders"]?.tier, .never)
         XCTAssertEqual(byID["logs"]?.tier, .safe)
-        XCTAssertEqual(ReclaimEngine.builtinRules.filter { $0.tier == .safe }.count, 2)
+        // Research-based rules stay at two `safe`; measured app rules reach `safe` only with relaunch-test evidence.
+        XCTAssertEqual(repoSections.prefix(5).flatMap(\.rules).filter { $0.tier == .safe }.count, 2)
     }
 
     func testGlobMatching() {

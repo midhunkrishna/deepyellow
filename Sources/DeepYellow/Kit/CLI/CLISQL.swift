@@ -63,7 +63,8 @@ public enum CLISQL {
         let lens = TreeLens(tree: tree)
         var safety: [UInt8] = []
         if request.query.lowercased().contains("safety") {
-            safety = ReclaimEngine.analyze(lens: lens, home: home, rules: ReclaimEngine.builtinRules, isCancelled: { false })?.nodeTier ?? []
+            guard case .success(let rules) = ReclaimEngine.rules else { return CLI.rulesFailure(context) }
+            safety = ReclaimEngine.analyze(lens: lens, home: home, rules: rules, isCancelled: { false })?.nodeTier ?? []
         }
         let sql = SQLContext(tree: tree, lens: lens, decisions: [], safety: safety, now: now)
         do {

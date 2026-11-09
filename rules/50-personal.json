@@ -1,0 +1,123 @@
+{
+  "version": 1,
+  "section": {"title": "Logs, Trash, downloads and personal data", "intro": "Logs, the Trash, installers, and data that belongs to you."},
+  "rules": [
+    {
+      "id": "trash",
+      "title": "Trash",
+      "pattern": "~/.Trash || /Volumes/*/.Trashes",
+      "tier": "review",
+      "whatItIs": "Items you already moved to the Trash.",
+      "consequence": "They would be deleted for good.",
+      "sideCondition": "Use Empty Trash in Finder. The Trash frees nothing until it is emptied.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Apple Support",
+      "evidence": {"method": "vendor-doc"}
+    },
+    {
+      "id": "logs",
+      "title": "Logs",
+      "pattern": "~/Library/Logs/*",
+      "tier": "safe",
+      "whatItIs": "Records apps and the system wrote about what they did.",
+      "consequence": "You would lose logs that help diagnose a past crash.",
+      "sideCondition": "Skip files changed in the last hour.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Apple Support",
+      "evidence": {"method": "vendor-doc"}
+    },
+    {
+      "id": "logs.apple",
+      "title": "Logs macOS writes",
+      "pattern": "~/Library/Logs/com.apple.*|DiagnosticReports",
+      "tier": "never",
+      "whatItIs": "Logs and crash reports that macOS writes for you.",
+      "consequence": "macOS manages these, so they are not offered for removal.",
+      "sideCondition": null,
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Policy choice",
+      "evidence": {"method": "location"}
+    },
+    {
+      "id": "downloads.installers",
+      "title": "Downloaded installers",
+      "pattern": "~/Downloads/*.dmg|*.pkg|*.iso|*.zip",
+      "tier": "review",
+      "whatItIs": "Installers and archives you downloaded.",
+      "consequence": "If this is your only copy, such as licensed software or an old version, it is gone for good.",
+      "sideCondition": "Move to Trash only. Whether the app is already installed is a guess.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Research notes (unverified)",
+      "evidence": {"method": "research"}
+    },
+    {
+      "id": "mail.downloads",
+      "title": "Mail attachment copies",
+      "pattern": "~/Library/Containers/com.apple.mail/Data/Library/Mail Downloads",
+      "tier": "rebuild",
+      "whatItIs": "Copies of attachments you opened from Mail.",
+      "consequence": "Only the copies go; the originals stay in the messages.",
+      "sideCondition": "Close Mail first.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": ["com.apple.mail"],
+      "source": "Third-party guides",
+      "evidence": {"method": "research"}
+    },
+    {
+      "id": "mail.store",
+      "title": "Mail data",
+      "pattern": "~/Library/Mail",
+      "tier": "never",
+      "whatItIs": "Your mailboxes, messages and attachments.",
+      "consequence": "Manual deletion can corrupt Mail, and some messages may exist nowhere else.",
+      "sideCondition": "Use Mail itself.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": ["com.apple.mail"],
+      "source": "Third-party guides",
+      "evidence": {"method": "research"}
+    },
+    {
+      "id": "messages.data",
+      "title": "Messages data",
+      "pattern": "~/Library/Messages/Attachments || ~/Library/Messages/chat.db*",
+      "tier": "never",
+      "whatItIs": "Your message history and attachments.",
+      "consequence": "Manual deletion can corrupt your history, and it may be the only copy.",
+      "sideCondition": "Use the Messages app settings.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": ["com.apple.MobileSMS"],
+      "source": "Third-party guides",
+      "evidence": {"method": "research"}
+    },
+    {
+      "id": "photos.library",
+      "title": "Photos library",
+      "pattern": "~/Pictures/*.photoslibrary || ~/Library/Containers/com.apple.photolibraryd || ~/Library/Photos",
+      "tier": "never",
+      "whatItIs": "Your photo library and its service data.",
+      "consequence": "Changes inside it can corrupt the library, and the originals may be the only copies.",
+      "sideCondition": "Free space from within Photos instead.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": ["com.apple.Photos"],
+      "source": "Apple Support",
+      "evidence": {"method": "vendor-doc"}
+    },
+    {
+      "id": "chromium.caches",
+      "title": "Embedded browser cache",
+      "pattern": "~/Library/Application Support/**/GPUCache || ~/Library/Application Support/**/Code Cache || ~/Library/Application Support/**/Service Worker/CacheStorage",
+      "tier": "rebuild",
+      "whatItIs": "A cache kept by an app that embeds a web browser.",
+      "consequence": "It rebuilds on its own, though some web apps keep offline-only data in the service worker cache.",
+      "sideCondition": "Close the app first. IndexedDB, Local Storage and Cookies are not caches.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Research notes (unverified)",
+      "evidence": {"method": "research"}
+    }
+  ]
+}

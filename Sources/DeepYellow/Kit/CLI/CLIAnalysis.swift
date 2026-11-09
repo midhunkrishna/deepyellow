@@ -97,10 +97,10 @@ public enum CLIAnalysis {
         return ThingsReport(path: tree.meta.rootPath, total: result.total, thresholdBytes: threshold, rows: rows)
     }
 
-    /// Safety groups and worklists, using `home` to anchor the home-relative rules.
-    public static func reclaim(tree: FileTree, home: String, catalog: AppCatalog) -> ReclaimSummary {
+    /// Safety groups and worklists from `rules`, using `home` to anchor the home-relative rules.
+    public static func reclaim(tree: FileTree, home: String, catalog: AppCatalog, rules: [ReclaimRule]) -> ReclaimSummary {
         let lens = TreeLens(tree: tree)
-        let report = ReclaimEngine.analyze(lens: lens, home: home, rules: ReclaimEngine.builtinRules, isCancelled: { false })
+        let report = ReclaimEngine.analyze(lens: lens, home: home, rules: rules, isCancelled: { false })
         let ownership = OwnershipEngine.analyze(lens: lens, home: home, catalog: catalog, isCancelled: { false })
         let groups = (report?.families ?? []).map { family in
             ReclaimGroupRow(id: family.rule.id, title: family.rule.title, tier: String(describing: family.rule.tier), bytes: family.bytes,

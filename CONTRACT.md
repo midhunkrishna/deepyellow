@@ -91,7 +91,7 @@ Reference: `docs/research/reclaim-kb.md` Part 1. Evidence tags limit tiers: foll
 public struct ReclaimRule: Identifiable, Sendable { id, title, pattern: String; tier: SafetyTier; whatItIs, consequence: String; sideCondition, cleanupCommand: String?; ownerBundleIDs: [String]; source: String? }
 public struct ReclaimFamily: Identifiable, Sendable { rule: ReclaimRule; nodes: [NodeID]; bytes, reclaimable: UInt64; files: UInt64; newestModified: Int32 }
 public struct ReclaimReport: Sendable { families: [ReclaimFamily] /* tier, then bytes */; nodeTier: [UInt8]; func rule(for: NodeID, tree: FileTree) -> ReclaimRule? }
-public enum ReclaimEngine { static let builtinRules: [ReclaimRule]; static func analyze(lens: TreeLens, home: String, rules: [ReclaimRule], isCancelled: () -> Bool) -> ReclaimReport? }
+public enum ReclaimEngine { static let rules: Result<[ReclaimRule], RulesError>; /* loaded from rules/*.json in the app bundle */ static func analyze(lens: TreeLens, home: String, rules: [ReclaimRule], isCancelled: () -> Bool) -> ReclaimReport? }
 
 public struct DuplicateSet: Identifiable, Sendable { id: String /* hash */; nodes: [NodeID]; size: UInt64; var wastedBytes: UInt64 { get } }
 public struct DuplicateReport: Sendable { sets: [DuplicateSet] /* wasted descending */; bytesHashed: UInt64; skippedDataless: Int }
