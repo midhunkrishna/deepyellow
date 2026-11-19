@@ -25,43 +25,53 @@ You need the app's name. The Homebrew cask token (`brew info --cask` shows it, o
 
 ### 2. Check what the repo already says
 
-Search `rules/*.json` for the app's name and bundle ID. If rules already exist, note which folders they cover, and put only new or disputed folders in the report. See `rules/90-apps.json` for what finished entries look like.
+Search `rules/*.json` for the app's name and bundle ID. If rules already exist, note which folders they cover, and put only new or disputed folders in the report. If no rule mentions the app, report every row. See `rules/90-apps.json` for what finished entries look like.
 
 ### 3. Read public sources
 
-Look in this order and stop looking for a folder once you have a source for it.
+Use web search and web fetch. Start with the cask `zap` stanza, because it is the list of paths. It is only a starting list: for each path, keep looking for what it holds and what removing it does. Look in this order and stop looking for a path once you have a source for what it holds and what removal does.
 
-1. **The vendor's support and help pages.** Search for "clear cache", "reset", "uninstall", "where are logs stored" and "troubleshooting" on the vendor's site.
-2. **The app's open-source repository**, if it has one. Search the code for the folder names it creates.
-3. **The Homebrew cask `zap` stanza** in https://github.com/Homebrew/homebrew-cask (`Casks/<first letter>/<token>.rb`). It lists the folders the app creates. It says where things are, not what removing them does, so it is evidence of location only.
-4. **Uninstall guides, forum threads and issue trackers.** Weakest, but good for "what happened when someone removed it".
+1. **The Homebrew cask `zap` stanza.** Fetch the raw file at `https://raw.githubusercontent.com/Homebrew/homebrew-cask/master/Casks/<first letter>/<token>.rb`. It lists the folders and files the app creates. A token with slashes (`user/tap/name`) is a tapped cask, and its file lives in that tap's own repository, not in homebrew-cask. The `zap` list says where things are, not what removing them does.
+2. **The vendor's support and help pages.** Search for "clear cache", "reset", "uninstall", "where are logs stored" and "troubleshooting" on the vendor's site.
+3. **The app's open-source repository and issue tracker**, if it has one. Search the code for the folder names it creates.
+4. **Uninstall guides and forum threads.** Weakest, but good for "what happened when someone removed it".
+5. **General macOS knowledge** for the standard locations, using the table below.
 
-The standard locations to consider are:
+Stop rule: about 15 fetches per app. For a large documentation page, fetch the specific page or search within it instead of loading everything.
 
-- `~/Library/Application Support`
-- `~/Library/Caches`
-- `~/Library/Containers` and `~/Library/Group Containers`
-- `~/Library/Logs`
-- `~/Library/Preferences`
-- `~/Library/Saved Application State`
-- `~/Library/HTTPStorages`
-- `~/Library/WebKit`
-- dot folders in the home folder, such as `~/.appname`
+The standard locations to consider are `~/Library/Application Support`, `Caches`, `Containers`, `Group Containers`, `Logs`, `Preferences`, `Saved Application State`, `HTTPStorages` and `WebKit`, plus dot folders in the home folder such as `~/.appname`. Record a path only if a source names it. For a location no source names, write "nothing found".
 
-For each one, record the path if a source names it, and "nothing found" if none does.
+A `zap` entry that is a single file (a Preferences plist, a config file) gets a row too.
+
+What the standard locations mean by default. This is macOS convention, not app-specific, and it can fill a row when the app's own sources are silent. Say so in the Source column ("macOS convention").
+
+| Location | Convention |
+|---|---|
+| `~/Library/Caches/<id>` | Data the app can fetch or compute again. It is slower until it refills. |
+| `~/Library/HTTPStorages/<id>` | Network session data such as cookies for the app's own requests. Removing it can sign the user out. |
+| `~/Library/WebKit/<id>` | Web view storage: caches, cookies, local storage. Removing it can sign the user out of anything shown in a web view. |
+| `~/Library/Saved Application State/<id>.savedState` | Window positions and open documents from last quit. Removing it loses that layout only. |
+| `~/Library/Preferences/<id>.plist` | The app's settings. Removing it resets them. |
+| `~/Library/Logs/<App>` | Text logs for troubleshooting. Removing them loses the history only. |
 
 ### 4. Choose the evidence method and the proposed tier
 
-Use the vendor's own words where they exist.
+Use the vendor's own words where they exist. These are the four methods in `rules/README.md`.
 
-| Evidence method | Use it when | Highest tier allowed |
+| Evidence method | What it means | Highest tier allowed |
 |---|---|---|
-| `vendor-doc` | the vendor's documentation says what the folder is and that it can be removed | any |
-| `research` | articles, forum posts, issues, source code or the cask `zap` list | `review` or `never` |
+| `relaunch-test` | Removed in a clean macOS VM, the app relaunched, the result observed | any |
+| `vendor-doc` | The vendor's own documentation says what the folder is and that it can be removed | any |
+| `research` | Articles, forum posts, issue trackers or reading the source | `review`, `never` |
+| `location` | Only where it sits, such as a folder inside an app's container | `review`, `never` |
+
+This skill reports `vendor-doc`, `research` or `location`. Only a lab measurement gives `relaunch-test`.
+
+A vendor page that documents only where a folder is does not count as `vendor-doc`. Use `research`, or `location` when the only evidence is where it sits (a `zap` entry, a container path). `vendor-doc` needs the vendor saying what the folder is and that removing it is fine, or what it costs.
 
 The cap is firm. A `safe` or `rebuild` proposal without a vendor document needs a lab `relaunch-test` first. Don't propose it from research. Put it under open questions, and see `docs/lab-guide.md` and the `measure-app` skill for how to run the measurement.
 
-For the tier itself, walk the questions under "Choosing a tier" in `rules/README.md`. Anything that could hold messages, projects, purchases or sign-in data is `review`, and a folder that holds the app's own programs or modules is `never`. When unsure, propose `review`.
+For the tier itself, walk the questions under "Choosing a tier" in `rules/README.md`. Anything that could hold messages, projects, purchases or sign-in data is `review`, and a folder that holds the app's own programs or modules is `never`. User config and preferences are normally `never` or `review`, never proposed as reclaimable space. When unsure, propose `review`.
 
 ### 5. Write the report
 
@@ -71,29 +81,32 @@ Use exactly this shape.
 # App research: <App>
 
 - App: <name>
-- Version or date researched: <version if the sources name one, otherwise the date you researched it>
+- Version or date researched: <version if a source names it, otherwise "version unknown, researched <date>">
 - Bundle ID: <id, with a source link, or "not found">
 
 | Path pattern | What it holds | What removing it does | Rebuilt by the app? | Source | Evidence method | Proposed tier |
 |---|---|---|---|---|---|---|
-| `~/Library/Application Support/<App>/Cache` | ... | ... | yes / no / unknown | <link> | vendor-doc | rebuild |
+| `~/Library/Application Support/ExampleApp/Cache` | Pages and images ExampleApp downloaded to show again. | ExampleApp downloads them again as you browse, and you stay signed in. | yes | <link to the vendor's "Clear cache" page> | vendor-doc | rebuild |
+| `~/Library/Application Support/ExampleApp/Sessions` | Not stated. | Not stated. | unknown | <link to the cask zap list> | location | review |
 
 ## Open questions
 
 - <a question a lab measurement would settle, for example "Does the app sign out after this folder is removed?">
 ```
 
+Get the date from `date +%F`, not from memory.
+
 Rules for the table:
 
-- One row per folder. A path with no source link does not get a row.
+- One row per folder or file. A path with no source link does not get a row.
 - `Path pattern` uses `~` and `*` for every account-specific part.
-- `What it holds` and `What removing it does` are one plain sentence each, taken from the source. If the source doesn't say what removal does, write "not stated" and propose `review`.
+- `What it holds` and `What removing it does` are one plain sentence each, taken from the source or from the convention table. If neither says, write "Not stated" and propose `review`.
 - `Rebuilt by the app?` is `unknown` unless a source says so.
 - Never write a size, a version or a time you didn't read in a source.
 
 ### 6. Hand it over
 
-Give the contributor the report to paste as a comment on the issue and into the pull request body. Then hand the report to the `write-rule` skill, which writes the entries and the pull request text. Finally run:
+Give the contributor the report to paste as a comment on the issue and into the pull request body. If you can't reach the issue, print the report for the contributor to paste. Then hand the report to the `write-rule` skill (`.claude/skills/write-rule/SKILL.md`), which writes the entries and the pull request text. Finally run:
 
 ```sh
 make check-rules
