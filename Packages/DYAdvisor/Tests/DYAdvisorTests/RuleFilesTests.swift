@@ -254,6 +254,18 @@ final class RuleFilesTests: XCTestCase {
         XCTAssertEqual(ruleID("/Users/tester/Library/Caches/com.example.app/blob"), "caches.thirdparty")
     }
 
+    /// KeePassXC keeps a local settings file inside ~/Library/Caches; it must not fall under the generic cache rule.
+    func testKeePassXCLocalStateIsNotTreatedAsCache() {
+        let base = "/Users/tester/Library/Caches/KeePassXC"
+        let tree = makeTree([file(base + "/keepassxc.ini", 3),
+                             file("/Users/tester/Library/Caches/com.example.app/blob", 7)])
+        let report = ReclaimEngine.analyze(lens: TreeLens(tree: tree), home: testHome, rules: repoRules,
+                                           isCancelled: { false })!
+        func ruleID(_ path: String) -> String? { report.rule(for: tree.find(path: path)!, tree: tree)?.id }
+        XCTAssertEqual(ruleID(base + "/keepassxc.ini"), "keepassxc.local-state")
+        XCTAssertEqual(ruleID("/Users/tester/Library/Caches/com.example.app/blob"), "caches.thirdparty")
+    }
+
     /// Gem caches inside a Ruby install get their own rule, and Homebrew's own Ruby and gems stay protected.
     func testRubyGemCachesAndHomebrewsOwnRuby() {
         let gems = "/Users/tester/.rbenv/versions/3.4.12/lib/ruby/gems/3.4.0"
