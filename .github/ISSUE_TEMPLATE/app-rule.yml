@@ -1,0 +1,31 @@
+name: Add a rule for an app
+description: Claim an app and write or measure its reclaim rule.
+title: "App rule: "
+labels: ["app-rule", "help wanted"]
+body:
+  - type: input
+    id: app
+    attributes:
+      label: App name
+    validations:
+      required: true
+  - type: input
+    id: token
+    attributes:
+      label: Homebrew cask token or bundle ID
+      description: Optional. For example a cask token or com.vendor.App.
+  - type: textarea
+    id: folders
+    attributes:
+      label: What you know about its folders
+      description: Optional. Replace user names, account and team IDs in paths with *. Paste no file names.
+  - type: dropdown
+    id: path
+    attributes:
+      label: Which path do you plan to take?
+      options:
+        - Research without a VM
+        - Lab measurement
+        - Not sure
+    validations:
+      required: true
