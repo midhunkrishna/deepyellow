@@ -423,6 +423,66 @@
         "measuredOn": "2026-11-08",
         "observed": "Took 224 MB after first launch and use, including a 111 MB voice module. After removal Discord showed 'Cannot find module discord_desktop_core' on two launches in a row; putting the folder back from the Trash fixed it, still signed in."
       }
+    },
+    {
+      "id": "keepassxc.settings",
+      "title": "KeePassXC's settings",
+      "pattern": "~/Library/Application Support/KeePassXC || ~/Library/Application Support/keepassxc",
+      "tier": "review",
+      "whatItIs": "The folder holding keepassxc.ini, KeePassXC's settings file, which also remembers your recent databases.",
+      "consequence": "Removing it resets KeePassXC to its default settings. Your password databases are separate .kdbx files that live wherever you saved them, and they are not touched.",
+      "sideCondition": "Quit KeePassXC first.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": ["org.keepassxc.keepassxc"],
+      "source": "KeePassXC User Guide, 'User Settings Locations'; Homebrew cask keepassxc zap list",
+      "evidence": {
+        "method": "research"
+      }
+    },
+    {
+      "id": "keepassxc.local-state",
+      "title": "KeePassXC's local state",
+      "pattern": "~/Library/Caches/KeePassXC",
+      "tier": "review",
+      "whatItIs": "A second keepassxc.ini that KeePassXC keeps in the Caches folder for additional local application state, separate from its main settings.",
+      "consequence": "Removing it discards that local state. Your main settings stay in the Application Support folder, and your password databases are separate files that are not touched.",
+      "sideCondition": "Quit KeePassXC first.",
+      "cleanupCommand": null,
+      "ownerBundleIDs": ["org.keepassxc.keepassxc"],
+      "source": "KeePassXC User Guide, 'User Settings Locations'",
+      "evidence": {
+        "method": "research"
+      }
+    },
+    {
+      "id": "keepassxc.legacy-cache",
+      "title": "KeePassXC's old cache folder",
+      "pattern": "~/Library/Caches/org.keepassx.keepassxc",
+      "tier": "review",
+      "whatItIs": "The cache folder named by KeePassXC's old bundle identifier, org.keepassx.keepassxc, which versions before 2.5.4 used.",
+      "consequence": "Current versions keep their local state in the KeePassXC folder in Caches instead. Nothing found describes live data in this folder, so it is held at review rather than treated as an ordinary cache.",
+      "sideCondition": null,
+      "cleanupCommand": null,
+      "ownerBundleIDs": ["org.keepassx.keepassxc"],
+      "source": "Homebrew cask keepassxc zap list; bundle identifier change reported in keepassxreboot/keepassxc#4644",
+      "evidence": {
+        "method": "location"
+      }
+    },
+    {
+      "id": "keepassxc.legacy-settings",
+      "title": "KeePassXC's old settings folder",
+      "pattern": "~/.keepassxc",
+      "tier": "review",
+      "whatItIs": "A settings folder the Homebrew cask lists among KeePassXC's leftovers. Current versions keep their settings in the Application Support folder.",
+      "consequence": "Removing it loses whatever old settings it holds. It is not where current versions store their settings.",
+      "sideCondition": null,
+      "cleanupCommand": null,
+      "ownerBundleIDs": [],
+      "source": "Homebrew cask keepassxc zap list",
+      "evidence": {
+        "method": "location"
+      }
     }
   ]
 }

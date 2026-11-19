@@ -1182,6 +1182,49 @@ Rules for one app's folders, from [`rules/90-apps.json`](https://github.com/midh
 - **Source:** Measured: removed and relaunched Discord 0.0.421 on macOS 15.7
 - **Measured:** Took 224 MB after first launch and use, including a 111 MB voice module. After removal Discord showed 'Cannot find module discord_desktop_core' on two launches in a row; putting the folder back from the Trash fixed it, still signed in. (Discord 0.0.421, macOS 15.7.7, 2026-11-08)
 
+### KeePassXC's settings
+
+**Tier: review** · `keepassxc.settings`
+
+- **Pattern:** `~/Library/Application Support/KeePassXC || ~/Library/Application Support/keepassxc`
+- **What it is:** The folder holding keepassxc.ini, KeePassXC's settings file, which also remembers your recent databases.
+- **If you remove it:** Removing it resets KeePassXC to its default settings. Your password databases are separate .kdbx files that live wherever you saved them, and they are not touched.
+- **Condition:** Quit KeePassXC first.
+- **Owning app:** `org.keepassxc.keepassxc`
+- **Source:** KeePassXC User Guide, 'User Settings Locations'; Homebrew cask keepassxc zap list
+- **Evidence:** unverified
+
+### KeePassXC's local state
+
+**Tier: review** · `keepassxc.local-state`
+
+- **Pattern:** `~/Library/Caches/KeePassXC`
+- **What it is:** A second keepassxc.ini that KeePassXC keeps in the Caches folder for additional local application state, separate from its main settings.
+- **If you remove it:** Removing it discards that local state. Your main settings stay in the Application Support folder, and your password databases are separate files that are not touched.
+- **Condition:** Quit KeePassXC first.
+- **Owning app:** `org.keepassxc.keepassxc`
+- **Source:** KeePassXC User Guide, 'User Settings Locations'
+- **Evidence:** unverified
+
+### KeePassXC's old cache folder
+
+**Tier: review** · `keepassxc.legacy-cache`
+
+- **Pattern:** `~/Library/Caches/org.keepassx.keepassxc`
+- **What it is:** The cache folder named by KeePassXC's old bundle identifier, org.keepassx.keepassxc, which versions before 2.5.4 used.
+- **If you remove it:** Current versions keep their local state in the KeePassXC folder in Caches instead. Nothing found describes live data in this folder, so it is held at review rather than treated as an ordinary cache.
+- **Owning app:** `org.keepassx.keepassxc`
+- **Source:** Homebrew cask keepassxc zap list; bundle identifier change reported in keepassxreboot/keepassxc#4644
+
+### KeePassXC's old settings folder
+
+**Tier: review** · `keepassxc.legacy-settings`
+
+- **Pattern:** `~/.keepassxc`
+- **What it is:** A settings folder the Homebrew cask lists among KeePassXC's leftovers. Current versions keep their settings in the Application Support folder.
+- **If you remove it:** Removing it loses whatever old settings it holds. It is not where current versions store their settings.
+- **Source:** Homebrew cask keepassxc zap list
+
 ## Summary
 
-102 rules in total: 10 safe, 39 rebuild, 30 review, 23 never.
+106 rules in total: 10 safe, 39 rebuild, 34 review, 23 never.
