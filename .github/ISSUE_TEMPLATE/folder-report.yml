@@ -1,0 +1,36 @@
+name: Tell us about a folder
+description: A folder DeepYellow says nothing about, or says the wrong thing about.
+labels: ["folder-report"]
+body:
+  - type: input
+    id: app
+    attributes:
+      label: App or tool, and its version
+    validations:
+      required: true
+  - type: input
+    id: path
+    attributes:
+      label: Path
+      description: Replace any user name, account or team ID with *.
+    validations:
+      required: true
+  - type: textarea
+    id: holds
+    attributes:
+      label: What it holds, and what happened when it was removed
+      description: If you know.
+  - type: textarea
+    id: source
+    attributes:
+      label: Where this knowledge comes from
+      description: The vendor's documentation, a measurement, or an article or forum thread.
+    validations:
+      required: true
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy
+      options:
+        - label: I replaced account-specific parts of the path with * and pasted no file names
+          required: true
