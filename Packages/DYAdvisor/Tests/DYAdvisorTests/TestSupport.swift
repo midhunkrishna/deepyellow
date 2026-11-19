@@ -44,6 +44,7 @@ final class FakeReader: FileReading, @unchecked Sendable {
     private var failing: Set<String> = []
     private(set) var reads: [String] = []
     private(set) var maxLength = 0
+    private(set) var opens: [String: Int] = [:]
     var onRead: (() -> Void)?
 
     /// Creates a reader serving `contents`.
@@ -61,6 +62,17 @@ final class FakeReader: FileReading, @unchecked Sendable {
         guard let data, !fails else { throw CocoaError(.fileReadNoSuchFile) }
         let start = min(Int(offset), data.count)
         return data.subdata(in: start..<min(start + length, data.count))
+    }
+
+    /// Counts one open for `path`, then serves chunks through `read` so reads and limits are still recorded.
+    func readChunks(path: String, chunkSize: Int, _ body: (Data) -> Bool) throws {
+        lock.withLock { opens[path, default: 0] += 1 }
+        var offset: UInt64 = 0
+        while true {
+            let data = try read(path: path, offset: offset, length: chunkSize)
+            if data.isEmpty || !body(data) { return }
+            offset += UInt64(data.count)
+        }
     }
 }
 

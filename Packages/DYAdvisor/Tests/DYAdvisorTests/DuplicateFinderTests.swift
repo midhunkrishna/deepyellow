@@ -82,6 +82,17 @@ final class DuplicateFinderTests: XCTestCase {
         XCTAssertLessThanOrEqual(reader.maxLength, 1 << 20)
     }
 
+    /// The full hash opens each file once, however many chunks it reads.
+    func testFullHashOpensEachFileOnce() async {
+        let size = 3 << 20
+        let tree = makeTree([file("/a", UInt64(size)), file("/b", UInt64(size))])
+        let reader = FakeReader(["/a": bytes("x", count: size), "/b": bytes("x", count: size)])
+        let report = await run(tree, reader)
+        XCTAssertEqual(report.sets.count, 1)
+        XCTAssertEqual(reader.opens["/a"], 1)
+        XCTAssertEqual(reader.opens["/b"], 1)
+    }
+
     func testUnreadableFileIsSkippedNotFatal() async {
         let tree = makeTree([file("/a", 100), file("/b", 100), file("/c", 100)])
         let content = bytes("x", count: 100)
