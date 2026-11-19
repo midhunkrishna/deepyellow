@@ -12,7 +12,7 @@ DeepYellow is a native macOS disk analyzer. It draws your disk as a treemap you 
 
 *The built-in demo disk in Safety mode. Every screenshot here is the real app on made-up data.*
 
-[**Download for macOS**](https://github.com/midhunkrishna/deepyellow/releases/latest/download/DeepYellow.dmg) &middot; [Releases](https://github.com/midhunkrishna/deepyellow/releases) &middot; [Documentation](docs/README.md) &middot; [If macOS blocks it](docs/install.md#if-macos-blocks-it)
+[**Download for macOS**](https://github.com/midhunkrishna/deepyellow/releases/latest/download/DeepYellow.dmg) &middot; [Website](https://deepyellow.midhun-krishna-usa.workers.dev/) &middot; [Releases](https://github.com/midhunkrishna/deepyellow/releases) &middot; [Documentation](docs/README.md) &middot; [If macOS blocks it](docs/install.md#if-macos-blocks-it)
 
 ## Why it's different
 
