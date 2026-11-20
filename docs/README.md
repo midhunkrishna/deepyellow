@@ -27,6 +27,7 @@ DeepYellow is a native macOS disk analyzer. It shows where your space went and t
 |---|---|
 | [Building from source](building-from-source.md) | `make app`, tests, the packages |
 | [Architecture](architecture.md) | Modules, the file tree, how Things, Reclaim and the Plan work |
+| [Lab guide](lab-guide.md) | Measuring one app in a virtual machine, for writing reclaim rules |
 | [Uninstall](uninstall.md) | Every path DeepYellow uses, and how to remove each |
 
 ## The short version

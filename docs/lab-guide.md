@@ -129,4 +129,4 @@ lab/lab.sh rm m-slack
 
 Open Claude Code in this repo and run the `write-rule` skill. Give it the scrubbed `report.md`, the app version from step 4, the macOS version of the VM (`lab/lab.sh ssh m-slack 'sw_vers -productVersion'`, run before you remove the VM), today's date, and what you saw in the relaunch test. The evidence method is `relaunch-test`. Or run the `measure-app` skill, which drives these steps and then calls `write-rule`.
 
-Without Claude Code, follow [rules/README.md](../rules/README.md) and [CONTRIBUTING.md](../CONTRIBUTING.md).
+Without Claude Code, follow [rules/README.md](../rules/README.md) and [CONTRIBUTING.md](https://github.com/midhunkrishna/deepyellow/blob/master/CONTRIBUTING.md).

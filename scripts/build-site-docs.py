@@ -33,6 +33,7 @@ PAGES = [
     ("cli", "Command line", "Using it"),
     ("building-from-source", "Building from source", "Project"),
     ("architecture", "Architecture", "Project"),
+    ("lab-guide", "Lab guide", "Project"),
     ("uninstall", "Uninstall", "Project"),
 ]
 

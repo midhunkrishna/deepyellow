@@ -46,6 +46,7 @@
 <h4>Project</h4><ul>
 <li><a href="building-from-source.html">Building from source</a></li>
 <li><a href="architecture.html">Architecture</a></li>
+<li><a href="lab-guide.html">Lab guide</a></li>
 <li><a href="uninstall.html">Uninstall</a></li>
 </ul>
   </nav>
@@ -94,11 +95,12 @@
 <p><strong>Tier: safe</strong> · <code>caches.homebrew</code></p>
 <ul>
 <li><strong>Pattern:</strong> <code>~/Library/Caches/Homebrew</code></li>
-<li><strong>What it is:</strong> Installer files Homebrew downloaded earlier.</li>
-<li><strong>If you remove it:</strong> Homebrew will download a package again if you reinstall it.</li>
-<li><strong>Condition:</strong> Use the command, not manual deletion. Add -n for a dry run.</li>
-<li><strong>Official command:</strong> <code>brew cleanup</code></li>
-<li><strong>Source:</strong> Homebrew manual</li>
+<li><strong>What it is:</strong> Bottles, app installers and package lists Homebrew downloaded, kept after installing.</li>
+<li><strong>If you remove it:</strong> Homebrew downloads a package again only if you reinstall or upgrade it.</li>
+<li><strong>Condition:</strong> Use the command rather than deleting by hand; plain <code>brew cleanup</code> keeps recent downloads and freed nothing in our test.</li>
+<li><strong>Official command:</strong> <code>brew cleanup --prune=all</code></li>
+<li><strong>Source:</strong> Measured: Homebrew 7.0.12 on macOS 15.7</li>
+<li><strong>Measured:</strong> Reached 618 MB after installing 15 formulae (73 with dependencies) and 3 casks. <code>brew cleanup --prune=all</code> freed 579 MB, leaving 40 MB of package lists; with the cache refilled to 1.3 GB, plain <code>brew cleanup</code> would have freed nothing. After deleting the folder, <code>brew reinstall jq</code> worked and the folder came back at 40 MB. (7.0.12, macOS 15.7.7, 2026-11-08)</li>
 </ul>
 <h3 id="jetbrains-ide-data">JetBrains IDE data <a class="anchor" href="#jetbrains-ide-data" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: review</strong> · <code>caches.jetbrains</code></p>
@@ -318,12 +320,12 @@
 <h3 id="javascript-dependencies">JavaScript dependencies <a class="anchor" href="#javascript-dependencies" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: rebuild</strong> · <code>node.modules</code></p>
 <ul>
-<li><strong>Pattern:</strong> <code>**/node_modules if-sibling:package-lock.json|npm-shrinkwrap.json|yarn.lock|pnpm-lock.yaml</code></li>
+<li><strong>Pattern:</strong> <code>**/node_modules if-sibling:package-lock.json|npm-shrinkwrap.json|yarn.lock|pnpm-lock.yaml|bun.lock|bun.lockb</code></li>
 <li><strong>What it is:</strong> Libraries a JavaScript project installed.</li>
 <li><strong>If you remove it:</strong> You will need to run the install again, with network access, and any local patches are lost.</li>
 <li><strong>Condition:</strong> Offered because a lockfile sits next to it.</li>
-<li><strong>Source:</strong> Research notes (unverified)</li>
-<li><strong>Evidence:</strong> unverified</li>
+<li><strong>Source:</strong> Measured: removed and reinstalled with npm 11, pnpm 12, Yarn 1 and Bun 1.4 on macOS 15.7</li>
+<li><strong>Measured:</strong> Five projects with the same 16 dependencies (about 560 packages) had 606 to 680 MB of node_modules each. After removal, npm, pnpm, Yarn 1 and Bun each installed them again in 4 to 30 seconds, and the npm project loaded its packages. Bun projects have a bun.lock lockfile. (npm 11.20.0, pnpm 12.18.0, yarn 1.22.22, bun 1.4.4, macOS 15.7.7, 2026-11-08)</li>
 </ul>
 <h3 id="javascript-dependencies-without-a-lockfile">JavaScript dependencies without a lockfile <a class="anchor" href="#javascript-dependencies-without-a-lockfile" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: review</strong> · <code>node.modules.nolock</code></p>
@@ -351,18 +353,19 @@
 <li><strong>What it is:</strong> Packages npm downloaded earlier.</li>
 <li><strong>If you remove it:</strong> npm will download them again when needed.</li>
 <li><strong>Official command:</strong> <code>npm cache clean --force</code></li>
-<li><strong>Source:</strong> Research notes (unverified)</li>
-<li><strong>Evidence:</strong> unverified</li>
+<li><strong>Source:</strong> Measured: removed and reinstalled with npm 11 on macOS 15.7</li>
+<li><strong>Measured:</strong> Reached 612 MB for one project of 559 packages. <code>npm cache clean --force</code> emptied it, deleting it freed 129 of 130 MB on disk, and npm installed again afterwards. (11.20.0, macOS 15.7.7, 2026-11-08)</li>
 </ul>
 <h3 id="pnpm-package-store">pnpm package store <a class="anchor" href="#pnpm-package-store" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: rebuild</strong> · <code>pnpm.store</code></p>
 <ul>
 <li><strong>Pattern:</strong> <code>~/Library/pnpm/store || ~/.local/share/pnpm/store</code></li>
 <li><strong>What it is:</strong> The shared store that pnpm links project dependencies from.</li>
-<li><strong>If you remove it:</strong> Packages will be downloaded again when needed.</li>
-<li><strong>Condition:</strong> Use the command, which removes only unreferenced packages. Do not delete by hand.</li>
+<li><strong>If you remove it:</strong> pnpm downloads packages again when you next install, and while your projects keep their node_modules this frees little disk space.</li>
+<li><strong>Condition:</strong> <code>pnpm store prune</code> removes only packages that no project uses.</li>
 <li><strong>Official command:</strong> <code>pnpm store prune</code></li>
-<li><strong>Source:</strong> pnpm documentation</li>
+<li><strong>Source:</strong> Measured: removed and reinstalled with pnpm 12 on macOS 15.7</li>
+<li><strong>Measured:</strong> Reached 1.1 GB, plus a 268 MB metadata cache in ~/Library/Caches/pnpm, for one project of about 560 packages; <code>pnpm store prune</code> removed 0 packages. Deleting the store freed only 64 MB of disk, because pnpm on macOS clones files into node_modules, which keep the data. pnpm installed again afterwards. (12.18.0, macOS 15.7.7, 2026-11-08)</li>
 </ul>
 <h3 id="pip-cache">pip cache <a class="anchor" href="#pip-cache" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: rebuild</strong> · <code>pip.cache</code></p>
@@ -371,29 +374,30 @@
 <li><strong>What it is:</strong> Python packages pip downloaded earlier.</li>
 <li><strong>If you remove it:</strong> pip will download or rebuild them when needed.</li>
 <li><strong>Official command:</strong> <code>pip cache purge</code></li>
-<li><strong>Source:</strong> Research notes (unverified)</li>
-<li><strong>Evidence:</strong> unverified</li>
+<li><strong>Source:</strong> Measured: removed and reinstalled with pip 26 on macOS 15.7</li>
+<li><strong>Measured:</strong> Reached 281 MB installing 13 popular packages, PyTorch among them, into one virtual environment. <code>pip cache purge</code> emptied it, deleting it freed 272 of 274 MB on disk, and pip installed again afterwards. (26.2.2, macOS 15.7.7, 2026-11-08)</li>
 </ul>
 <h3 id="uv-cache">uv cache <a class="anchor" href="#uv-cache" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: rebuild</strong> · <code>uv.cache</code></p>
 <ul>
 <li><strong>Pattern:</strong> <code>~/.cache/uv</code></li>
 <li><strong>What it is:</strong> Python packages uv downloaded earlier.</li>
-<li><strong>If you remove it:</strong> uv will download or rebuild them when needed.</li>
-<li><strong>Condition:</strong> Do not touch it while uv is running.</li>
+<li><strong>If you remove it:</strong> uv downloads packages again when you next install, and while your environments exist this frees almost no disk space.</li>
+<li><strong>Condition:</strong> <code>uv cache prune</code> removes only entries no environment uses.</li>
 <li><strong>Official command:</strong> <code>uv cache clean</code></li>
-<li><strong>Source:</strong> uv documentation</li>
+<li><strong>Source:</strong> Measured: removed and reinstalled with uv 0.13 on macOS 15.7</li>
+<li><strong>Measured:</strong> Reached 1.17 GB for one project with 13 popular packages; <code>uv cache prune</code> found nothing unused. Deleting it freed no measurable disk space, because uv on macOS clones files into environments, which kept working. uv installed again afterwards. (0.13.7, macOS 15.7.7, 2026-11-08)</li>
 </ul>
 <h3 id="conda-packages">conda packages <a class="anchor" href="#conda-packages" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: rebuild</strong> · <code>conda.pkgs</code></p>
 <ul>
 <li><strong>Pattern:</strong> <code>~/miniconda3/pkgs || ~/anaconda3/pkgs || ~/miniforge3/pkgs</code></li>
 <li><strong>What it is:</strong> Package files shared by your conda environments.</li>
-<li><strong>If you remove it:</strong> Only unused packages should be removed, and conda will download them again if needed.</li>
+<li><strong>If you remove it:</strong> conda downloads packages again when it needs them, and while your environments exist this frees little disk space.</li>
 <li><strong>Condition:</strong> Use the command, never delete by hand.</li>
 <li><strong>Official command:</strong> <code>conda clean --all</code></li>
-<li><strong>Source:</strong> Research notes (unverified)</li>
-<li><strong>Evidence:</strong> unverified</li>
+<li><strong>Source:</strong> Measured: removed and reinstalled with conda 26 (Miniforge) on macOS 15.7</li>
+<li><strong>Measured:</strong> Reached 2.18 GB for the base install and one environment with 13 popular packages. <code>conda clean --all</code> freed 344 MB. Deleting the folder freed only 133 of 1,808 MB, because conda hard-links package files into environments, which kept working. (26.9.4, macOS 15.7.7, 2026-11-08)</li>
 </ul>
 <h3 id="conda-environments">conda environments <a class="anchor" href="#conda-environments" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: review</strong> · <code>conda.envs</code></p>
@@ -401,8 +405,8 @@
 <li><strong>Pattern:</strong> <code>~/miniconda3/envs/* || ~/anaconda3/envs/* || ~/miniforge3/envs/*</code></li>
 <li><strong>What it is:</strong> Python environments you created.</li>
 <li><strong>If you remove it:</strong> You would lose the environment and its installed packages.</li>
-<li><strong>Source:</strong> Research notes (unverified)</li>
-<li><strong>Evidence:</strong> unverified</li>
+<li><strong>Source:</strong> Measured: conda 26 (Miniforge) on macOS 15.7</li>
+<li><strong>Observed:</strong> One environment with Python 3.12 and 13 popular packages, PyTorch among them, took 1.74 GB.</li>
 </ul>
 <h3 id="cargo-downloads">Cargo downloads <a class="anchor" href="#cargo-downloads" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: rebuild</strong> · <code>cargo.cache</code></p>
@@ -410,7 +414,8 @@
 <li><strong>Pattern:</strong> <code>~/.cargo/registry || ~/.cargo/git</code></li>
 <li><strong>What it is:</strong> Rust libraries Cargo downloaded earlier.</li>
 <li><strong>If you remove it:</strong> Cargo will download them again, which needs the network.</li>
-<li><strong>Source:</strong> Cargo documentation</li>
+<li><strong>Source:</strong> Measured: removed and rebuilt with Cargo 1.99 on macOS 15.7</li>
+<li><strong>Measured:</strong> Reached 32 MB of crates for one project (ripgrep). After removal, Cargo downloaded them again and the project built. (1.99.1, macOS 15.7.7, 2026-11-08)</li>
 </ul>
 <h3 id="cargo-tools-and-settings">Cargo tools and settings <a class="anchor" href="#cargo-tools-and-settings" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: never</strong> · <code>cargo.keep</code></p>
@@ -428,8 +433,8 @@
 <li><strong>What it is:</strong> Files produced by building a Rust project.</li>
 <li><strong>If you remove it:</strong> The project will rebuild in full next time.</li>
 <li><strong>Official command:</strong> <code>cargo clean</code></li>
-<li><strong>Source:</strong> Research notes (unverified)</li>
-<li><strong>Evidence:</strong> unverified</li>
+<li><strong>Source:</strong> Measured: removed and rebuilt with Cargo 1.99 on macOS 15.7</li>
+<li><strong>Measured:</strong> A release build of ripgrep left 166 MB in target. <code>cargo clean</code> emptied it, and the project built again afterwards. (1.99.1, macOS 15.7.7, 2026-11-08)</li>
 </ul>
 <h3 id="gradle-downloads">Gradle downloads <a class="anchor" href="#gradle-downloads" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: rebuild</strong> · <code>gradle.cache</code></p>
@@ -438,7 +443,8 @@
 <li><strong>What it is:</strong> Libraries and tools Gradle downloaded earlier.</li>
 <li><strong>If you remove it:</strong> Gradle will download them again and the next build will be slower.</li>
 <li><strong>Condition:</strong> Not while a Gradle daemon is running.</li>
-<li><strong>Source:</strong> Gradle documentation</li>
+<li><strong>Source:</strong> Measured: removed and rerun with Gradle 9.5 on macOS 15.7</li>
+<li><strong>Measured:</strong> One project (Spring PetClinic) filled 315 MB of caches and 154 MB of wrapper distributions. Deleting the caches freed 311 MB on disk, and the next run downloaded 188 MB again; that build then stopped on a Java version the project asks for, unrelated to the cache. (9.5.1, macOS 15.7.7, 2026-11-08)</li>
 </ul>
 <h3 id="gradle-settings">Gradle settings <a class="anchor" href="#gradle-settings" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: never</strong> · <code>gradle.keep</code></p>
@@ -455,8 +461,8 @@
 <li><strong>Pattern:</strong> <code>~/.m2/repository</code></li>
 <li><strong>What it is:</strong> Libraries Maven downloaded, plus any you installed locally.</li>
 <li><strong>If you remove it:</strong> Downloaded libraries come back from the network, but ones installed only on this Mac are lost.</li>
-<li><strong>Source:</strong> Research notes (unverified)</li>
-<li><strong>Evidence:</strong> unverified</li>
+<li><strong>Source:</strong> Measured: removed and rebuilt with Maven 3.9 on macOS 15.7</li>
+<li><strong>Measured:</strong> One project (Spring PetClinic) filled 217 MB. After deleting it, Maven downloaded the dependencies again and built the project; deleting it freed 213 MB on disk. It stays review because <code>mvn install</code> puts your own builds here, which cannot be downloaded again. (3.9, macOS 15.7.7, 2026-11-08)</li>
 </ul>
 <h3 id="maven-settings">Maven settings <a class="anchor" href="#maven-settings" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: never</strong> · <code>maven.keep</code></p>
@@ -476,7 +482,8 @@
 <li><strong>If you remove it:</strong> Go will download them again.</li>
 <li><strong>Condition:</strong> These files are read-only, so use the command.</li>
 <li><strong>Official command:</strong> <code>go clean -modcache</code></li>
-<li><strong>Source:</strong> Go documentation</li>
+<li><strong>Source:</strong> Measured: removed and rebuilt with Go 1.27 on macOS 15.7</li>
+<li><strong>Measured:</strong> Reached 398 MB of modules for one project (GitHub's gh CLI). <code>go clean -modcache</code> emptied it, deleting it freed 403 MB on disk, and the project built again after downloading its modules. (go1.27.3, macOS 15.7.7, 2026-11-08)</li>
 </ul>
 <h3 id="go-build-cache">Go build cache <a class="anchor" href="#go-build-cache" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: rebuild</strong> · <code>go.buildcache</code></p>
@@ -485,7 +492,8 @@
 <li><strong>What it is:</strong> Compiled Go packages kept to speed up builds.</li>
 <li><strong>If you remove it:</strong> The next builds will be slower.</li>
 <li><strong>Official command:</strong> <code>go clean -cache</code></li>
-<li><strong>Source:</strong> Go documentation</li>
+<li><strong>Source:</strong> Measured: removed and rebuilt with Go 1.27 on macOS 15.7</li>
+<li><strong>Measured:</strong> Reached 633 MB building one project (GitHub's gh CLI). <code>go clean -cache</code> emptied it, deleting it freed 622 MB on disk, and the project built again afterwards. (go1.27.3, macOS 15.7.7, 2026-11-08)</li>
 </ul>
 <h3 id="go-tools-and-sources">Go tools and sources <a class="anchor" href="#go-tools-and-sources" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: never</strong> · <code>go.keep</code></p>
@@ -514,8 +522,8 @@
 <li><strong>What it is:</strong> Swift packages downloaded earlier.</li>
 <li><strong>If you remove it:</strong> They will be fetched again.</li>
 <li><strong>Official command:</strong> <code>swift package purge-cache</code></li>
-<li><strong>Source:</strong> Research notes (unverified)</li>
-<li><strong>Evidence:</strong> unverified</li>
+<li><strong>Source:</strong> Measured: removed and rebuilt with SwiftPM 6.1 on macOS 15.7</li>
+<li><strong>Measured:</strong> Held 9.6 MB of cloned dependencies for a package with two dependencies. <code>swift package purge-cache</code> emptied it, and the package built again afterwards. (Swift 6.1.2, macOS 15.7.7, 2026-11-08)</li>
 </ul>
 <h3 id="swift-build-output">Swift build output <a class="anchor" href="#swift-build-output" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: rebuild</strong> · <code>swiftpm.build</code></p>
@@ -524,8 +532,8 @@
 <li><strong>What it is:</strong> Files produced by building a Swift package.</li>
 <li><strong>If you remove it:</strong> The package will rebuild in full next time.</li>
 <li><strong>Official command:</strong> <code>swift package clean</code></li>
-<li><strong>Source:</strong> Research notes (unverified)</li>
-<li><strong>Evidence:</strong> unverified</li>
+<li><strong>Source:</strong> Measured: removed and rebuilt with SwiftPM 6.1 on macOS 15.7</li>
+<li><strong>Measured:</strong> A release build of a package with two dependencies left 172 MB in .build; deleting it freed about 160 MB, and the package built again afterwards. (Swift 6.1.2, macOS 15.7.7, 2026-11-08)</li>
 </ul>
 <h3 id="swift-package-trust-data">Swift package trust data <a class="anchor" href="#swift-package-trust-data" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: never</strong> · <code>swiftpm.security</code></p>
@@ -546,6 +554,231 @@
 <li><strong>Condition:</strong> Not offered. The cleanup command removes only outdated versions.</li>
 <li><strong>Official command:</strong> <code>brew cleanup</code></li>
 <li><strong>Source:</strong> Homebrew manual</li>
+<li><strong>Observed:</strong> 15 formulae installed 73 packages with dependencies, taking 1.15 GB in Cellar; 3 casks installed their apps into /Applications and kept 40 KB in Caskroom (Homebrew 7.0, macOS 15.7, 2026-11-08).</li>
+</ul>
+<h3 id="yarn-1-package-cache">Yarn 1 package cache <a class="anchor" href="#yarn-1-package-cache" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: rebuild</strong> · <code>yarn.cache</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Caches/Yarn</code></li>
+<li><strong>What it is:</strong> Packages Yarn 1 downloaded, kept unpacked so later installs can copy them.</li>
+<li><strong>If you remove it:</strong> Yarn downloads packages again when you next install.</li>
+<li><strong>Official command:</strong> <code>yarn cache clean</code></li>
+<li><strong>Source:</strong> Measured: removed and reinstalled with Yarn 1.22 on macOS 15.7</li>
+<li><strong>Measured:</strong> Reached 3.0 GB for one project of about 560 packages, five times what npm kept for the same dependencies. <code>yarn cache clean</code> emptied it, deleting it freed 2.95 GB of disk, and Yarn installed again afterwards. (1.22.22, macOS 15.7.7, 2026-11-08)</li>
+</ul>
+<h3 id="yarn-package-cache">Yarn package cache <a class="anchor" href="#yarn-package-cache" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: rebuild</strong> · <code>yarn.berry.cache</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/.yarn/berry/cache</code></li>
+<li><strong>What it is:</strong> Packages Yarn 2 and later downloaded, shared by all your projects.</li>
+<li><strong>If you remove it:</strong> Yarn downloads packages again when you next install.</li>
+<li><strong>Official command:</strong> <code>yarn cache clean --all</code></li>
+<li><strong>Source:</strong> Measured: removed and reinstalled with Yarn 4.9 on macOS 15.7</li>
+<li><strong>Measured:</strong> Reached 556 MB for one project of about 560 packages. <code>yarn cache clean --all</code> emptied it, deleting it freed 492 MB of disk, and Yarn installed again afterwards. (4.9.2, macOS 15.7.7, 2026-11-08)</li>
+</ul>
+<h3 id="bun-package-cache">Bun package cache <a class="anchor" href="#bun-package-cache" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: rebuild</strong> · <code>bun.cache</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/.bun/install/cache</code></li>
+<li><strong>What it is:</strong> Packages Bun downloaded, shared by all your projects.</li>
+<li><strong>If you remove it:</strong> Bun downloads packages again when you next install, and while your projects keep their node_modules this frees almost no disk space.</li>
+<li><strong>Official command:</strong> <code>bun pm cache rm</code></li>
+<li><strong>Source:</strong> Measured: removed and reinstalled with Bun 1.4 on macOS 15.7</li>
+<li><strong>Measured:</strong> Reached 631 MB for one project of about 560 packages. <code>bun pm cache rm</code> emptied it. Deleting it freed no measurable disk space, because Bun on macOS clones files into node_modules, which keep the data. Bun installed again afterwards. (1.4.4, macOS 15.7.7, 2026-11-08)</li>
+</ul>
+<h3 id="nvm-downloads">nvm downloads <a class="anchor" href="#nvm-downloads" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: safe</strong> · <code>nvm.cache</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/.nvm/.cache</code></li>
+<li><strong>What it is:</strong> Node.js archives nvm downloaded to install versions.</li>
+<li><strong>If you remove it:</strong> Installed Node versions keep working.</li>
+<li><strong>Official command:</strong> <code>nvm cache clear</code></li>
+<li><strong>Source:</strong> Measured: nvm 0.40 on macOS 15.7</li>
+<li><strong>Observed:</strong> Held 30 MB after installing one Node version; <code>nvm cache clear</code> emptied it.</li>
+</ul>
+<h3 id="node-versions-installed-with-nvm">Node versions installed with nvm <a class="anchor" href="#node-versions-installed-with-nvm" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: review</strong> · <code>nvm.versions</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/.nvm/versions</code></li>
+<li><strong>What it is:</strong> The Node.js versions nvm installed, with their global packages.</li>
+<li><strong>If you remove it:</strong> Projects and tools that use a removed version stop working until you install it again.</li>
+<li><strong>Condition:</strong> Remove versions you no longer use with <code>nvm uninstall &lt;version&gt;</code>.</li>
+<li><strong>Source:</strong> Measured: nvm 0.40 on macOS 15.7</li>
+<li><strong>Observed:</strong> One Node 26 install took 228 MB.</li>
+</ul>
+<h3 id="corepacks-package-manager-downloads">Corepack's package manager downloads <a class="anchor" href="#corepacks-package-manager-downloads" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: rebuild</strong> · <code>corepack.cache</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/.cache/node/corepack</code></li>
+<li><strong>What it is:</strong> The pnpm and Yarn versions Corepack downloaded for your projects.</li>
+<li><strong>If you remove it:</strong> Corepack downloads the version a project asks for the next time you use it.</li>
+<li><strong>Source:</strong> Measured: removed and reran with Corepack on macOS 15.7</li>
+<li><strong>Measured:</strong> Held 58 MB for pnpm 12 and Yarn 1 and 4. After removal, pnpm and Yarn 4 ran again, and Corepack downloaded 52 MB back. (corepack 0.34, macOS 15.7.7, 2026-11-08)</li>
+</ul>
+<h3 id="poetry-project-environments">Poetry project environments <a class="anchor" href="#poetry-project-environments" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: rebuild</strong> · <code>poetry.virtualenvs</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Caches/pypoetry/virtualenvs</code></li>
+<li><strong>What it is:</strong> The virtual environments of your Poetry projects, which Poetry keeps inside its cache folder by default.</li>
+<li><strong>If you remove it:</strong> Your Poetry projects stop running until you run <code>poetry install</code> in each of them.</li>
+<li><strong>Condition:</strong> These are not caches, even though they sit in ~/Library/Caches.</li>
+<li><strong>Source:</strong> Measured: removed and reinstalled with Poetry 2.5 on macOS 15.7</li>
+<li><strong>Measured:</strong> One project with 13 popular packages had a 1.09 GB environment here. Deleting it freed 1,078 MB and the project could no longer import its packages; <code>poetry install</code> rebuilt it in 11 seconds and the project worked again. (2.5.1, macOS 15.7.7, 2026-11-08)</li>
+</ul>
+<h3 id="poetry-package-cache">Poetry package cache <a class="anchor" href="#poetry-package-cache" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: rebuild</strong> · <code>poetry.cache</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Caches/pypoetry/cache || ~/Library/Caches/pypoetry/artifacts</code></li>
+<li><strong>What it is:</strong> Package metadata and files Poetry downloaded for your projects.</li>
+<li><strong>If you remove it:</strong> Poetry downloads them again when you next install or update a project.</li>
+<li><strong>Condition:</strong> <code>poetry cache clear --all PyPI</code> freed only 14 of 550 MB in our test.</li>
+<li><strong>Source:</strong> Measured: removed and reinstalled with Poetry 2.5 on macOS 15.7</li>
+<li><strong>Measured:</strong> Reached 550 MB (282 MB cache, 268 MB artifacts) for one project with 13 popular packages. After deleting both, Poetry still worked and rebuilt a project environment by downloading again. (2.5.1, macOS 15.7.7, 2026-11-08)</li>
+</ul>
+<h3 id="python-versions-installed-by-uv">Python versions installed by uv <a class="anchor" href="#python-versions-installed-by-uv" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: review</strong> · <code>uv.pythons</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/.local/share/uv/python</code></li>
+<li><strong>What it is:</strong> Python interpreters uv downloaded for your projects and tools.</li>
+<li><strong>If you remove it:</strong> Environments built on a removed Python stop working until uv installs it again.</li>
+<li><strong>Condition:</strong> Remove versions you no longer use with <code>uv python uninstall &lt;version&gt;</code>.</li>
+<li><strong>Source:</strong> Measured: uv 0.13 on macOS 15.7</li>
+<li><strong>Observed:</strong> One Python 3.12 took 72 MB.</li>
+</ul>
+<h3 id="tools-installed-with-uv">Tools installed with uv <a class="anchor" href="#tools-installed-with-uv" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: review</strong> · <code>uv.tools</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/.local/share/uv/tools</code></li>
+<li><strong>What it is:</strong> Command-line tools installed with <code>uv tool install</code>, each in its own environment.</li>
+<li><strong>If you remove it:</strong> The tools stop working until you install them again.</li>
+<li><strong>Condition:</strong> Remove tools with <code>uv tool uninstall &lt;name&gt;</code>.</li>
+<li><strong>Source:</strong> Measured: uv 0.13 on macOS 15.7</li>
+<li><strong>Observed:</strong> Poetry and pipx installed as uv tools took 49 MB.</li>
+</ul>
+<h3 id="rust-toolchains">Rust toolchains <a class="anchor" href="#rust-toolchains" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: review</strong> · <code>rustup.toolchains</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/.rustup/toolchains</code></li>
+<li><strong>What it is:</strong> The Rust compilers and standard libraries rustup installed.</li>
+<li><strong>If you remove it:</strong> Rust projects that use a removed toolchain stop building until rustup installs it again.</li>
+<li><strong>Condition:</strong> Remove toolchains you no longer use with <code>rustup toolchain uninstall &lt;name&gt;</code>.</li>
+<li><strong>Source:</strong> Measured: rustup 1.29 on macOS 15.7</li>
+<li><strong>Observed:</strong> The stable toolchain with the default profile took 1.4 GB.</li>
+</ul>
+<h3 id="tool-versions-installed-by-mise">Tool versions installed by mise <a class="anchor" href="#tool-versions-installed-by-mise" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: review</strong> · <code>mise.installs</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/.local/share/mise/installs</code></li>
+<li><strong>What it is:</strong> The language and tool versions mise installed, such as Node and Python.</li>
+<li><strong>If you remove it:</strong> Projects that use a removed version stop working until mise installs it again.</li>
+<li><strong>Condition:</strong> <code>mise prune</code> removes versions no project or global setting uses.</li>
+<li><strong>Source:</strong> Measured: mise 2026.11.4 on macOS 15.7</li>
+<li><strong>Observed:</strong> Node 22 and Python 3.12 took 259 MB; <code>mise prune</code> found nothing to remove while both were in use.</li>
+</ul>
+<h3 id="mise-downloads">mise downloads <a class="anchor" href="#mise-downloads" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: safe</strong> · <code>mise.cache</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Caches/mise</code></li>
+<li><strong>What it is:</strong> Archives and metadata mise downloaded while installing tools.</li>
+<li><strong>If you remove it:</strong> Installed tools keep working.</li>
+<li><strong>Official command:</strong> <code>mise cache clear</code></li>
+<li><strong>Source:</strong> Measured: mise 2026.11.4 on macOS 15.7</li>
+<li><strong>Observed:</strong> Held 74 MB after installing Node and Python; <code>mise cache clear</code> emptied it.</li>
+</ul>
+<h3 id="tool-versions-installed-by-asdf">Tool versions installed by asdf <a class="anchor" href="#tool-versions-installed-by-asdf" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: review</strong> · <code>asdf.installs</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/.asdf/installs</code></li>
+<li><strong>What it is:</strong> The language and tool versions asdf installed.</li>
+<li><strong>If you remove it:</strong> Projects that use a removed version stop working until asdf installs it again.</li>
+<li><strong>Condition:</strong> Remove versions you no longer use with <code>asdf uninstall &lt;tool&gt; &lt;version&gt;</code>.</li>
+<li><strong>Source:</strong> Measured: asdf v0.20.2 (revision cb72590) on macOS 15.7</li>
+<li><strong>Observed:</strong> Node 20 took 158 MB, and its plugin 11 MB; asdf removed its downloads after installing.</li>
+</ul>
+<h3 id="sdkman-downloads">SDKMAN downloads <a class="anchor" href="#sdkman-downloads" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: safe</strong> · <code>sdkman.archives</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/.sdkman/tmp || ~/.sdkman/archives</code></li>
+<li><strong>What it is:</strong> Archives SDKMAN downloaded to install JDKs and tools, kept after installing.</li>
+<li><strong>If you remove it:</strong> Installed JDKs and tools keep working.</li>
+<li><strong>Official command:</strong> <code>sdk flush</code></li>
+<li><strong>Source:</strong> Measured: SDKMAN on macOS 15.7</li>
+<li><strong>Observed:</strong> Held 304 MB after installing a JDK, Gradle and Maven; <code>sdk flush</code> freed 297 MB, and the JDK and Maven kept working.</li>
+</ul>
+<h3 id="jdks-and-tools-installed-by-sdkman">JDKs and tools installed by SDKMAN <a class="anchor" href="#jdks-and-tools-installed-by-sdkman" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: review</strong> · <code>sdkman.candidates</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/.sdkman/candidates</code></li>
+<li><strong>What it is:</strong> The JDKs, Gradle, Maven and other tools SDKMAN installed.</li>
+<li><strong>If you remove it:</strong> Projects and tools that use a removed version stop working until SDKMAN installs it again.</li>
+<li><strong>Condition:</strong> Remove versions you no longer use with <code>sdk uninstall &lt;tool&gt; &lt;version&gt;</code>.</li>
+<li><strong>Source:</strong> Measured: SDKMAN on macOS 15.7</li>
+<li><strong>Observed:</strong> A JDK 25, Gradle and Maven took 463 MB. SDKMAN needs Bash 4 or later, which macOS does not include.</li>
+</ul>
+<h3 id="rbenv-ruby-versions">rbenv Ruby versions <a class="anchor" href="#rbenv-ruby-versions" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: review</strong> · <code>rbenv.versions</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/.rbenv/versions</code></li>
+<li><strong>What it is:</strong> Ruby versions rbenv built, each with the gems installed into it.</li>
+<li><strong>If you remove it:</strong> Projects that use a removed version stop working until rbenv builds it again and their gems are reinstalled.</li>
+<li><strong>Source:</strong> Measured: built Ruby 3.4.12 with rbenv 1.3.2 on macOS 15.7</li>
+<li><strong>Observed:</strong> Ruby 3.4.12 took 115 MB once built. After bundling a Rails 8 app's gems into it the folder was 268 MB, about 30 MB of which was the downloaded .gem files in its gem cache.</li>
+</ul>
+<h3 id="rvm-ruby-versions-and-gems">RVM Ruby versions and gems <a class="anchor" href="#rvm-ruby-versions-and-gems" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: review</strong> · <code>rvm.rubies</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/.rvm/rubies || ~/.rvm/gems</code></li>
+<li><strong>What it is:</strong> Ruby versions RVM installed, and the gems installed for each of them.</li>
+<li><strong>If you remove it:</strong> Projects that use a removed version stop working until RVM installs it again and their gems are reinstalled.</li>
+<li><strong>Source:</strong> Measured: built Ruby 3.4.12 with RVM 1.29.12-next on macOS 15.7</li>
+<li><strong>Observed:</strong> Ruby 3.4.12 took 52 MB in rubies, and a Rails 8 app's gems took 153 MB in gems.</li>
+</ul>
+<h3 id="rvm-sources-and-archives">RVM sources and archives <a class="anchor" href="#rvm-sources-and-archives" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: safe</strong> · <code>rvm.sources</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/.rvm/src || ~/.rvm/archives</code></li>
+<li><strong>What it is:</strong> Source code and downloaded archives RVM keeps after building Ruby.</li>
+<li><strong>If you remove it:</strong> Installed Rubies and gems keep working, but installing a version again downloads its source again.</li>
+<li><strong>Official command:</strong> <code>rvm cleanup all</code></li>
+<li><strong>Source:</strong> Measured: rvm cleanup all, then bundled again with RVM 1.29.12-next on macOS 15.7</li>
+<li><strong>Measured:</strong> After building Ruby 3.4.12 the folders held 283 MB of source and 23 MB of archives. rvm cleanup all removed both, and Bundler then installed the app's gems with that Ruby as before. (rvm 1.29.12-next (master branch), macOS 15.7.7, 2026-11-08)</li>
+</ul>
+<h3 id="downloaded-gem-files">Downloaded gem files <a class="anchor" href="#downloaded-gem-files" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: rebuild</strong> · <code>ruby.gem-cache</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>**/cache if-sibling:specifications</code></li>
+<li><strong>What it is:</strong> The .gem files RubyGems keeps after installing each gem.</li>
+<li><strong>If you remove it:</strong> Installed gems keep working, but reinstalling or repairing a gem downloads it again.</li>
+<li><strong>Source:</strong> Measured: removed with Ruby 3.4.12 from rbenv, RVM and mise on macOS 15.7</li>
+<li><strong>Measured:</strong> With a Rails 8 app's gems installed, the gem caches held 30 MB under rbenv and 27 MB under RVM. Deleting the .gem files freed that space, bundle install downloaded nothing, and the app still loaded Rails. (Ruby 3.4.12, RubyGems and Bundler as bundled with it, macOS 15.7.7, 2026-11-08)</li>
+</ul>
+<h3 id="bundlers-gem-index">Bundler's gem index <a class="anchor" href="#bundlers-gem-index" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: rebuild</strong> · <code>bundler.cache</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/.bundle/cache</code></li>
+<li><strong>What it is:</strong> Bundler's copy of the rubygems.org gem index, which it uses to choose gem versions.</li>
+<li><strong>If you remove it:</strong> The next bundle install downloads the index again.</li>
+<li><strong>Source:</strong> Measured: removed and bundled again with Ruby 3.4.12 on macOS 15.7</li>
+<li><strong>Measured:</strong> After bundling one Rails 8 app it held 776 files and 30 MB. It was removed and came back at the same size on the next bundle install. (Bundler as bundled with Ruby 3.4.12, macOS 15.7.7, 2026-11-08)</li>
+</ul>
+<h3 id="gems-vendored-in-a-project">Gems vendored in a project <a class="anchor" href="#gems-vendored-in-a-project" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: rebuild</strong> · <code>bundler.vendor</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>**/vendor/bundle/ruby</code></li>
+<li><strong>What it is:</strong> Gems Bundler installed inside a project whose bundle path is vendor/bundle.</li>
+<li><strong>If you remove it:</strong> The project stops running until you run bundle install again, with network access.</li>
+<li><strong>Source:</strong> Measured: removed and bundled again with Ruby 3.4.12 from mise on macOS 15.7</li>
+<li><strong>Measured:</strong> A Rails 8 app's gems took 178 MB. After removal, bundle install put them back and the app loaded nokogiri again. (mise 2026.11.4, Ruby 3.4.12, macOS 15.7.7, 2026-11-08)</li>
+</ul>
+<h3 id="homebrew-itself">Homebrew itself <a class="anchor" href="#homebrew-itself" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: never</strong> · <code>homebrew.program</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>/opt/homebrew/Library</code></li>
+<li><strong>What it is:</strong> Homebrew's own code, its formula lists, and the Ruby and gems it runs on.</li>
+<li><strong>If you remove it:</strong> brew stops working.</li>
+<li><strong>Condition:</strong> Use brew cleanup and brew uninstall instead.</li>
+<li><strong>Source:</strong> Measured: folder contents listed after installing Homebrew on macOS 15.7</li>
+<li><strong>Observed:</strong> The folder held Homebrew's own portable Ruby and a vendor/bundle of gems, which the generic gem-cache and vendor/bundle rules would otherwise match.</li>
 </ul>
 <h2 id="logs-trash-downloads-and-personal-data">Logs, Trash, downloads and personal data <a class="anchor" href="#logs-trash-downloads-and-personal-data" aria-label="Link to this section">#</a></h2>
 <p>Logs, the Trash, installers, and data that belongs to you.</p>
@@ -638,8 +871,8 @@
 <li><strong>Source:</strong> Research notes (unverified)</li>
 <li><strong>Evidence:</strong> unverified</li>
 </ul>
-<h2 id="measured-app-rules">Measured app rules <a class="anchor" href="#measured-app-rules" aria-label="Link to this section">#</a></h2>
-<p>Rules for one app's folders, from <a href="https://github.com/midhunkrishna/deepyellow/blob/master/rules/90-apps.json"><code>rules/90-apps.json</code></a>. Each was measured in a macOS virtual machine: the app was used, quit, the folder moved to the Trash, and the app relaunched to see what came back and whether it stayed signed in. The <strong>Measured</strong> line records what was seen.</p>
+<h2 id="app-rules">App rules <a class="anchor" href="#app-rules" aria-label="Link to this section">#</a></h2>
+<p>Rules for one app's folders, from <a href="https://github.com/midhunkrishna/deepyellow/blob/master/rules/90-apps.json"><code>rules/90-apps.json</code></a>. Where a rule has a <strong>Measured</strong> line, it was tested in a macOS virtual machine: the app was used, quit, the folder moved to the Trash, and the app relaunched to see what came back and whether it stayed signed in. A rule without that line rests on the vendor's documentation, on research, or on where the folder sits, and its <strong>Source</strong> line says which. Research and location alone never go above the review tier.</p>
 <h3 id="slacks-web-cache">Slack's web cache <a class="anchor" href="#slacks-web-cache" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: rebuild</strong> · <code>slack.cache</code></p>
 <ul>
@@ -723,7 +956,7 @@
 <li><strong>Condition:</strong> Quit Spotify first.</li>
 <li><strong>Owning app:</strong> <code>com.spotify.client</code></li>
 <li><strong>Source:</strong> Measured: removed and relaunched Spotify 1.3.8 on macOS 15.7</li>
-<li><strong>Measured:</strong> Reached 334 MB after 40 tracks in 14 minutes, 240 MB of it streamed audio. After removal Spotify relaunched signed in; the folder came back at 57 MB and reached 248 MB after 6 more tracks. (Spotify 1.3.8.620, macOS 15.7.7, 2026-11-09)</li>
+<li><strong>Measured:</strong> Reached 334 MB after 40 tracks in 14 minutes, 240 MB of it streamed audio. After removal Spotify relaunched signed in; the folder came back at 57 MB and reached 248 MB after 6 more tracks. (Spotify 1.3.8.620, macOS 15.7.7, 2026-11-08)</li>
 </ul>
 <h3 id="spotifys-account-database">Spotify's account database <a class="anchor" href="#spotifys-account-database" aria-label="Link to this section">#</a></h3>
 <p><strong>Tier: review</strong> · <code>spotify.account-data</code></p>
@@ -734,10 +967,151 @@
 <li><strong>Condition:</strong> Quit Spotify first.</li>
 <li><strong>Owning app:</strong> <code>com.spotify.client</code></li>
 <li><strong>Source:</strong> Measured: removed and relaunched Spotify 1.3.8 on macOS 15.7</li>
-<li><strong>Measured:</strong> Reached 28 MB after 40 tracks on a free account. After removal Spotify relaunched signed in with nothing queued; the folder came back at 8 MB and reached 10 MB after 6 tracks. Songs downloaded for offline listening (Premium) were not tested. (Spotify 1.3.8.620, macOS 15.7.7, 2026-11-09)</li>
+<li><strong>Measured:</strong> Reached 28 MB after 40 tracks on a free account. After removal Spotify relaunched signed in with nothing queued; the folder came back at 8 MB and reached 10 MB after 6 tracks. Songs downloaded for offline listening (Premium) were not tested. (Spotify 1.3.8.620, macOS 15.7.7, 2026-11-08)</li>
+</ul>
+<h3 id="vs-codes-extension-installer-cache">VS Code's extension installer cache <a class="anchor" href="#vs-codes-extension-installer-cache" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: safe</strong> · <code>vscode.extension-installers</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Application Support/Code/CachedExtensionVSIXs</code></li>
+<li><strong>What it is:</strong> Copies of the installer files of extensions VS Code has installed.</li>
+<li><strong>If you remove it:</strong> Your extensions stay installed and keep working.</li>
+<li><strong>Condition:</strong> Quit VS Code first.</li>
+<li><strong>Owning app:</strong> <code>com.microsoft.VSCode</code></li>
+<li><strong>Source:</strong> Measured: removed and relaunched VS Code 1.145 on macOS 15.7</li>
+<li><strong>Measured:</strong> Reached 174 MB after installing 6 extensions (9 with their dependencies). After removal VS Code relaunched with all 9 extensions installed, and the folder stayed empty after opening a project. (VS 1.145.2, macOS 15.7.7, 2026-11-08)</li>
+</ul>
+<h3 id="vs-codes-compiled-code-cache">VS Code's compiled code cache <a class="anchor" href="#vs-codes-compiled-code-cache" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: rebuild</strong> · <code>vscode.compiled-code</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Application Support/Code/CachedData</code></li>
+<li><strong>What it is:</strong> JavaScript that VS Code and its extensions compiled, kept so later starts are faster.</li>
+<li><strong>If you remove it:</strong> VS Code compiles it again on its next start, which makes that start slower.</li>
+<li><strong>Condition:</strong> Quit VS Code first.</li>
+<li><strong>Owning app:</strong> <code>com.microsoft.VSCode</code></li>
+<li><strong>Source:</strong> Measured: removed and relaunched VS Code 1.145 on macOS 15.7</li>
+<li><strong>Measured:</strong> Was 15 MB after the first launch. After removal VS Code relaunched normally and rebuilt it at 86 MB right away, now including the installed extensions. (VS 1.145.2, macOS 15.7.7, 2026-11-08)</li>
+</ul>
+<h3 id="vs-codes-logs">VS Code's logs <a class="anchor" href="#vs-codes-logs" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: safe</strong> · <code>vscode.logs</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Application Support/Code/logs</code></li>
+<li><strong>What it is:</strong> Text logs VS Code and its extensions write while they run, used to troubleshoot problems.</li>
+<li><strong>If you remove it:</strong> VS Code starts new logs, and your settings and extensions stay.</li>
+<li><strong>Condition:</strong> Quit VS Code first.</li>
+<li><strong>Owning app:</strong> <code>com.microsoft.VSCode</code></li>
+<li><strong>Source:</strong> Measured: removed and relaunched VS Code 1.145 on macOS 15.7</li>
+<li><strong>Measured:</strong> Reached 1.1 MB after opening 5 projects. After removal VS Code relaunched normally and wrote 0.2 MB of new logs. (VS 1.145.2, macOS 15.7.7, 2026-11-08)</li>
+</ul>
+<h3 id="vs-code-extensions">VS Code extensions <a class="anchor" href="#vs-code-extensions" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: never</strong> · <code>vscode.extensions</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/.vscode/extensions</code></li>
+<li><strong>What it is:</strong> The extensions installed in VS Code, including the language tools and libraries they bundle.</li>
+<li><strong>If you remove it:</strong> Removing files inside breaks the extensions that own them.</li>
+<li><strong>Condition:</strong> Uninstall extensions from the Extensions view in VS Code instead.</li>
+<li><strong>Owning app:</strong> <code>com.microsoft.VSCode</code></li>
+<li><strong>Source:</strong> Measured: folder contents listed in VS Code 1.145 on macOS 15.7</li>
+<li><strong>Observed:</strong> 6 extensions took 528 MB, 274 MB of it the C/C++ extension. Generic rules matched folders inside them, such as a node_modules bundled with Prettier, where removal would break the extension.</li>
+</ul>
+<h3 id="zooms-downloaded-components">Zoom's downloaded components <a class="anchor" href="#zooms-downloaded-components" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: review</strong> · <code>zoom.components</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Application Support/zoom.us/asr || ~/Library/Application Support/zoom.us/CefPlugin</code></li>
+<li><strong>What it is:</strong> Speech recognition models for captions and an embedded web engine that Zoom downloads in the background.</li>
+<li><strong>If you remove it:</strong> Zoom downloads them again as soon as it starts, so the space is taken again within minutes.</li>
+<li><strong>Owning app:</strong> <code>us.zoom.xos</code></li>
+<li><strong>Source:</strong> Measured: removed and relaunched Zoom 7.2.5 on macOS 15.7</li>
+<li><strong>Measured:</strong> Took 498 MB after one session with captions: 217 MB of speech models and 281 MB of web engine. After removal Zoom relaunched signed in and downloaded 464 MB of it again within 90 seconds. On a Mac used for months the speech models were 407 MB, all downloaded in the same month. (Zoom 7.2.5 (90525), macOS 15.7.7, 2026-11-08)</li>
+</ul>
+<h3 id="zooms-program-files">Zoom's program files <a class="anchor" href="#zooms-program-files" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: never</strong> · <code>zoom.app-code</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Application Support/zoom.us/Plugins</code></li>
+<li><strong>What it is:</strong> Part of the Zoom app itself, unpacked here on first launch and extended with downloaded features.</li>
+<li><strong>If you remove it:</strong> Zoom puts the files back the next time it starts, so no space stays free.</li>
+<li><strong>Condition:</strong> Uninstall Zoom to remove it.</li>
+<li><strong>Owning app:</strong> <code>us.zoom.xos</code></li>
+<li><strong>Source:</strong> Measured: removed and relaunched Zoom 7.2.5 on macOS 15.7</li>
+<li><strong>Measured:</strong> First launch unpacked 148 MB here and it reached 276 MB. After removal Zoom relaunched signed in and had put back 196 MB within 90 seconds. (Zoom 7.2.5 (90525), macOS 15.7.7, 2026-11-08)</li>
+</ul>
+<h3 id="zooms-account-data">Zoom's account data <a class="anchor" href="#zooms-account-data" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: review</strong> · <code>zoom.account-data</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Application Support/zoom.us/data</code></li>
+<li><strong>What it is:</strong> Zoom's databases for the signed-in account, meetings and settings.</li>
+<li><strong>If you remove it:</strong> Zoom signs you out and starts as if it were newly installed.</li>
+<li><strong>Condition:</strong> Quit Zoom first.</li>
+<li><strong>Owning app:</strong> <code>us.zoom.xos</code></li>
+<li><strong>Source:</strong> Measured: removed and relaunched Zoom 7.2.5 on macOS 15.7</li>
+<li><strong>Measured:</strong> Reached 189 MB after one session, and 260 MB on a Mac used for months. After removal Zoom relaunched signed out, showing its first-run screen, and the folder came back at 2.3 MB. (Zoom 7.2.5 (90525), macOS 15.7.7, 2026-11-08)</li>
+</ul>
+<h3 id="teams-web-cache">Teams' web cache <a class="anchor" href="#teams-web-cache" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: rebuild</strong> · <code>teams.cache</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Containers/com.microsoft.teams2/Data/Library/Caches/Microsoft/MSTeams</code></li>
+<li><strong>What it is:</strong> Images, files and pages Teams downloaded so it can show them again without fetching them.</li>
+<li><strong>If you remove it:</strong> Teams downloads them again as you open them, and you stay signed in.</li>
+<li><strong>Condition:</strong> Quit Teams first.</li>
+<li><strong>Owning app:</strong> <code>com.microsoft.teams2</code></li>
+<li><strong>Source:</strong> Measured: removed and relaunched Teams 26289 on macOS 15.7</li>
+<li><strong>Measured:</strong> Reached 85 MB after sign-in and 10 minutes of use with a personal account. After removal Teams relaunched signed in and the folder came back at 2.4 MB. (Teams 26289.204.5281.6363, macOS 15.7.7, 2026-11-08)</li>
+</ul>
+<h3 id="teams-offline-app-copy">Teams' offline app copy <a class="anchor" href="#teams-offline-app-copy" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: review</strong> · <code>teams.service-worker</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Containers/com.microsoft.teams2/Data/Library/Application Support/Microsoft/MSTeams/EBWebView/WV2Profile_*/Service Worker</code></li>
+<li><strong>What it is:</strong> A copy of the Teams web app that Teams downloads after you sign in, so it can start quickly and without the network.</li>
+<li><strong>If you remove it:</strong> Teams downloads it again as soon as it starts, so the space is taken again within a minute.</li>
+<li><strong>Owning app:</strong> <code>com.microsoft.teams2</code></li>
+<li><strong>Source:</strong> Measured: removed and relaunched Teams 26289 on macOS 15.7</li>
+<li><strong>Measured:</strong> Was 387 MB right after signing in with a personal account. After removal Teams relaunched signed in and the folder was back at 408 MB within 60 seconds. Work and school accounts were not tested. (Teams 26289.204.5281.6363, macOS 15.7.7, 2026-11-08)</li>
+</ul>
+<h3 id="teams-logs">Teams' logs <a class="anchor" href="#teams-logs" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: safe</strong> · <code>teams.logs</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Group Containers/UBF8T346G9.com.microsoft.teams/Library/Application Support/Logs</code></li>
+<li><strong>What it is:</strong> Text logs Teams writes while it runs, used to troubleshoot problems.</li>
+<li><strong>If you remove it:</strong> Teams starts new logs and you stay signed in.</li>
+<li><strong>Condition:</strong> Quit Teams first.</li>
+<li><strong>Owning app:</strong> <code>com.microsoft.teams2</code></li>
+<li><strong>Source:</strong> Measured: removed and relaunched Teams 26289 on macOS 15.7</li>
+<li><strong>Measured:</strong> Reached 6 MB after sign-in and 10 minutes of use. After removal Teams relaunched signed in and wrote 3.7 MB of new logs within a minute. (Teams 26289.204.5281.6363, macOS 15.7.7, 2026-11-08)</li>
+</ul>
+<h3 id="teams-app-data">Teams' app data <a class="anchor" href="#teams-app-data" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: review</strong> · <code>teams.data</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Containers/com.microsoft.teams2</code></li>
+<li><strong>What it is:</strong> Everything Teams keeps for your account on this Mac: chats, settings, the offline app copy and caches.</li>
+<li><strong>If you remove it:</strong> Teams signs you out and downloads everything again after you sign back in.</li>
+<li><strong>Condition:</strong> Quit Teams first.</li>
+<li><strong>Owning app:</strong> <code>com.microsoft.teams2</code></li>
+<li><strong>Source:</strong> Measured: removed and relaunched Teams 26289 on macOS 15.7</li>
+<li><strong>Measured:</strong> Was 540 MB after sign-in and 10 minutes of use. After removing it and the shared Teams group container, Teams relaunched signed out, offering the remembered account, and the folder came back at 28 MB. (Teams 26289.204.5281.6363, macOS 15.7.7, 2026-11-08)</li>
+</ul>
+<h3 id="discords-web-cache">Discord's web cache <a class="anchor" href="#discords-web-cache" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: rebuild</strong> · <code>discord.cache</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Application Support/discord/Cache</code></li>
+<li><strong>What it is:</strong> Images, GIFs and pages Discord downloaded so it can show them again without fetching them.</li>
+<li><strong>If you remove it:</strong> Discord downloads them again as you open channels, and you stay signed in.</li>
+<li><strong>Condition:</strong> Quit Discord first.</li>
+<li><strong>Owning app:</strong> <code>com.hnc.Discord</code></li>
+<li><strong>Source:</strong> Measured: removed and relaunched Discord 0.0.421 on macOS 15.7</li>
+<li><strong>Measured:</strong> Reached 29 MB after sign-in and 10 minutes in a public community, growing by 18 MB during that use. After removal Discord relaunched signed in and the folder came back at 17 MB within a minute. (Discord 0.0.421, macOS 15.7.7, 2026-11-08)</li>
+</ul>
+<h3 id="discords-program-modules">Discord's program modules <a class="anchor" href="#discords-program-modules" aria-label="Link to this section">#</a></h3>
+<p><strong>Tier: never</strong> · <code>discord.app-code</code></p>
+<ul>
+<li><strong>Pattern:</strong> <code>~/Library/Application Support/discord/app-*</code></li>
+<li><strong>What it is:</strong> Part of the Discord app itself, such as voice and noise suppression, downloaded on first launch.</li>
+<li><strong>If you remove it:</strong> Discord stops starting with a fatal error, and does not download the files again.</li>
+<li><strong>Condition:</strong> Uninstall Discord to remove it.</li>
+<li><strong>Owning app:</strong> <code>com.hnc.Discord</code></li>
+<li><strong>Source:</strong> Measured: removed and relaunched Discord 0.0.421 on macOS 15.7</li>
+<li><strong>Measured:</strong> Took 224 MB after first launch and use, including a 111 MB voice module. After removal Discord showed 'Cannot find module discord_desktop_core' on two launches in a row; putting the folder back from the Trash fixed it, still signed in. (Discord 0.0.421, macOS 15.7.7, 2026-11-08)</li>
 </ul>
 <h2 id="summary">Summary <a class="anchor" href="#summary" aria-label="Link to this section">#</a></h2>
-<p>66 rules in total: 3 safe, 27 rebuild, 17 review, 19 never.</p>
+<p>102 rules in total: 10 safe, 39 rebuild, 30 review, 23 never.</p>
 <nav class="pager" aria-label="Pages"><a href="sql.html">&larr; SQL</a><a href="cli.html">Command line &rarr;</a></nav>
   </main>
 </div>

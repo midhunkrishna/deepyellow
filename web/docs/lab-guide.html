@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Measure an app in a lab VM | DeepYellow docs</title>
+<meta name="description" content="This guide walks you through measuring where one Mac app writes its files and what comes back when you remove them. You do it in a macOS virtual machine made with tart, so nothing ">
+<meta name="theme-color" content="#0E0D0B">
+<link rel="icon" href="../favicon.png">
+<link rel="apple-touch-icon" href="../images/icon.png">
+<meta name="color-scheme" content="dark">
+<style>html{background:#0E0D0B}body{visibility:hidden;animation:reveal 0s 3s forwards}@keyframes reveal{to{visibility:visible}}</style>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="nav"><div class="wrap">
+  <a class="brand" href="../index.html"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>DeepYellow</a>
+  <nav class="nav-links" aria-label="Main">
+    <a href="../features.html">Features</a>
+    <a href="index.html" aria-current="page">Docs</a>
+    <a href="../index.html#blocked">If macOS blocks it</a>
+    <a href="https://github.com/midhunkrishna/deepyellow">GitHub</a>
+    <a class="btn" href="https://github.com/midhunkrishna/deepyellow/releases/latest/download/DeepYellow.dmg">Download</a>
+  </nav>
+</div></header>
+<div class="trust"><ul aria-label="What DeepYellow does not do">
+  <li>No network code</li><li>No telemetry</li><li>Trash only, never permanent</li><li>CLI is read-only</li><li>Read-only mode for real scans</li><li>Open source, MIT</li>
+</ul></div>
+<div class="wrap docs">
+  <nav class="docnav" aria-label="Documentation">
+<h4>Start</h4><ul>
+<li><a href="index.html">Overview</a></li>
+<li><a href="getting-started.html">Getting started</a></li>
+<li><a href="install.html">Install</a></li>
+<li><a href="faq.html">FAQ</a></li>
+</ul>
+<h4>Using it</h4><ul>
+<li><a href="views.html">Views</a></li>
+<li><a href="query-language.html">Query language</a></li>
+<li><a href="safety-and-accounting.html">Safety and accounting</a></li>
+<li><a href="sql.html">SQL</a></li>
+<li><a href="reclaim-rules.html">Reclaim rules</a></li>
+<li><a href="cli.html">Command line</a></li>
+</ul>
+<h4>Project</h4><ul>
+<li><a href="building-from-source.html">Building from source</a></li>
+<li><a href="architecture.html">Architecture</a></li>
+<li><a href="lab-guide.html" aria-current="page">Lab guide</a></li>
+<li><a href="uninstall.html">Uninstall</a></li>
+</ul>
+  </nav>
+  <main id="main" class="prose">
+<h1 id="measure-an-app-in-a-lab-vm">Measure an app in a lab VM</h1>
+<p>This guide walks you through measuring where one Mac app writes its files and what comes back when you remove them. You do it in a macOS virtual machine made with <a href="https://tart.run">tart</a>, so nothing runs on your own Mac. The result is a scrubbed report that you hand to the <code>write-rule</code> skill (or to <a href="index.html">rules/README.md</a>) to write a reclaim rule with <code>relaunch-test</code> evidence.</p>
+<p>If you can't run a VM, the <code>research-app</code> skill writes a rule from the vendor's documentation instead. That evidence is weaker, so it can only give the <code>review</code> or <code>never</code> tiers.</p>
+<h2 id="hard-rules">Hard rules <a class="anchor" href="#hard-rules" aria-label="Link to this section">#</a></h2>
+<ul>
+<li>Never measure on your own Mac's real home folder. Everything below happens inside the VM.</li>
+<li>Never delete anything on your own Mac to test a rule. Deleting inside the VM is fine, which is the point of it.</li>
+<li>Never sign in with an account that holds other people's private conversations, meetings or files. Use an account made for the test.</li>
+<li>Never commit raw snapshots, raw JSON or screenshots. They stay in <code>$LAB_HOME/runs/&lt;vm&gt;</code> on your Mac.</li>
+</ul>
+<h2 id="what-you-need">What you need <a class="anchor" href="#what-you-need" aria-label="Link to this section">#</a></h2>
+<ul>
+<li>A Mac with Apple Silicon. tart runs macOS guests only there.</li>
+<li><a href="https://tart.run">tart</a>. Install it yourself by the instructions on its site. The lab scripts call <code>tart</code>, or the path in the <code>TART</code> environment variable.</li>
+<li>Free disk space. Not documented yet: the size of the base VM and of each copy.</li>
+<li>DeepYellow.app in <code>dist/DeepYellow.app</code> of this repo, because <code>install-dy</code> copies it into the VM. Not documented yet: how an outside contributor gets this build.</li>
+<li>Python 3 for <code>lab/compare.py</code>.</li>
+</ul>
+<h2 id="build-the-base-vm-once">Build the base VM once <a class="anchor" href="#build-the-base-vm-once" aria-label="Link to this section">#</a></h2>
+<p>Every measurement runs in a copy of one frozen base VM called <code>dy-base</code> (change the name with <code>LAB_BASE</code>). The lab never boots or deletes the base. <code>lab.sh</code> refuses to run <code>up</code>, <code>down</code>, <code>rm</code> or <code>new</code> on any name that starts with <code>dy-base</code>.</p>
+<p>The base is a macOS VM with a user called <code>admin</code>, auto-login, passwordless sudo, and Full Disk Access, Accessibility, Screen Recording and System Events control granted to <code>/usr/libexec/sshd-keygen-wrapper</code>, so scripts started over SSH can read every folder and press keys.</p>
+<p>Not documented yet: the commands to create the base VM and grant those permissions.</p>
+<h2 id="set-up-lab_home-and-ssh">Set up LAB_HOME and SSH <a class="anchor" href="#set-up-lab_home-and-ssh" aria-label="Link to this section">#</a></h2>
+<p><code>lab.sh</code> keeps its SSH key, host list and run folders in <code>LAB_HOME</code>, which is <code>~/.tart/dy-lab</code> unless you set it. It reaches the VM with <code>ssh -F $LAB_HOME/ssh_config</code>, using the host name <code>dy-vm</code>, and never uses your own SSH settings.</p>
+<p>Not documented yet: how to create <code>$LAB_HOME/ssh_config</code>, the key, and how to put the public key into the base VM.</p>
+<p>Raw snapshots and screenshots go to <code>$LAB_HOME/runs/&lt;vm&gt;</code>, never into the repo.</p>
+<h2 id="measure-one-app">Measure one app <a class="anchor" href="#measure-one-app" aria-label="Link to this section">#</a></h2>
+<p>Pick a short VM name, such as <code>m-slack</code>. The commands run from the repo root. All of them are in the header of <code>lab/lab.sh</code>.</p>
+<ol>
+<li><p>Copy the base and boot the copy.</p>
+<pre><code>lab/lab.sh new m-slack
+lab/lab.sh up m-slack</code></pre></li>
+<li><p>Copy DeepYellow and the guest scripts into the VM, to <code>/opt/deepyellow</code>.</p>
+<pre><code>lab/lab.sh install-dy m-slack</code></pre></li>
+<li><p>Take the idle baseline before you install the app. It waits 60 seconds, snapshots <code>n0</code>, waits 120 seconds (or the number you give) and snapshots <code>n1</code>. The two snapshots show what the VM writes by itself, which <code>compare.py</code> marks as noise.</p>
+<pre><code>lab/lab.sh baseline m-slack</code></pre></li>
+<li><p>Install the app. For a download, <code>install-app.sh</code> takes the URL and the <code>.app</code> name. For a Homebrew cask, install Homebrew first (see <code>lab/pm/homebrew/run.sh</code>) and run <code>brew install --cask &lt;token&gt;</code> through <code>lab/lab.sh ssh</code>.</p>
+<pre><code>lab/lab.sh ssh m-slack 'sh /opt/deepyellow/install-app.sh "&lt;download url&gt;" "Name.app"'</code></pre>
+<p>It prints the app's name and version. Write the version down.</p></li>
+<li>Sign in if the app needs it, and open it once. Use the VM window that <code>up</code> opened, with a test account.</li>
+<li><p>Use the app the way a person does. Copy a usage script into the VM and run it. <code>lab/apps/TEMPLATE.sh</code> is the starting point, and <code>lab/apps/slack/drive.sh</code>, <code>spotify</code> and <code>vscode</code> are worked examples.</p>
+<pre><code>lab/lab.sh push m-slack lab/apps/&lt;app&gt;/drive.sh /opt/deepyellow/drive.sh
+lab/lab.sh ssh m-slack 'sh /opt/deepyellow/drive.sh'</code></pre></li>
+<li><p>Take the snapshot after use.</p>
+<pre><code>lab/lab.sh snap m-slack after</code></pre></li>
+<li><p>Compare, to find the folders that grew (step 9 of this list tests them). <code>--home</code> is the VM user's home folder, <code>/Users/admin</code>. Add <code>--app-token</code> for each word that appears in the app's folder names (the app name, the bundle id), and <code>--redact</code> for each account-specific string, such as a workspace or user name, so it becomes <code>*</code>.</p>
+<pre><code>RUN=~/.tart/dy-lab/runs/m-slack
+python3 lab/compare.py "$RUN/n1.csv" "$RUN/after.csv" \
+    --home /Users/admin --app-token slack --noise "$RUN/n0.csv" "$RUN/n1.csv" \
+    --redact "&lt;workspace name&gt;" --json report.json --md report.md</code></pre>
+<p>Use another <code>RUN</code> if you changed <code>LAB_HOME</code>. Add <code>--raw-json raw.json</code> only if you need real paths for your own checking, and keep that file on your Mac.</p></li>
+<li><p>Run the relaunch test on the folders you want to remove. <code>relaunch.sh</code> quits the app, moves each folder to the VM's Trash, relaunches the app, takes a screenshot to check that you are still signed in, runs the usage script and prints the size of each folder before, after relaunch and after use. Set <code>APP</code>, <code>BUNDLE</code> and <code>PROC</code> for your app. <code>DRIVE</code> is the usage command, and an empty value skips it.</p>
+<pre><code>lab/lab.sh ssh m-slack 'APP=/Applications/Slack.app BUNDLE=com.tinyspeck.slackmacgap PROC=Slack DRIVE="sh /opt/deepyellow/drive.sh 5 3" sh /opt/deepyellow/relaunch.sh r1 "$HOME/Library/Application Support/Slack/Cache"'</code></pre>
+<p>Fetch the screenshot with <code>lab/lab.sh pull m-slack /tmp/relaunch-r1.png "$RUN/"</code>, or take one with <code>lab/lab.sh shot m-slack &lt;label&gt;</code>. Look at it in the VM's run folder and do not share it.</p>
+<p>Note what happened: did the app start, was it still signed in, did the folder come back, and how much of it.</p></li>
+</ol>
+<h2 id="read-the-report">Read the report <a class="anchor" href="#read-the-report" aria-label="Link to this section">#</a></h2>
+<p><code>report.md</code> starts with the totals: bytes added, files added, and the part attributed to the app by your <code>--app-token</code> words. Three tables follow: Growth, New folders and Shrank. Each row has the scrubbed path, bytes added, files added, the size after, and flags for new folder, attributed to the app, noise, and the safety class DeepYellow gives it today.</p>
+<p>Look first at attributed rows, then at large rows that are not. Rows flagged as noise also grew during the idle baseline, so the app probably didn't cause them. A folder that grew is a candidate, and only the relaunch test shows whether removing it is safe.</p>
+<p>If removing a folder freed far less than its size, APFS clones or hard links may be involved. Say so in the rule.</p>
+<h2 id="what-you-may-share">What you may share <a class="anchor" href="#what-you-may-share" aria-label="Link to this section">#</a></h2>
+<p>Share only <code>report.md</code>, the Markdown report from <code>compare.py</code>, after you read it and check that every account-specific part of every path is <code>*</code>. That means no IDs, emails, workspace or team names, and no user names.</p>
+<p>Never share the <code>--raw-json</code> output, screenshots, file names from the VM, or the CSV snapshots. If a path in the report still holds something personal, run <code>compare.py</code> again with another <code>--redact</code>.</p>
+<h2 id="clean-up">Clean up <a class="anchor" href="#clean-up" aria-label="Link to this section">#</a></h2>
+<pre><code>lab/lab.sh down m-slack
+lab/lab.sh rm m-slack</code></pre>
+<p><code>rm</code> deletes the VM. The raw snapshots stay in <code>$LAB_HOME/runs/m-slack</code> until you remove that folder yourself.</p>
+<h2 id="hand-off-to-write-rule">Hand off to write-rule <a class="anchor" href="#hand-off-to-write-rule" aria-label="Link to this section">#</a></h2>
+<p>Open Claude Code in this repo and run the <code>write-rule</code> skill. Give it the scrubbed <code>report.md</code>, the app version from step 4, the macOS version of the VM (<code>lab/lab.sh ssh m-slack 'sw_vers -productVersion'</code>, run before you remove the VM), today's date, and what you saw in the relaunch test. The evidence method is <code>relaunch-test</code>. Or run the <code>measure-app</code> skill, which drives these steps and then calls <code>write-rule</code>.</p>
+<p>Without Claude Code, follow <a href="index.html">rules/README.md</a> and <a href="https://github.com/midhunkrishna/deepyellow/blob/master/CONTRIBUTING.md">CONTRIBUTING.md</a>.</p>
+<nav class="pager" aria-label="Pages"><a href="architecture.html">&larr; Architecture</a><a href="uninstall.html">Uninstall &rarr;</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="wrap">
+  <p>DeepYellow is a native macOS disk analyzer, MIT license. <a href="../index.html">Home</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow">Source</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/releases">Releases</a> &middot; <a href="https://github.com/midhunkrishna/deepyellow/edit/master/docs/lab-guide.md">Edit this page</a></p>
+</div></footer>
+<div class="ledger" role="complementary" aria-label="Page ledger"><div class="wrap">
+  <span class="lab">LEDGER</span>
+  <span class="track" aria-hidden="true"><i class="read"></i><i class="gold"></i></span>
+  <span class="txt"><b data-pct>0%</b> read<span class="long"> &middot; every byte accounted for</span> &middot; free, MIT</span>
+  <a class="btn primary" href="https://github.com/midhunkrishna/deepyellow/releases/latest/download/DeepYellow.dmg">Download</a>
+</div></div>
+<script src="../site.js" defer></script>
+</body>
+</html>
