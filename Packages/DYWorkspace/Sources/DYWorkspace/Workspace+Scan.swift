@@ -224,7 +224,9 @@ extension Workspace {
             self.analysis[.kinds] = .running(fraction: nil)
             self.scheduleWorklists()
 
-            let refinement = await KindRefiner.refine(lens: full, reader: reader, minimumSize: minimum, isCancelled: { token.isCancelled })
+            let refinement = await Task.detached(priority: .utility) {
+                await KindRefiner.refine(lens: full, reader: reader, minimumSize: minimum, isCancelled: { token.isCancelled })
+            }.value
             guard !token.isCancelled, let refinement, self.tree === tree else { self.markCancelled(token); return }
             self.kindRefinement = refinement
             let refined = tree.replacingKinds(refinement.kinds)
@@ -259,12 +261,17 @@ extension Workspace {
         let (reader, minimum) = (environment.reader, environment.duplicateMinimumSize)
         taskEpoch += 1
         duplicatesTask = Task { [weak self] in
-            let report = await DuplicateFinder.find(lens: lens, minimumSize: minimum, reader: reader, progress: { fraction in
-                Task { @MainActor in
-                    guard let self, case .running(let last?) = self.analysis[.duplicates], fraction - last >= 0.01 || fraction >= 1 else { return }
-                    self.analysis[.duplicates] = .running(fraction: fraction)
-                }
-            }, isCancelled: { token.isCancelled })
+            let gate = ProgressGate()
+            let report = await Task.detached(priority: .utility) {
+                await DuplicateFinder.find(lens: lens, minimumSize: minimum, reader: reader, progress: { fraction in
+                    guard gate.accept(fraction) else { return }
+                    Task { @MainActor in
+                        // Hops can land out of order; never move the bar backwards.
+                        guard let self, case .running(let last) = self.analysis[.duplicates], fraction >= (last ?? 0) else { return }
+                        self.analysis[.duplicates] = .running(fraction: fraction)
+                    }
+                }, isCancelled: { token.isCancelled })
+            }.value
             guard let self else { return }
             guard !token.isCancelled, self.tree?.count == tree.count else {
                 if self.analysis[.duplicates] != .done { self.analysis[.duplicates] = .cancelled }

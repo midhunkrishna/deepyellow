@@ -41,6 +41,24 @@ public struct DuplicateReport: Sendable {
 public protocol FileReading: Sendable {
     /// Reads up to `length` bytes starting at `offset`. Returns fewer at the end of the file.
     func read(path: String, offset: UInt64, length: Int) throws -> Data
+
+    /// Reads a file from the start in successive chunks of at most `chunkSize` bytes, opening it once.
+    ///
+    /// Calls `body` with each non-empty chunk and stops at the end of the file or when `body` returns false.
+    /// Throws if the file can't be opened or read.
+    func readChunks(path: String, chunkSize: Int, _ body: (Data) -> Bool) throws
+}
+
+extension FileReading {
+    /// Default: successive ranged reads until an empty read or `body` returns false.
+    public func readChunks(path: String, chunkSize: Int, _ body: (Data) -> Bool) throws {
+        var offset: UInt64 = 0
+        while true {
+            let data = try read(path: path, offset: offset, length: chunkSize)
+            if data.isEmpty || !body(data) { return }
+            offset += UInt64(data.count)
+        }
+    }
 }
 
 /// Finds files with identical content: group by size, then by head and tail hash, then by full SHA-256.
@@ -138,14 +156,19 @@ public enum DuplicateFinder {
                                  isCancelled: @Sendable () -> Bool) -> String? {
         var hasher = SHA256()
         var offset: UInt64 = 0
-        while offset < size {
-            if isCancelled() { return nil }
-            let length = Int(min(UInt64(chunk), size - offset))
-            guard let data = try? reader.read(path: path, offset: offset, length: length), !data.isEmpty else { return nil }
-            hasher.update(data: data)
-            hashed &+= UInt64(data.count)
-            offset += UInt64(data.count)
+        var cancelled = false
+        let finished: Void? = try? reader.readChunks(path: path, chunkSize: chunk) { data in
+            autoreleasepool {
+                if isCancelled() { cancelled = true; return false }
+                // Hash exactly `size` bytes, as scanned, even if the file has grown since.
+                let wanted = data.prefix(Int(min(UInt64(data.count), size - offset)))
+                hasher.update(data: wanted)
+                hashed &+= UInt64(wanted.count)
+                offset += UInt64(wanted.count)
+                return offset < size
+            }
         }
+        guard finished != nil, !cancelled, offset >= size else { return nil }
         return hex(hasher.finalize())
     }
 

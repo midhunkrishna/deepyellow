@@ -128,6 +128,26 @@ public struct LocalFileReader: FileReading {
         try handle.seek(toOffset: offset)
         return try handle.read(upToCount: length) ?? Data()
     }
+
+    /// Reads the file through one open handle, one chunk at a time, releasing each chunk's buffers before the next.
+    public func readChunks(path: String, chunkSize: Int, _ body: (Data) -> Bool) throws {
+        guard let handle = FileHandle(forReadingAtPath: path) else { throw CocoaError(.fileReadNoSuchFile) }
+        defer { try? handle.close() }
+        var failure: Error?
+        var more = true
+        while more {
+            autoreleasepool {
+                do {
+                    guard let data = try handle.read(upToCount: chunkSize), !data.isEmpty else { more = false; return }
+                    more = body(data)
+                } catch {
+                    failure = error
+                    more = false
+                }
+            }
+        }
+        if let failure { throw failure }
+    }
 }
 
 /// A flag a background job checks to stop early. Safe to share across threads.
