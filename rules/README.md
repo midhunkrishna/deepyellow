@@ -15,7 +15,7 @@ Each file is one section of the rules page, and the number in its name sets the 
 | `30-system.json` | Virtual machines, backups and parts of macOS that are shown but not offered |
 | `40-package-managers.json` | Language caches, dependencies and build folders |
 | `50-personal.json` | Logs, the Trash, installers, and data that belongs to you |
-| `90-apps.json` | One app's folders, measured in the [lab](../lab/) |
+| `90-apps.json` | One app's folders. Most are measured in the [lab](../lab/); the rest rest on documentation or research and say so |
 
 `schema/rules.schema.json` describes the format. Editors such as VS Code read it through the `$schema` line at the top of each file, so they show what each field means and flag a missing one as you type.
 

@@ -2,8 +2,8 @@
   "$schema": "./schema/rules.schema.json",
   "version": 1,
   "section": {
-    "title": "Measured app rules",
-    "intro": "Rules for one app's folders, from [`rules/90-apps.json`](https://github.com/midhunkrishna/deepyellow/blob/master/rules/90-apps.json). Each was measured in a macOS virtual machine: the app was used, quit, the folder moved to the Trash, and the app relaunched to see what came back and whether it stayed signed in. The **Measured** line records what was seen."
+    "title": "App rules",
+    "intro": "Rules for one app's folders, from [`rules/90-apps.json`](https://github.com/midhunkrishna/deepyellow/blob/master/rules/90-apps.json). Where a rule has a **Measured** line, it was tested in a macOS virtual machine: the app was used, quit, the folder moved to the Trash, and the app relaunched to see what came back and whether it stayed signed in. A rule without that line rests on the vendor's documentation, on research, or on where the folder sits, and its **Source** line says which. Research and location alone never go above the review tier."
   },
   "rules": [
     {
